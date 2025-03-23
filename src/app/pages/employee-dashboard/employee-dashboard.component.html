@@ -1,0 +1,30 @@
+<div class="container mt-4">
+    <h2 class="mb-3">Painel de Funcionários - Próximos Voos</h2>
+
+    <table class="table table-striped" *ngIf="flights.length > 0; else noFlights">
+        <thead>
+            <tr>
+                <th>Data/Hora</th>
+                <th>Aeroporto de Origem</th>
+                <th>Aeroporto de Destino</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let flight of flights">
+                <td>{{ flight.dateTime | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ flight.origin }}</td>
+                <td>{{ flight.destination }}</td>
+                <td>
+                    <a [routerLink]="['/boarding-confirmation']" class="btn btn-primary btn-sm">Confirmar Embarque</a>
+                    <button class="btn btn-warning btn-sm mx-1" (click)="cancelFlight(flight)">Cancelar Voo</button>
+                    <button class="btn btn-success btn-sm" (click)="markAsCompleted(flight)">Completar Voo</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ng-template #noFlights>
+        <p class="text-muted">Nenhum voo nas próximas 48h.</p>
+    </ng-template>
+</div>
