@@ -1,0 +1,64 @@
+.container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 20px;
+    max-width: 50%;
+    margin: auto;
+    background-color: #1c1e22; 
+    border-radius: 5px; 
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); 
+}
+
+.cell {
+    background-color: white; 
+    color: black; 
+    border: 2px solid #ffc107;
+    padding: 20px;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 4px; 
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+
+.cell:hover {
+    transform: scale(1.02); 
+    box-shadow: 0px 4px 15px rgba(255, 193, 7, 0.5);
+}
+
+.cell.large {
+    grid-column: span 2;
+    grid-row: span 2;
+}
+
+.cell.medium {
+    grid-column: span 2;
+}
+
+body {
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.grid-title {
+    width: 50%;
+    max-width: 50%;
+    text-align: left;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 10px;
+}
