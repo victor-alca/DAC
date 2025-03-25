@@ -1,7 +1,11 @@
 .gradient-custom {
-  background: rgb(37, 80, 220);
+  background:rgb(37, 80, 220);
 
-  background: linear-gradient(270deg, rgb(7, 3, 237) 0%, rgb(37, 80, 220) 100%);
+  background: linear-gradient(
+    270deg,
+    rgb(7, 3, 237) 0%,
+    rgb(37, 80, 220) 100%
+  );
 
   background: -moz-linear-gradient(
     270deg,
@@ -14,6 +18,7 @@
     rgb(7, 3, 237) 0%,
     rgb(37, 80, 220) 100%
   );
+
 }
 
 .background-glass {
@@ -25,14 +30,17 @@
 }
 
 input.form-control {
-  border: 1px solid black;
+    border: 1px solid black;
 }
 
-input.form-control:focus {
-  border: 1px solid rgb(7, 3, 237);
+input.form-control:focus{
+  border: 1px solid  rgb(7, 3, 237);
 }
 
 .btn-submit {
   background-color: rgb(37, 80, 220);
   color: #fff;
+}
+.gap-1 {
+  gap: 4px;
 }
