@@ -1,0 +1,22 @@
+<div class="container mt-4">
+    <h2 class="mb-3">Confirmação de Embarque</h2>
+
+    <form (ngSubmit)="confirmBoarding()">
+        <div class="mb-3">
+            <label for="reservationCode" class="form-label">Código de Reserva</label>
+            <input type="text" id="reservationCode" class="form-control" [(ngModel)]="reservationCode"
+                name="reservationCode" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Confirmar Embarque</button>
+
+        <!-- Mensagens -->
+        <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+            {{ errorMessage }}
+        </div>
+
+        <div *ngIf="successMessage" class="alert alert-success mt-3">
+            {{ successMessage }}
+        </div>
+    </form>
+</div>
