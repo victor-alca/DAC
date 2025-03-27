@@ -7,6 +7,8 @@ import { LoginComponent } from './pages/login/login.component';
 import { EmployeeDashboardComponent } from './pages/employee-dashboard/employee-dashboard.component';
 import { BoardingConfirmationComponent } from './pages/boarding-confirmation/boarding-confirmation.component';
 import { FormsModule } from '@angular/forms';
+import { CustomerHomeComponent } from './pages/customer-home/customer-home.component';
+import { ViewBookingComponent } from './pages/view-booking/view-booking.component';
 
 @NgModule({
   declarations: [
@@ -14,6 +16,8 @@ import { FormsModule } from '@angular/forms';
     LoginComponent,
     EmployeeDashboardComponent,
     BoardingConfirmationComponent
+    CustomerHomeComponent,
+    ViewBookingComponent
   ],
   imports: [
     BrowserModule,

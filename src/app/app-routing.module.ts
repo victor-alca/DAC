@@ -7,6 +7,8 @@ const routes: Routes = [
   { path: 'login', component: pages.LoginComponent },
   { path: 'employee-dashboard', component: pages.EmployeeDashboardComponent },
   { path: 'boarding-confirmation', component: pages.BoardingConfirmationComponent }
+  { path: 'customer-home', component: pages.CustomerHomeComponent},
+  { path: 'view-booking', component: pages.ViewBookingComponent}
 ];
 
 @NgModule({
