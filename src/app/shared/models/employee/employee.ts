@@ -1,7 +1,7 @@
 export class Employee {
 
     constructor(
-        private ID: number,
+        public ID: number,
 
         public status: boolean,
 

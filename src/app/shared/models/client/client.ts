@@ -1,7 +1,7 @@
 export class Client {
 
     constructor (
-        private ID: string,
+        public ID: number,
 
         public status: boolean,
 
