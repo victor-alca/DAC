@@ -1,1 +1,103 @@
-<p>login works!</p>
+<section class="vh-100 gradient-custom">
+    <div class="container py-5 h-100">
+      <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+          <div
+            class="card background-glass "
+            style="border-radius: 1rem"
+          >
+            <div class="card-body p-5">
+              <div class="mb-3 mt-1">
+                <h2 class="fw-bold mb-2 text-uppercase text-center">Login</h2>
+                <p class="-50 mb-4 text-center">
+                  Entrar com e-mail e senha!
+                </p>
+  
+                <form #formLogin="ngForm">
+                  <div
+                    data-mdb-input-init
+                    class="form-outline form-white mb-2 d-flex flex-column justify-content-start"
+                  >
+                    <label class="form-label text-left" for="typeEmail"
+                      >E-mail</label
+                    >
+                    <input
+                      email
+                      type="email"
+                      id="typeEmail"
+                      name="email"
+                      class="form-control form-control-lg"
+                      [(ngModel)]="login.email"
+                      #email="ngModel"
+                      required
+                    />
+                    <div
+                      *ngIf="email.errors && (email.dirty || email.touched)"
+                      class="mt-1"
+                    >
+                      <p
+                        class="text-danger"
+                        [hidden]="!email.errors['required']"
+                      >
+                        Digite seu email.
+                      </p>
+                      <p class="text-danger" [hidden]="!email.errors['email']">
+                        E-mail inválido.
+                      </p>
+                    </div>
+                  </div>
+  
+                  <div data-mdb-input-init class="form-outline form-white mb-1">
+                    <label class="form-label" for="typePasswordX">Senha</label>
+                    <input
+                      name="password"
+                      type="password"
+                      id="typePasswordX"
+                      [(ngModel)]="login.password"
+                      #password="ngModel"
+                      class="form-control form-control-lg"
+                      required
+                    />
+                    <div
+                      *ngIf="
+                      password.errors && (password.dirty || password.touched)
+                      "
+                      class="mt-1"
+                    >
+                      <p
+                        class="text-danger"
+                        [hidden]="!password.errors['required']"
+                      >
+                        Digite sua senha.
+                      </p>
+                    </div>
+                  </div>
+  
+                  <p class="small mb-3 pb-lg-2">
+                    <a class="-50" href="#!">Esqueceu sua senha?</a>
+                  </p>
+  
+                  <button
+                    data-mdb-button-init
+                    data-mdb-ripple-init
+                    class="btn btn-outline btn-lg px-5 w-100 btn-submit"
+                    type="submit"
+                    (click)="submit()"
+                  >
+                    Login
+                  </button>
+                </form>
+              </div>
+              <div class="d-flex justify-content-center mb-1">
+                <p class="mb-0">
+                  Não possui uma conta?
+                  <a href="/sign" class="-50 fw-bold">Cadastre-se</a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
