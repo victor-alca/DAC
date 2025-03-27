@@ -15,7 +15,7 @@ import { ViewBookingComponent } from './pages/view-booking/view-booking.componen
     AppComponent,
     LoginComponent,
     EmployeeDashboardComponent,
-    BoardingConfirmationComponent
+    BoardingConfirmationComponent,
     CustomerHomeComponent,
     ViewBookingComponent
   ],
