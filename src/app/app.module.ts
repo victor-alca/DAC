@@ -9,11 +9,16 @@ import { BoardingConfirmationComponent } from './pages/boarding-confirmation/boa
 import { FormsModule } from '@angular/forms';
 import { CustomerHomeComponent } from './pages/customer-home/customer-home.component';
 import { ViewBookingComponent } from './pages/view-booking/view-booking.component';
+import { SignComponent } from './pages/sign/sign.component';
+import { CepValidatorDirective } from './shared/directives/cep-validator.directive';
+import { PhoneValidatorDirective } from './shared/directives/phone-validator.directive';
+import { EmailValidatorDirective } from './shared/directives/email-validator.directive';
+import { CpfValidatorDirective } from './shared/directives/cpf-validator.directive';
+import { provideNgxMask } from 'ngx-mask';
 
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent,
     EmployeeDashboardComponent,
     BoardingConfirmationComponent,
     CustomerHomeComponent,
@@ -22,9 +27,15 @@ import { ViewBookingComponent } from './pages/view-booking/view-booking.componen
   imports: [
     BrowserModule,
     AppRoutingModule,
+    LoginComponent,
+    SignComponent,
+    CpfValidatorDirective,
+    EmailValidatorDirective,
+    PhoneValidatorDirective,
+    CepValidatorDirective,
     FormsModule
   ],
-  providers: [],
+  providers: [provideNgxMask()],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
