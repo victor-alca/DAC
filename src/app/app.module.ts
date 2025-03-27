@@ -19,7 +19,6 @@ import { provideNgxMask } from 'ngx-mask';
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent,
     EmployeeDashboardComponent,
     BoardingConfirmationComponent,
     CustomerHomeComponent,
