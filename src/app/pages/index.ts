@@ -4,4 +4,4 @@ export * from './employee-dashboard/employee-dashboard.component';
 export * from './boarding-confirmation/boarding-confirmation.component';
 export * from './customer-home/customer-home.component';
 export * from './view-booking/view-booking.component';
-export * from './make-reservation/make-reservation.component'
+export * from './booking/booking.component'

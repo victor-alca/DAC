@@ -15,7 +15,8 @@ import { PhoneValidatorDirective } from './shared/directives/phone-validator.dir
 import { EmailValidatorDirective } from './shared/directives/email-validator.directive';
 import { CpfValidatorDirective } from './shared/directives/cpf-validator.directive';
 import { provideNgxMask } from 'ngx-mask';
-import { MakeReservationComponent } from './pages/make-reservation/make-reservation.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { BookingModalComponent } from './pages/booking-modal/booking-modal.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { MakeReservationComponent } from './pages/make-reservation/make-reservat
     EmailValidatorDirective,
     PhoneValidatorDirective,
     CepValidatorDirective,
-    FormsModule
+    FormsModule,
+    NgbModule
   ],
   providers: [provideNgxMask()],
   bootstrap: [AppComponent]

@@ -58,11 +58,11 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let reserva of filteredReservations">
-                    <td>{{ reserva.data.toLocaleDateString() }}</td>
-                    <td>{{ reserva.origin }}</td>
-                    <td>{{ reserva.destination }}</td>
-                    <td><button class="btn btn-outline-primary" routerLink="/ver-reserva">Selecionar</button></td>
+                <tr *ngFor="let booking of filteredBookings">
+                    <td>{{ booking.data.toLocaleDateString() }}</td>
+                    <td>{{ booking.origin }}</td>
+                    <td>{{ booking.destination }}</td>
+                    <td><button class="btn btn-outline-primary" (click)="openBookingModal()">Selecionar</button></td>
                 </tr>
             </tbody>
         </table>
