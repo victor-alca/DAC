@@ -15,7 +15,7 @@
     <p><strong>Destino:</strong> {{ booking.flight.destinationAirport }}</p>
 </div>
 
-<div class="card p-3">
+<div class="card p-3" *ngIf="!confirmingPayment && !endingPayment">
     <div class="row">
         <div class="col">
             <h5 class="card-title">Assentos Disponíveis</h5>
@@ -38,17 +38,71 @@
                 [max]="booking.flight.totalSeats - booking.flight.occupatedSeats"
                 placeholder="Escolha a quantidade">
         </div>
+    </div>
+
+    <button class="btn btn-primary mt-3" (click)="confirmPayment()">
+        Próximo
+    </button>
+</div>
+
+<div class="card p-3" *ngIf="confirmingPayment">
+    <div class="row">
         <div class="col">
-            
+            <h5 class="card-title">Assentos selecionados</h5>
+            <p>{{ selectedSeats }}</p>
+        </div>
+        <div class="col">
+            <h5 class="card-title">Valor a pagar</h5>
+            <p>{{ selectedSeats * booking.flight.ticketCost}}</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <h5 class="card-title">Quantidade de milhas</h5>
+            <input 
+                type="number" 
+                id="selectedMilles" 
+                class="form-control w-75" 
+                [(ngModel)]="selectedMilles" 
+                [min]="1" 
+                [max]="selectedSeats * booking.flight.ticketCost"
+                placeholder="Escolha a quantidade">
+        </div>
+        <div class="col">
+            <h5 class="card-title">Valor a pagar em reais</h5>
+            <p>{{ selectedSeats * booking.flight.ticketCost - selectedMilles}}</p>
         </div>
     </div>
 
-
-    
-    
-    <button class="btn btn-primary mt-3">
-        Confirmar Compra
-    </button>
+    <div class="row mt-3">
+        <div class="col">
+            <button class="btn btn-primary w-100" (click)="goBack()">
+                Voltar
+            </button>
+        </div>
+        <div class="col">
+            <button class="btn btn-primary w-100" (click)="endPayment()">
+                Comprar
+            </button>
+        </div>
+    </div>    
 </div>
+
+<div class="card p-3" *ngIf="endingPayment">
+    <div class="row">
+        <div class="col">
+            <h5 class="card-title">Código da compra</h5>
+            <p>{{ paymentCode }}</p>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col">
+            <button class="btn btn-primary w-100" (click)="finish()">
+                Finalizar
+            </button>
+        </div>
+    </div>    
+</div>
+    
 
 </html>
