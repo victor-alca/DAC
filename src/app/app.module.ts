@@ -15,6 +15,7 @@ import { PhoneValidatorDirective } from './shared/directives/phone-validator.dir
 import { EmailValidatorDirective } from './shared/directives/email-validator.directive';
 import { CpfValidatorDirective } from './shared/directives/cpf-validator.directive';
 import { provideNgxMask } from 'ngx-mask';
+import { ExtractComponent } from './pages/extract/extract.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { provideNgxMask } from 'ngx-mask';
     EmployeeDashboardComponent,
     BoardingConfirmationComponent,
     CustomerHomeComponent,
-    ViewBookingComponent
+    ViewBookingComponent,
+    ExtractComponent
   ],
   imports: [
     BrowserModule,

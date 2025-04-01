@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Booking } from '../shared/models/booking.model';
+import { Flight } from '../shared/models/flight/flight.model';
+import { Booking } from '../shared/models/booking/booking.model';
 
 // const para o local storage
 const LS_KEY = 'bookings';
@@ -46,5 +47,18 @@ export class BookingService {
 
     bookings = bookings.filter((booking) => booking.ID !== id);
     localStorage[LS_KEY] = JSON.stringify(bookings);
+  }
+
+  get ActiveBookings(): Booking[] {
+    return this.getAll().filter(booking => booking.status === 1);
+  }
+
+  get lastFlights(): Booking[] {
+    return this.getAll().filter(booking => booking.status === 2);
+  }
+
+  getFlightDetails(flightId: number): Flight | undefined {
+    const flights: Flight[] = JSON.parse(localStorage.getItem('flights') || '[]');
+    return flights.find(flight => flight.ID === flightId);
   }
 }
