@@ -15,6 +15,8 @@ import { PhoneValidatorDirective } from './shared/directives/phone-validator.dir
 import { EmailValidatorDirective } from './shared/directives/email-validator.directive';
 import { CpfValidatorDirective } from './shared/directives/cpf-validator.directive';
 import { provideNgxMask } from 'ngx-mask';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { BookingModalComponent } from './pages/booking-modal/booking-modal.component';
 import { BuyMilesComponent } from './pages/buy-miles/buy-miles.component';
 
 @NgModule({
@@ -35,7 +37,8 @@ import { BuyMilesComponent } from './pages/buy-miles/buy-miles.component';
     EmailValidatorDirective,
     PhoneValidatorDirective,
     CepValidatorDirective,
-    FormsModule
+    FormsModule,
+    NgbModule
   ],
   providers: [provideNgxMask()],
   bootstrap: [AppComponent]

@@ -5,3 +5,4 @@ export * from './employee-dashboard/employee-dashboard.component';
 export * from './login/login.component';
 export * from './sign/sign.component';
 export * from './view-booking/view-booking.component';
+export * from './booking/booking.component'

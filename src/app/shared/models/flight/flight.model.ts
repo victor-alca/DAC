@@ -7,8 +7,8 @@ export class Flight {
     public originAirport: string,
     public destinationAirport: string,
     public ticketCost: number,
-    public totalSeats: string,
-    public occupatedSeats: string,
+    public totalSeats: number,
+    public occupatedSeats: number,
     public status: FlightStatus
   ) {}
 }
