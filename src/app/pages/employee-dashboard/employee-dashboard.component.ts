@@ -49,7 +49,7 @@ export class EmployeeDashboardComponent implements OnInit {
       this.flightService.update(flight);
 
       // Cancela todas as reservas associadas ao voo
-      const bookings = this.bookingService.getAll().filter(booking => booking.flightId === flight.ID);
+      const bookings = this.bookingService.getAll().filter(booking => booking.flight.ID === flight.ID);
       bookings.forEach(booking => {
         booking.status = BookingStatus.FLIGHT_CANCELED;
         this.bookingService.update(booking);
