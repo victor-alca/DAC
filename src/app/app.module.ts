@@ -14,10 +14,12 @@ import { CepValidatorDirective } from './shared/directives/cep-validator.directi
 import { PhoneValidatorDirective } from './shared/directives/phone-validator.directive';
 import { EmailValidatorDirective } from './shared/directives/email-validator.directive';
 import { CpfValidatorDirective } from './shared/directives/cpf-validator.directive';
-import { provideNgxMask } from 'ngx-mask';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { BookingModalComponent } from './pages/booking-modal/booking-modal.component';
 import { BuyMilesComponent } from './pages/buy-miles/buy-miles.component';
+import { NgxMaskPipe, provideNgxMask } from 'ngx-mask';
+import { CancelBookingComponent } from './pages/cancel-booking/cancel-booking.component';
+import { BookingLookupComponent } from './pages/booking-lookup/booking-lookup.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +28,10 @@ import { BuyMilesComponent } from './pages/buy-miles/buy-miles.component';
     BoardingConfirmationComponent,
     CustomerHomeComponent,
     ViewBookingComponent,
-    BuyMilesComponent
+    BuyMilesComponent,
+    ViewBookingComponent,
+    CancelBookingComponent,
+    BookingLookupComponent
   ],
   imports: [
     BrowserModule,
@@ -38,7 +43,9 @@ import { BuyMilesComponent } from './pages/buy-miles/buy-miles.component';
     PhoneValidatorDirective,
     CepValidatorDirective,
     FormsModule,
-    NgbModule
+    NgbModule,
+    NgxMaskPipe,
+    FormsModule
   ],
   providers: [provideNgxMask()],
   bootstrap: [AppComponent]

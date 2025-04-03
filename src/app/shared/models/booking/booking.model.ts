@@ -6,6 +6,6 @@ export class Booking {
     public ID: number,
     public flight: Flight,
     public date: Date,
-    public status: BookingStatus
+    public status: BookingStatus,
   ) {}
 }
