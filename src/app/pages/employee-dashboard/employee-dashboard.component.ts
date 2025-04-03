@@ -4,6 +4,8 @@ import { BookingService } from '../../services/booking.service';
 import { Flight } from '../../shared/models/flight/flight.model';
 import { FlightStatus } from '../../shared/models/flight/flight-status.enum';
 import { BookingStatus } from '../../shared/models/booking/booking-status.enum';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-employee-dashboard',

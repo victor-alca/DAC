@@ -68,7 +68,7 @@ export class BookingService {
   getFlightDetails(flightId: number): Flight | undefined {
     const flights: Flight[] = JSON.parse(localStorage.getItem('flights') || '[]');
     return flights.find(flight => flight.ID === flightId);
-    
+  }
   // Método temporário para inserir reservas manualmente
   seedBookings(): void {
     const flights: Flight[] = [

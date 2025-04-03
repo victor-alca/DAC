@@ -27,16 +27,22 @@
         </div>
         </div>
     </nav>
-    <h2 class="grid-title">Ver Reservas</h2>
-    <div class="container">
-        <div class="cell large"><strong>Data:</strong> <br> <p>{{reservas[0].date | date:'dd/MM/yyyy'}}</p></div>
-        <div class="cell"><strong>Origem:</strong> <br> <p>{{getFlightDetails(reservas[0].flightId)?.originAirport}}</p></div>
-        <div class="cell"><strong>Destino:</strong> <br><p>{{getFlightDetails(reservas[0].flightId)?.destinationAirport}}</p></div>
-        <div class="cell medium"><strong>Milhas Gastas:</strong> <br> <p>{{getFlightDetails(reservas[0].flightId)?.ticketCost}}</p></div>
-        <div class="cell"><strong>Preço:</strong> <br><p>R${{getFlightDetails(reservas[0].flightId)?.ticketCost}}</p></div>
-        <div class="cell"><strong>Código:</strong> <br> <p>{{reservas[0].ID}}</p></div>
-        <div class="cell medium"><strong>Status:</strong> <br><p>{{reservas[0].status}}</p></div>
+    <div class="container mt-4">
+        <h2 class="mb-3">Detalhes da Reserva</h2>
+
+        <div *ngIf="reservas.length > 0; else noReservations">
+            <div *ngFor="let reserva of reservas">
+                <p>Origem: {{ reserva.flight.originAirport }}</p>
+                <p>Destino: {{ reserva.flight.destinationAirport }}</p>
+                <p>Data: {{ reserva.flight.date | date:'dd/MM/yyyy HH:mm' }}</p>
+                <p>Preço: R${{ reserva.flight.ticketCost }}</p>
+                <p>Status: {{ reserva.status }}</p>
+            </div>
+        </div>
+
+        <ng-template #noReservations>
+            <p class="text-muted">Nenhuma reserva encontrada.</p>
+        </ng-template>
     </div>
-    
 </body>
 </html>

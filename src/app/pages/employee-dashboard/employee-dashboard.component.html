@@ -23,9 +23,7 @@
                 <td>
                     <a 
                         [routerLink]="['/boarding-confirmation']" 
-                        class="btn btn-primary btn-sm" 
-                        [class.disabled]="(flight.status === 2 || flight.status === 3)" 
-                        [style.pointer-events]="(flight.status === 2 || flight.status === 3) ? 'none' : 'auto'">
+                        class="btn btn-primary btn-sm" >
                         Confirmar Embarque
                     </a>
                     <button 
@@ -36,7 +34,7 @@
                     </button>
                     <button 
                         class="btn btn-success btn-sm" 
-                        [disabled]="(flight.status === 2 || flight.status === 3)" 
+                        [disabled]="flight.status !== 1" 
                         (click)="markAsCompleted(flight)">
                         Completar Voo
                     </button>

@@ -31,55 +31,32 @@
     <div class="container">
         <h1>Suas milhas: 2303</h1>
         <hr class="separador">
-        <table>
-            <caption align="top" class="subTitulo">
-                Suas reservas atuais
-            </caption>
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Data</th>
-                    <th>Origem</th>
-                    <th>Destino</th>
-                    <th>Visualizar</th>
-                    <th>Cancelar</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let reserva of ActiveBookings">
-                    <td>{{ reserva.ID }}</td>
-                    <td>{{ reserva.date | date:'dd/MM/yyyy' }}</td>
-                    <td>{{ getFlightDetails(reservas[0].flightId)?.originAirport }}</td>
-                    <td>{{ getFlightDetails(reservas[0].flightId)?.destinationAirport }}</td>
-                    <td><button class="btn btn-outline-warning" routerLink="/view-booking">Ver</button></td>
-                    <td><button class="btn btn-outline-danger">Cancelar</button></td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="container mt-4">
+            <h2 class="mb-3">Minhas Reservas</h2>
 
-        <table>
-            <caption align="top" class="subTitulo">
-                Seus últimos voos
-            </caption>
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Data</th>
-                    <th>Origem</th>
-                    <th>Destino</th>
-                    <th>Visualizar</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let reserva of lastFlights">
-                    <td>{{ reserva.ID }}</td>
-                    <td>{{ reserva.date | date:'dd/MM/yyyy' }}</td>
-                    <td>{{ getFlightDetails(reservas[0].flightId)?.originAirport }}</td>
-                    <td>{{ getFlightDetails(reservas[0].flightId)?.destinationAirport }}</td>
-                    <td><button class="btn btn-outline-warning" routerLink="/view-booking">Ver</button></td>
-                </tr>
-            </tbody>
-        </table>
+            <table class="table table-striped" *ngIf="reservas.length > 0; else noReservations">
+                <thead>
+                    <tr>
+                        <th>Origem</th>
+                        <th>Destino</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let reserva of reservas">
+                        <td>{{ reserva.flight.originAirport }}</td>
+                        <td>{{ reserva.flight.destinationAirport }}</td>
+                        <td>{{ reserva.flight.date | date:'dd/MM/yyyy HH:mm' }}</td>
+                        <td>{{ reserva.status }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <ng-template #noReservations>
+                <p class="text-muted">Nenhuma reserva encontrada.</p>
+            </ng-template>
+        </div>
 </div>
 </body>
 </html>

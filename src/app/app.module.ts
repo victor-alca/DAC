@@ -14,8 +14,6 @@ import { CepValidatorDirective } from './shared/directives/cep-validator.directi
 import { PhoneValidatorDirective } from './shared/directives/phone-validator.directive';
 import { EmailValidatorDirective } from './shared/directives/email-validator.directive';
 import { CpfValidatorDirective } from './shared/directives/cpf-validator.directive';
-import { provideNgxMask } from 'ngx-mask';
-import { ExtractComponent } from './pages/extract/extract.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { BookingModalComponent } from './pages/booking-modal/booking-modal.component';
 import { BuyMilesComponent } from './pages/buy-miles/buy-miles.component';
@@ -30,7 +28,6 @@ import { BookingLookupComponent } from './pages/booking-lookup/booking-lookup.co
     BoardingConfirmationComponent,
     CustomerHomeComponent,
     ViewBookingComponent,
-    ExtractComponent,
     BuyMilesComponent,
     ViewBookingComponent,
     CancelBookingComponent,
