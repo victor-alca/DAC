@@ -10,6 +10,8 @@ const routes: Routes = [
   { path: 'boarding-confirmation', component: pages.BoardingConfirmationComponent },
   { path: 'customer-home', component: pages.CustomerHomeComponent},
   { path: 'view-booking', component: pages.ViewBookingComponent},
+  { path: 'booking', component: pages.BookingComponent},
+  { path: 'buy-miles', component: pages.BuyMilesComponent}
   { path: 'cancel-booking', component: pages.CancelBookingComponent}
 ];
 

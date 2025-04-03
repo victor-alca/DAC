@@ -8,17 +8,28 @@ import { EmailValidatorDirective } from '../../shared/directives/email-validator
 import { PhoneValidatorDirective } from '../../shared/directives/phone-validator.directive';
 import { CepValidatorDirective } from '../../shared/directives/cep-validator.directive';
 import { Router } from '@angular/router';
+import { Client } from '../../shared/models/client/client';
+import { ClientService } from '../../services/client/client.service';
+
 
 @Component({
   selector: 'app-sign',
   standalone: true,
-  imports: [CommonModule, FormsModule, CpfValidatorDirective, EmailValidatorDirective, PhoneValidatorDirective, NgxMaskDirective,CepValidatorDirective],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CpfValidatorDirective,
+    EmailValidatorDirective,
+    PhoneValidatorDirective,
+    NgxMaskDirective,
+    CepValidatorDirective,
+  ],
   templateUrl: './sign.component.html',
   styleUrl: './sign.component.css',
 })
 export class SignComponent {
   @ViewChild('formPerson') formPerson!: NgForm;
-  person: Person = new Person();
+  client: Client = new Client();
 
   cep: string = '';
   address: string = '';
@@ -28,10 +39,18 @@ export class SignComponent {
   cepError: string | null = null;
   number: string = '';
 
-    constructor(private router: Router) {}
+  constructor(private router: Router, private ClientService: ClientService) {}
 
   submit(): void {
-    if (this.formPerson.form.valid)
-      console.log(Person);
+    if (this.formPerson.form.valid) { 
+      this.client.CEP = this.cep;
+      this.client.street = this.address;
+      this.client.neighborhood = this.neighborhood;
+      this.client.city = this.city;
+      this.client.state = this.state;
+      this.client.number = this.number;
+
+      this.ClientService.create(this.client)
+    }
   }
 }
