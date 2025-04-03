@@ -17,6 +17,7 @@ import { CpfValidatorDirective } from './shared/directives/cpf-validator.directi
 import { provideNgxMask } from 'ngx-mask';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { BookingModalComponent } from './pages/booking-modal/booking-modal.component';
+import { BuyMilesComponent } from './pages/buy-miles/buy-miles.component';
 
 @NgModule({
   declarations: [
@@ -25,6 +26,7 @@ import { BookingModalComponent } from './pages/booking-modal/booking-modal.compo
     BoardingConfirmationComponent,
     CustomerHomeComponent,
     ViewBookingComponent,
+    BuyMilesComponent
   ],
   imports: [
     BrowserModule,
