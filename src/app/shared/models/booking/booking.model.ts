@@ -5,6 +5,7 @@ export class Booking {
     public ID: number,
     public flightId: number,
     public date: Date,
-    public status: BookingStatus
+    public status: BookingStatus,
+    public code: string[6]
   ) {}
 }
