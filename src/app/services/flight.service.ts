@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Flight } from '../shared/models/flight.model';
+import { Flight } from '../shared/models/flight/flight.model';
 
 // const para o local storage
 const LS_KEY = 'flights';

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Booking } from '../shared/models/booking.model';
+import { Booking } from '../shared/models/booking/booking.model';
 
 // const para o local storage
 const LS_KEY = 'bookings';
