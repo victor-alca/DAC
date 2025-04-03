@@ -14,7 +14,8 @@ import { CepValidatorDirective } from './shared/directives/cep-validator.directi
 import { PhoneValidatorDirective } from './shared/directives/phone-validator.directive';
 import { EmailValidatorDirective } from './shared/directives/email-validator.directive';
 import { CpfValidatorDirective } from './shared/directives/cpf-validator.directive';
-import { provideNgxMask } from 'ngx-mask';
+import { NgxMaskPipe, provideNgxMask } from 'ngx-mask';
+import { CancelBookingComponent } from './pages/cancel-booking/cancel-booking.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { provideNgxMask } from 'ngx-mask';
     EmployeeDashboardComponent,
     BoardingConfirmationComponent,
     CustomerHomeComponent,
-    ViewBookingComponent
+    ViewBookingComponent,
+    CancelBookingComponent
   ],
   imports: [
     BrowserModule,
@@ -33,6 +35,7 @@ import { provideNgxMask } from 'ngx-mask';
     EmailValidatorDirective,
     PhoneValidatorDirective,
     CepValidatorDirective,
+    NgxMaskPipe,
     FormsModule
   ],
   providers: [provideNgxMask()],
