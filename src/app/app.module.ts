@@ -16,6 +16,12 @@ import { EmailValidatorDirective } from './shared/directives/email-validator.dir
 import { CpfValidatorDirective } from './shared/directives/cpf-validator.directive';
 import { provideNgxMask } from 'ngx-mask';
 import { ExtractComponent } from './pages/extract/extract.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { BookingModalComponent } from './pages/booking-modal/booking-modal.component';
+import { BuyMilesComponent } from './pages/buy-miles/buy-miles.component';
+import { NgxMaskPipe, provideNgxMask } from 'ngx-mask';
+import { CancelBookingComponent } from './pages/cancel-booking/cancel-booking.component';
+import { BookingLookupComponent } from './pages/booking-lookup/booking-lookup.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +30,11 @@ import { ExtractComponent } from './pages/extract/extract.component';
     BoardingConfirmationComponent,
     CustomerHomeComponent,
     ViewBookingComponent,
-    ExtractComponent
+    ExtractComponent,
+    BuyMilesComponent,
+    ViewBookingComponent,
+    CancelBookingComponent,
+    BookingLookupComponent
   ],
   imports: [
     BrowserModule,
@@ -35,6 +45,9 @@ import { ExtractComponent } from './pages/extract/extract.component';
     EmailValidatorDirective,
     PhoneValidatorDirective,
     CepValidatorDirective,
+    FormsModule,
+    NgbModule,
+    NgxMaskPipe,
     FormsModule
   ],
   providers: [provideNgxMask()],
