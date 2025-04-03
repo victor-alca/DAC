@@ -41,7 +41,7 @@ export class EmployeeService {
         }
       })
   
-      localStorage[LS_KEY] = JSON.stringify(employee)
+      localStorage[LS_KEY] = JSON.stringify(employees);
     }
   
     delete(id: number){
@@ -49,6 +49,14 @@ export class EmployeeService {
   
       employees = employees.filter(e => e.ID !== id);
   
+      localStorage[LS_KEY] = JSON.stringify(employees);
+    }
+
+    seedEmployees(): void {
+      const employees: Employee[] = [
+        new Employee(1, true, '123.456.789-00', 'João Silva', 'joao@email.com', '123456789'),
+        new Employee(2, true, '987.654.321-00', 'Maria Oliveira', 'maria@email.com', '987654321'),
+      ];
       localStorage[LS_KEY] = JSON.stringify(employees);
     }
 }

@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { BookingService } from '../../services/booking.service';
+import { Booking } from '../../shared/models/booking/booking.model';
+import { BookingStatus } from '../../shared/models/booking/booking-status.enum';
 
 @Component({
   selector: 'app-boarding-confirmation',
@@ -10,8 +13,7 @@ export class BoardingConfirmationComponent {
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
-  validReservations = ['ABC123', 'DEF456', 'GHI789']; // Simulando reservas válidas
-  // Vai ser necessário um service para buscar as reservas válidas do voo
+  constructor(private bookingService: BookingService) {}
 
   confirmBoarding(): void {
     this.errorMessage = null;
@@ -22,12 +24,22 @@ export class BoardingConfirmationComponent {
       return;
     }
 
-    if (!this.validReservations.includes(this.reservationCode.toUpperCase())) {
+    const bookingId = parseInt(this.reservationCode, 10);
+    const booking = this.bookingService.getById(bookingId);
+
+    if (!booking) {
       this.errorMessage = 'Código de reserva inválido ou não encontrado.';
       return;
     }
 
+    if (booking.status !== BookingStatus.CHECK_IN) {
+      this.errorMessage = 'A reserva não está no estado CHECK-IN.';
+      return;
+    }
+
     if (confirm(`Tem certeza que deseja confirmar o embarque da reserva ${this.reservationCode}?`)) {
+      booking.status = BookingStatus.SHIPPED; // Estado EMBARCADO
+      this.bookingService.update(booking);
       this.successMessage = `Reserva ${this.reservationCode} confirmada com sucesso!`;
       this.reservationCode = ''; // Limpa o campo após sucesso
     }
