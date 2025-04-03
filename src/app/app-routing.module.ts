@@ -12,7 +12,8 @@ const routes: Routes = [
   { path: 'view-booking', component: pages.ViewBookingComponent},
   { path: 'booking', component: pages.BookingComponent},
   { path: 'buy-miles', component: pages.BuyMilesComponent},
-  { path: 'cancel-booking', component: pages.CancelBookingComponent}
+  { path: 'cancel-booking', component: pages.CancelBookingComponent},
+  { path: 'booking-lookup', component: pages.BookingLookupComponent},
 ];
 
 @NgModule({

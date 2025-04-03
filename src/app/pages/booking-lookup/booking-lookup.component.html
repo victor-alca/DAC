@@ -28,7 +28,17 @@
         </div>
         </div>
     </nav>
-    <div class="container">
+
+    <div>
+        <form #formBooking="ngForm" (ngSubmit)="onSubmit(formBooking)">
+            <label for="booking">Insira o código da Reserva:
+            <input class="form-control"   ngModel required/>
+            </label>
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+
+    <div class="container" [hidden]="formBooking.form.valid">
                     <div class="cell large"><strong>Data:</strong> <br> <p>02/04/2025</p></div>
                     <div class="cell"><strong>Origem:</strong> <br> <p>{{voo.originAirport}}</p></div>
                     <div class="cell"><strong>Destino:</strong> <br><p>{{voo.destinationAirport}}</p></div>
@@ -37,8 +47,9 @@
                     <div class="cell"><strong>Código:</strong> <br> <p>AAA111</p></div>
                     <div class="cell medium"><strong>Status:</strong> <br><p>{{reserva.status}}</p></div>
                     <button class="cell large cancel-button btn btn-outline-warning">Cancelar</button>
+                    <button class="cell large check-in-button btn btn-outline-warning">Check-In</button>
 
-                </div>
+    </div>
 
 </body>
 </html>

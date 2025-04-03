@@ -91,3 +91,7 @@ body {
 .cancel-button {
     background-color: rgb(243, 138, 138);
 }
+
+.check-in-button {
+    background-color: rgb(156, 243, 138);
+}

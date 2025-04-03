@@ -19,6 +19,7 @@ import { BookingModalComponent } from './pages/booking-modal/booking-modal.compo
 import { BuyMilesComponent } from './pages/buy-miles/buy-miles.component';
 import { NgxMaskPipe, provideNgxMask } from 'ngx-mask';
 import { CancelBookingComponent } from './pages/cancel-booking/cancel-booking.component';
+import { BookingLookupComponent } from './pages/booking-lookup/booking-lookup.component';
 
 @NgModule({
   declarations: [
@@ -29,7 +30,8 @@ import { CancelBookingComponent } from './pages/cancel-booking/cancel-booking.co
     ViewBookingComponent,
     BuyMilesComponent,
     ViewBookingComponent,
-    CancelBookingComponent
+    CancelBookingComponent,
+    BookingLookupComponent
   ],
   imports: [
     BrowserModule,

@@ -7,6 +7,5 @@ export class Booking {
     public flight: Flight,
     public date: Date,
     public status: BookingStatus,
-    public code: string[6]
   ) {}
 }
