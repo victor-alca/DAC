@@ -46,13 +46,13 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let reserva of reservas">
-                    <td>{{ reserva.id }}</td>
-                    <td>{{ reserva.data }}</td>
-                    <td>{{ reserva.origem }}</td>
-                    <td>{{ reserva.destino }}</td>
+                <tr *ngFor="let reserva of ActiveBookings">
+                    <td>{{ reserva.ID }}</td>
+                    <td>{{ reserva.date | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ getFlightDetails(reservas[0].flightId)?.originAirport }}</td>
+                    <td>{{ getFlightDetails(reservas[0].flightId)?.destinationAirport }}</td>
                     <td><button class="btn btn-outline-warning" routerLink="/view-booking">Ver</button></td>
-                    <td><button class="btn btn-outline-danger " routerLink="/cancel-booking">Cancelar</button></td>
+                    <td><button class="btn btn-outline-danger">Cancelar</button></td>
                 </tr>
             </tbody>
         </table>
@@ -71,11 +71,11 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let reserva of reservas">
-                    <td>{{ reserva.id }}</td>
-                    <td>{{ reserva.data }}</td>
-                    <td>{{ reserva.origem }}</td>
-                    <td>{{ reserva.destino }}</td>
+                <tr *ngFor="let reserva of lastFlights">
+                    <td>{{ reserva.ID }}</td>
+                    <td>{{ reserva.date | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ getFlightDetails(reservas[0].flightId)?.originAirport }}</td>
+                    <td>{{ getFlightDetails(reservas[0].flightId)?.destinationAirport }}</td>
                     <td><button class="btn btn-outline-warning" routerLink="/view-booking">Ver</button></td>
                 </tr>
             </tbody>

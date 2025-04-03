@@ -57,6 +57,18 @@ export class BookingService {
     localStorage[LS_KEY] = JSON.stringify(bookings);
   }
 
+  get ActiveBookings(): Booking[] {
+    return this.getAll().filter(booking => booking.status === 1);
+  }
+
+  get lastFlights(): Booking[] {
+    return this.getAll().filter(booking => booking.status === 2);
+  }
+
+  getFlightDetails(flightId: number): Flight | undefined {
+    const flights: Flight[] = JSON.parse(localStorage.getItem('flights') || '[]');
+    return flights.find(flight => flight.ID === flightId);
+    
   // Método temporário para inserir reservas manualmente
   seedBookings(): void {
     const flights: Flight[] = [
