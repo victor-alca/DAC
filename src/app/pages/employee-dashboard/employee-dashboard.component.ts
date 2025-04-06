@@ -64,9 +64,29 @@ export class EmployeeDashboardComponent implements OnInit {
   }
 
   markAsCompleted(flight: Flight) {
-    flight.status = FlightStatus.REALIZED;
-    this.flightService.update(flight);
-    console.log(`Voo marcado como concluído: ${flight.originAirport} -> ${flight.destinationAirport}`);
-    // todo: adicionar lógica para atualizar reservas
+    if (flight.status === FlightStatus.CONFIRMED) {
+      const confirmation = confirm(`Tem certeza que deseja marcar o voo ${flight.originAirport} -> ${flight.destinationAirport} como realizado?`);
+      if (!confirmation) {
+        return;
+      }
+
+      flight.status = FlightStatus.REALIZED;
+      this.flightService.update(flight);
+
+      // Atualiza todas as reservas associadas ao voo
+      const bookings = this.bookingService.getAll().filter(booking => booking.flight.ID === flight.ID);
+      bookings.forEach(booking => {
+        if (booking.status === BookingStatus.SHIPPED) {
+          booking.status = BookingStatus.REALIZED; // Reserva realizada
+        } else {
+          booking.status = BookingStatus.NOT_REALIZED; // Reserva não realizada
+        }
+        this.bookingService.update(booking);
+      });
+
+      this.flights = this.flights.filter(f => f.ID !== flight.ID); // Remove da lista exibida
+      this.successMessage = `Voo ${flight.originAirport} -> ${flight.destinationAirport} marcado como realizado com sucesso!`;
+      console.log(`Voo realizado: ${flight.originAirport} -> ${flight.destinationAirport}`);
+    }
   }
 }

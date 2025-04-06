@@ -2,7 +2,7 @@ import { FlightStatus } from './flight-status.enum';
 
 export class Flight {
   constructor(
-    public ID: number,
+    public ID: string,
     public date: Date,
     public originAirport: string,
     public destinationAirport: string,

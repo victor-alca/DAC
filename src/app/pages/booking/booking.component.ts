@@ -53,7 +53,7 @@ export class BookingComponent {
 
   openBookingModal(){
     const modalRef = this.modalService.open(BookingModalComponent);
-    modalRef.componentInstance.booking = new Booking(1, new Flight(1, new Date(), "CWB", "GRU", 1200.99, 60, 49, FlightStatus.CONFIRMED), new Date(), BookingStatus.CREATED)
+    modalRef.componentInstance.booking = new Booking(1, new Flight('1', new Date(), "CWB", "GRU", 1200.99, 60, 49, FlightStatus.CONFIRMED), new Date(), BookingStatus.CREATED)
   }
 
 }

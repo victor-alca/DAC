@@ -8,6 +8,6 @@ import { Flight } from '../../shared/models/flight/flight.model';
   styleUrl: './cancel-booking.component.css',
 })
 export class CancelBookingComponent {
-  voo = new Flight(1, new Date, "JFK", "CWB", 7777.7, 48, 20, 1)
+  voo = new Flight('1', new Date, "JFK", "CWB", 7777.7, 48, 20, 1)
   reserva = new Booking(1,this.voo,new Date(), 1);
 }

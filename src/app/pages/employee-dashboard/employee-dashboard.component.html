@@ -1,6 +1,11 @@
 <div class="container mt-4">
     <h2 class="mb-3">Painel de Funcionários - Próximos Voos</h2>
 
+    <!-- Link para cadastro de voo -->
+    <div class="mb-3">
+        <a [routerLink]="['/flight-registration']" class="btn btn-primary">Cadastrar Novo Voo</a>
+    </div>
+
     <!-- Mensagem de sucesso -->
     <div *ngIf="successMessage" class="alert alert-success">
         {{ successMessage }}
