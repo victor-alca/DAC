@@ -14,6 +14,7 @@ const routes: Routes = [
   { path: 'buy-miles', component: pages.BuyMilesComponent},
   { path: 'cancel-booking', component: pages.CancelBookingComponent},
   { path: 'booking-lookup', component: pages.BookingLookupComponent},
+  { path: 'flight-registration', component: pages.FlightRegistrationComponent},
 ];
 
 @NgModule({

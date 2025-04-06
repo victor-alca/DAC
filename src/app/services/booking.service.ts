@@ -65,16 +65,17 @@ export class BookingService {
     return this.getAll().filter(booking => booking.status === 2);
   }
 
-  getFlightDetails(flightId: number): Flight | undefined {
+  getFlightDetails(flightId: string): Flight | undefined {
     const flights: Flight[] = JSON.parse(localStorage.getItem('flights') || '[]');
     return flights.find(flight => flight.ID === flightId);
   }
   // Método temporário para inserir reservas manualmente
   seedBookings(): void {
     const flights: Flight[] = [
-      new Flight(1, new Date('2025-04-03T12:10:03.087Z'), 'CWB', 'GRU', 500, 180, 50, FlightStatus.CONFIRMED),
-      new Flight(2, new Date('2025-04-04T00:10:03.087Z'), 'GRU', 'GIG', 400, 200, 120, FlightStatus.CONFIRMED),
-      new Flight(3, new Date('2025-04-04T11:10:03.087Z'), 'BSB', 'POA', 300, 150, 80, FlightStatus.CANCELED),
+      new Flight('1', new Date('2025-04-06T12:10:03.087Z'), 'CWB', 'GRU', 500, 180, 50, FlightStatus.CONFIRMED),
+      new Flight('2', new Date('2025-04-06T00:10:03.087Z'), 'GRU', 'GIG', 400, 200, 120, FlightStatus.CONFIRMED),
+      new Flight('3', new Date('2025-04-06T11:10:03.087Z'), 'BSB', 'POA', 300, 150, 80, FlightStatus.CANCELED),
+      new Flight('4', new Date('2025-04-05T12:10:03.087Z'), 'REC', 'FOR', 600, 100, 60, FlightStatus.REALIZED),
     ];
 
     const bookings: Booking[] = [

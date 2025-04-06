@@ -14,10 +14,10 @@ export class CustomerHomeComponent implements OnInit {
 
   ngOnInit(): void {
     const flights: Flight[] = [
-      new Flight(1, new Date('2024-03-22'), 'GRU', 'JFK', 1200, 200, 150, FlightStatus.CONFIRMED),
-      new Flight(2, new Date('2024-04-20'), 'GIG', 'LIS', 1800, 180, 170, FlightStatus.REALIZED),
-      new Flight(3, new Date('2024-05-10'), 'BSB', 'MIA', 1600, 220, 200, FlightStatus.CONFIRMED),
-      new Flight(4, new Date('2024-06-15'), 'POA', 'MAD', 2500, 150, 120, FlightStatus.CANCELED),
+      new Flight('1', new Date('2024-03-22'), 'GRU', 'JFK', 1200, 200, 150, FlightStatus.CONFIRMED),
+      new Flight('2', new Date('2024-04-20'), 'GIG', 'LIS', 1800, 180, 170, FlightStatus.REALIZED),
+      new Flight('3', new Date('2024-05-10'), 'BSB', 'MIA', 1600, 220, 200, FlightStatus.CONFIRMED),
+      new Flight('4', new Date('2024-06-15'), 'POA', 'MAD', 2500, 150, 120, FlightStatus.CANCELED),
     ];
 
     this.reservas = [
