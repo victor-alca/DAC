@@ -1,0 +1,28 @@
+<div class="container">
+    <h2>Extrato de Transações</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Código da Reserva</th>
+          <th>Valor (R$)</th>
+          <th>Milhas</th>
+          <th>Descrição</th>
+          <th>Tipo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let transacao of transacoes">
+          <td>{{ transacao.data | date:'dd/MM/yyyy' }}</td>
+          <td>{{ transacao.codigoReserva || '-' }}</td>
+          <td>{{ transacao.valorReais | currency:'BRL' }}</td>
+          <td>{{ transacao.milhas }}</td>
+          <td>{{ transacao.descricao }}</td>
+          <td [ngClass]="{'text-success': transacao.tipo === 'ENTRADA', 'text-danger': transacao.tipo === 'SAÍDA'}">
+            {{ transacao.tipo }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
