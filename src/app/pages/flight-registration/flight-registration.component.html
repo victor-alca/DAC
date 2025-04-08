@@ -1,40 +1,93 @@
-<div class="container mt-4">
-    <h2 class="mb-3">Cadastro de Voo</h2>
+<div class="container d-flex justify-content-center align-items-center mt-4">
+  <div class="d-flex flex-column p-3">
+    <h1 class="text-dark-blue fs-heading1 mb-4">Cadastro de Voo</h1>
 
-    <form (ngSubmit)="registerFlight()">
-        <div class="mb-3">
-            <label for="date" class="form-label">Data/Hora</label>
-            <input type="datetime-local" id="date" class="form-control" [(ngModel)]="date" name="date" required>
-        </div>
-        <div class="mb-3">
-            <label for="originAirport" class="form-label">Aeroporto de Origem</label>
-            <select id="originAirport" class="form-select" [(ngModel)]="originAirport" name="originAirport" required>
-                <option *ngFor="let airport of airports" [value]="airport">{{ airport }}</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="destinationAirport" class="form-label">Aeroporto de Destino</label>
-            <select id="destinationAirport" class="form-select" [(ngModel)]="destinationAirport"
-                name="destinationAirport" required>
-                <option *ngFor="let airport of airports" [value]="airport">{{ airport }}</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="ticketCost" class="form-label">Valor da Passagem (R$)</label>
-            <input type="text" id="ticketCost" class="form-control" [(ngModel)]="ticketCost" name="ticketCost"
-                mask="separator.2" thousandSeparator="." decimalMarker="," prefix="R$ " required (input)="updateMilesEquivalent()" />
-            <small class="text-muted">Equivalente em Milhas: {{ milesEquivalent || 'N/A' }}</small>
-        </div>
-        <div class="mb-3">
-            <label for="totalSeats" class="form-label">Quantidade de Poltronas</label>
-            <input type="number" id="totalSeats" class="form-control" [(ngModel)]="totalSeats" name="totalSeats" 
-                (keypress)="allowOnlyNumbers($event)" min="1" required>
-        </div>
-        <button type="submit" class="btn btn-success">Cadastrar Voo</button>
+    <form class="d-flex flex-column" (ngSubmit)="registerFlight()">
+      <div class="mb-4">
+        <label for="date" class="fs-paragraph">Data/Hora</label>
+        <input
+          type="datetime-local"
+          id="date"
+          class="form-control p-25 min-w-750px border-dark"
+          [(ngModel)]="date"
+          name="date"
+          required
+        />
+      </div>
+      <div class="mb-4">
+        <label for="originAirport" class="fs-paragraph"
+          >Aeroporto de Origem</label
+        >
+        <select
+          id="originAirport"
+          class="form-control p-25 min-w-750px border-dark"
+          [(ngModel)]="originAirport"
+          name="originAirport"
+          required
+        >
+          <option *ngFor="let airport of airports" [value]="airport">
+            {{ airport }}
+          </option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label for="destinationAirport" class="fs-paragraph"
+          >Aeroporto de Destino</label
+        >
+        <select
+          id="destinationAirport"
+          class="form-control p-25 min-w-750px border-dark"
+          [(ngModel)]="destinationAirport"
+          name="destinationAirport"
+          required
+        >
+          <option *ngFor="let airport of airports" [value]="airport">
+            {{ airport }}
+          </option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label for="ticketCost" class="fs-paragraph"
+          >Valor da Passagem (R$)</label
+        >
+        <input
+          type="text"
+          id="ticketCost"
+          class="form-control p-25 min-w-750px border-dark"
+          [(ngModel)]="ticketCost"
+          name="ticketCost"
+          mask="separator.2"
+          thousandSeparator="."
+          decimalMarker=","
+          prefix="R$ "
+          required
+          (input)="updateMilesEquivalent()"
+        />
+        <small class="text-muted"
+          >Equivalente em Milhas: {{ milesEquivalent || "N/A" }}</small
+        >
+      </div>
+      <div class="mb-4">
+        <label for="totalSeats" class="fs-paragraph"
+          >Quantidade de Poltronas</label
+        >
+        <input
+          type="number"
+          id="totalSeats"
+          class="form-control p-25 min-w-750px border-dark"
+          [(ngModel)]="totalSeats"
+          name="totalSeats"
+          (keypress)="allowOnlyNumbers($event)"
+          min="1"
+          required
+        />
+      </div>
+      <button type="submit" class="btn btn-primary ms-auto">Cadastrar Voo</button>
     </form>
 
     <!-- Mensagem de sucesso -->
     <div *ngIf="successMessage" class="alert alert-success mt-3">
-        {{ successMessage }}
+      {{ successMessage }}
     </div>
+  </div>
 </div>

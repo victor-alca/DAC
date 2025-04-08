@@ -21,6 +21,7 @@ import { NgxMaskPipe, provideNgxMask, NgxMaskDirective } from 'ngx-mask';
 import { CancelBookingComponent } from './pages/cancel-booking/cancel-booking.component';
 import { BookingLookupComponent } from './pages/booking-lookup/booking-lookup.component';
 import { FlightRegistrationComponent } from './pages/flight-registration/flight-registration.component';
+import { CheckInComponent } from './pages/check-in/check-in.component';
 
 @NgModule({
   declarations: [
@@ -33,7 +34,8 @@ import { FlightRegistrationComponent } from './pages/flight-registration/flight-
     ViewBookingComponent,
     CancelBookingComponent,
     BookingLookupComponent,
-    FlightRegistrationComponent
+    FlightRegistrationComponent,
+    CheckInComponent
   ],
   imports: [
     BrowserModule,

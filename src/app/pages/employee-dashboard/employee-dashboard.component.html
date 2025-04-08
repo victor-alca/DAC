@@ -1,5 +1,5 @@
 <div class="container mt-4">
-    <h2 class="mb-3">Painel de Funcionários - Próximos Voos</h2>
+    <h1 class="mb-3 fs-heading1 text-dark-blue">Painel de Funcionários - Próximos Voos</h1>
 
     <!-- Link para cadastro de voo -->
     <div class="mb-3">
@@ -14,10 +14,10 @@
     <table class="table table-striped" *ngIf="flights.length > 0; else noFlights">
         <thead>
             <tr>
-                <th>Data/Hora</th>
-                <th>Aeroporto de Origem</th>
-                <th>Aeroporto de Destino</th>
-                <th>Ações</th>
+                <th class="bg-gray">Data/Hora</th>
+                <th class="bg-gray">Aeroporto de Origem</th>
+                <th class="bg-gray">Aeroporto de Destino</th>
+                <th class="bg-gray">Ações</th>
             </tr>
         </thead>
         <tbody>
@@ -49,6 +49,6 @@
     </table>
 
     <ng-template #noFlights>
-        <p class="text-muted">Nenhum voo nas próximas 48h.</p>
+        <p class="text-paragraph">Nenhum voo nas próximas 48h.</p>
     </ng-template>
 </div>
