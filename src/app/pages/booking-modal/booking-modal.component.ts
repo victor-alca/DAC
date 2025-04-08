@@ -41,10 +41,10 @@ export class BookingModalComponent {
   }
 
   generateCode(): string{
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    const numbers = "1234567890"
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numbers = "1234567890";
 
-    let code = ""
+    let code = "";
 
     for(let i=0; i<3; i++){
       code += letters[Math.floor(Math.random() * letters.length)]
@@ -54,6 +54,6 @@ export class BookingModalComponent {
       code += numbers[Math.floor(Math.random() * numbers.length)]
     }
 
-    return code 
+    return code; 
   }
 }

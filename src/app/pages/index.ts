@@ -9,3 +9,4 @@ export * from './booking/booking.component';
 export * from './cancel-booking/cancel-booking.component';
 export * from './booking-lookup/booking-lookup.component';
 export * from './flight-registration/flight-registration.component';
+export * from './employees/employees.component'
