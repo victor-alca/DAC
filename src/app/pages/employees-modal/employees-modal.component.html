@@ -13,21 +13,110 @@
     <form #editOrCreateForm="ngForm" (ngSubmit)="onSubmit(editOrCreateForm)">
         <div class="mb-3">
           <label for="name" class="form-label">Nome</label>
-          <input type="text" class="form-control" id="name" name="name" placeholder="Digite o nome" ngModel={{employee.name}} required>
+          <input 
+            type="text" 
+            class="form-control" 
+            id="name" 
+            name="name"
+            #name="ngModel"
+            placeholder="Digite o nome" 
+            ngModel={{employee.name}} 
+            required
+          >
+          <div
+          *ngIf="name.errors && (name.dirty || name.touched)"
+          class="mt-1"
+          >
+          <p
+            class="text-danger"
+            [hidden]="!name.errors['required']"
+          >
+            Digite o nome.
+          </p>
         </div>
+      </div>
         <div class="mb-3">
           <label for="cpf" class="form-label">CPF</label>
-          <input type="text" class="form-control" id="cpf" name="cpf" placeholder="Digite o CPF" ngModel={{employee.cpf}} required>
+          <input 
+            type="text"
+            class="form-control" 
+            id="cpf" 
+            name="cpf" 
+            placeholder="Digite o CPF" 
+            ngModel={{employee.cpf}} 
+            disabled={{edit}} 
+            #cpf="ngModel"
+            cpf 
+            mask="000.000.000-00"
+            required
+          >
+          <div
+            *ngIf="cpf.errors && (cpf.dirty || cpf.touched)"
+            class="mt-1"
+          >
+            <p class="text-danger" [hidden]="!cpf.errors['required']">
+              Digite o CPF.
+            </p>
+            <p class="text-danger" [hidden]="!cpf.errors['cpf']">
+              CPF inválido.
+            </p>
+          </div>
         </div>
         <div class="mb-3">
           <label for="email" class="form-label">E-mail</label>
-          <input type="email" class="form-control" id="email" name="email" placeholder="Digite o e-mail" ngModel={{employee.email}} required>
+          <input 
+            type="email"
+            class="form-control"
+            id="email" 
+            name="email" 
+            placeholder="Digite o e-mail"
+            ngModel={{employee.email}}
+            #email="ngModel"
+            email 
+            required
+          >
+          <div
+            *ngIf="email.errors && (email.dirty || email.touched)"
+            class="mt-1"
+          >
+            <p
+              class="text-danger"
+              [hidden]="!email.errors['required']"
+            >
+              Digite o email.
+            </p>
+            <p class="text-danger" [hidden]="!email.errors['email']">
+              E-mail inválido.
+            </p>
+          </div>
         </div>
         <div class="mb-3">
           <label for="phone" class="form-label">Telefone</label>
-          <input type="tel" class="form-control" id="phone" name="phone" placeholder="Digite o telefone" ngModel={{employee.phone}} required>
+          <input 
+            type="text" 
+            class="form-control" 
+            id="phone" 
+            name="phone" 
+            placeholder="Digite o telefone"
+            mask="(00) 0000-0000 || (00) 0 0000-0000" 
+            ngModel={{employee.phone}} 
+            #phone="ngModel"
+            phone 
+            required
+          >
+          <div
+            *ngIf="phone.errors && (phone.dirty || phone.touched)"
+            class="mt-1"
+          >
+            <p class="text-danger" [hidden]="!phone.errors['required']">
+              Digite seu telefone.
+            </p>
+            <p class="text-danger" [hidden]="!phone.errors['phone']">
+              Telefone inválido.
+            </p>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary">Enviar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="!editOrCreateForm.form.valid">Enviar</button>
     </form>
 </div>
     

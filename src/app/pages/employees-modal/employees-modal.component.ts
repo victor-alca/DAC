@@ -7,7 +7,7 @@ import { EmployeeService } from '../../services/employee/employee.service';
 @Component({
   selector: 'app-employees-modal',
   templateUrl: './employees-modal.component.html',
-  styleUrl: './employees-modal.component.css'
+  styleUrl: './employees-modal.component.css',
 })
 export class EmployeesModalComponent {
   @Input() employee!: Employee
@@ -18,6 +18,7 @@ export class EmployeesModalComponent {
   ngOnInit(){
     if(!this.employee){
       this.employee = new Employee(1, true, "", "", "", "")
+      console.log("Criando")
       this.edit = false;
     }
   }
@@ -46,5 +47,6 @@ export class EmployeesModalComponent {
     Employee.active = true;
     this.employeeService.create(Employee);
     this.activeModal.close();
+    alert("Senha enviada para o email do novo funcionário")
   }
 }

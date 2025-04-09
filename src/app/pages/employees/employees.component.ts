@@ -4,6 +4,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EmployeesModalComponent } from '../employees-modal/employees-modal.component';
 import { EmployeeService } from '../../services/employee/employee.service';
 import { from } from 'rxjs';
+import { ConfimationModalComponent } from '../confimation-modal/confimation-modal.component';
 
 @Component({
   selector: 'app-employees',
@@ -17,6 +18,7 @@ export class EmployeesComponent {
   employeeList: Employee[] = []
 
   ngOnInit(){
+    this.employeeService.seedEmployees();
     this.loadList()
   }
 
@@ -25,17 +27,22 @@ export class EmployeesComponent {
     if(employeeToEdit){
       modalRef.componentInstance.employee = employeeToEdit;
     }
-    from(modalRef.result).subscribe({
-      next: x => {
-        this.loadList()
-      }
-    })
+    modalRef.result.then(() => {
+      this.loadList()
+    }).catch(() => {});
   }
 
   remove(employee: Employee){
-    employee.active = false;
-    this.employeeService.update(employee)
-    this.loadList()
+    const modalRef = this.modalService.open(ConfimationModalComponent);
+    modalRef.componentInstance.text = "Tem certeza que deseja remover o funcionário?"
+    modalRef.componentInstance.extraText = "A ação vai inativa-lo."
+    modalRef.result.then((result) => {
+      if(result){
+        employee.active = false;
+        this.employeeService.update(employee)
+        this.loadList()
+      }
+    }).catch(() => {});
   }
 
   loadList(){

@@ -23,6 +23,7 @@ import { BookingLookupComponent } from './pages/booking-lookup/booking-lookup.co
 import { FlightRegistrationComponent } from './pages/flight-registration/flight-registration.component';
 import { EmployeesComponent } from './pages/employees/employees.component';
 import { EmployeesModalComponent } from './pages/employees-modal/employees-modal.component';
+import { ConfimationModalComponent } from './pages/confimation-modal/confimation-modal.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +38,8 @@ import { EmployeesModalComponent } from './pages/employees-modal/employees-modal
     BookingLookupComponent,
     FlightRegistrationComponent,
     EmployeesComponent,
-    EmployeesModalComponent
+    EmployeesModalComponent,
+    ConfimationModalComponent
   ],
   imports: [
     BrowserModule,
