@@ -1,0 +1,35 @@
+Modelagem das coleções para manipular dados dos usuários para mongoDB, pode ter alterações caso necessário
+
+{
+  _id: ObjectId,
+  cpf: String,
+  name: String,
+  email: String,
+  phone: String,
+  status: Number,
+  password: String
+}
+
+}
+
+client 
+{
+  _id: ObjectId,
+  userId: ObjectId,
+  miles: Number,
+
+  address: {
+    cep: String,
+    street: String,
+    neighborhood: String,
+    city: String,
+    number: String,
+    complement: String
+  }
+}
+
+
+Employee{
+  _id: ObjectId
+  userId: ObjectId
+}
