@@ -1,14 +1,3 @@
-.text-dark-blue {
-  color: rgb(7, 3, 237);
-}
-
-.fs-paragraph {
-  font-size: 18px;
-}
-
-.fs-heading1 {
-  font: 32px;
-}
 
 .btn-check:checked + .btn {
   background-color: rgb(7, 3, 237);
@@ -18,17 +7,4 @@
   background:#eeeeee;
   border: none;
   box-shadow: 0  4px 6px -1px rgba(0, 0, 0, 0.1), o 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.p-25 {
-    padding: 0.75rem;
-}
-
-.min-w-750px {
-    min-width: 750px;
-}
-
-.btn-primary {
-    background-color: rgb(7, 3, 237);
-    color: #ffff;
 }

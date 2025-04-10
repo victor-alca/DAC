@@ -1,0 +1,15 @@
+.bg-blue {
+  background-color: rgb(1, 30, 136);
+}
+
+.w-48px {
+  width: 48px;
+}
+
+.fs-paragraph {
+  font-size: 18px;
+}
+
+.fs-heading1 {
+  font: 32px;
+}

@@ -5,20 +5,24 @@ import * as pages from './pages';
 const routes: Routes = [
   { path: '', component: pages.LoginComponent },
   { path: 'login', component: pages.LoginComponent },
-  { path: 'sign', component: pages.SignComponent},
+  { path: 'sign', component: pages.SignComponent },
   { path: 'employee-dashboard', component: pages.EmployeeDashboardComponent },
-  { path: 'boarding-confirmation', component: pages.BoardingConfirmationComponent },
-  { path: 'customer-home', component: pages.CustomerHomeComponent},
-  { path: 'view-booking', component: pages.ViewBookingComponent},
-  { path: 'booking', component: pages.BookingComponent},
-  { path: 'buy-miles', component: pages.BuyMilesComponent},
-  { path: 'cancel-booking', component: pages.CancelBookingComponent},
-  { path: 'booking-lookup', component: pages.BookingLookupComponent},
-  { path: 'flight-registration', component: pages.FlightRegistrationComponent},
+  {
+    path: 'boarding-confirmation',
+    component: pages.BoardingConfirmationComponent,
+  },
+  { path: 'customer-home', component: pages.CustomerHomeComponent },
+  { path: 'view-booking', component: pages.ViewBookingComponent },
+  { path: 'booking', component: pages.BookingComponent },
+  { path: 'buy-miles', component: pages.BuyMilesComponent },
+  { path: 'cancel-booking', component: pages.CancelBookingComponent },
+  { path: 'booking-lookup', component: pages.BookingLookupComponent },
+  { path: 'flight-registration', component: pages.FlightRegistrationComponent },
+  { path: 'check-in', component: pages.CheckInComponent },
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

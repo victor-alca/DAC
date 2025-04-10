@@ -5,7 +5,6 @@
     padding: 20px;
     max-width: 50%;
     margin: auto;
-    background-color: #1c1e22; 
     border-radius: 5px; 
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); 
 }
@@ -13,7 +12,7 @@
 .cell {
     background-color: white; 
     color: black; 
-    border: 2px solid #ffc107;
+    border: 2px solid rgb(7, 3, 237);
     padding: 20px;
     text-align: center;
     font-size: 1.2em;
@@ -46,10 +45,6 @@
 .cell.medium p{
     font-size: 36px;
 }
-.cell:hover {
-    transform: scale(1.02); 
-    box-shadow: 0px 4px 15px rgba(255, 193, 7, 0.5);
-}
 
 .cell.large {
     grid-column: span 2;
@@ -58,23 +53,6 @@
 
 .cell.medium {
     grid-column: span 2;
-}
-
-body {
-    height: 100vh;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: rgb(232, 232, 233);
-}
-
-.navbar {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
 }
 
 .grid-title {
@@ -88,6 +66,6 @@ body {
     margin-bottom: 10px;
 }
 
-.cancel-button {
-    background-color: rgb(243, 138, 138);
+.cell-full {
+    grid-column: span 4;
 }
