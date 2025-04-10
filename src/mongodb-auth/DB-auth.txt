@@ -1,5 +1,5 @@
 Modelagem das coleções para manipular dados dos usuários para mongoDB, pode ter alterações caso necessário
-
+.
 {
   _id: ObjectId,
   cpf: String,
