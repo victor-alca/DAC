@@ -23,6 +23,8 @@ export class EmployeeService {
     }
   
     create(employee: Employee){
+      console.log(employee);
+      
       const employees = this.getAll();
   
       employee.ID = (employees.length > 0 ? Math.max(...employees.map(e => e.ID)) : 0) + 1;

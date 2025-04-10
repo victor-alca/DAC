@@ -3,9 +3,9 @@ export class Employee {
     constructor(
         public ID: number,
 
-        public status: boolean,
+        public active: boolean,
 
-        public CPF: string,
+        public cpf: string,
         public name: string,
         public email: string,
         public phone: string,
