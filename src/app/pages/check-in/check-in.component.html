@@ -1,0 +1,32 @@
+<div class="container mt-4">
+  <h1 class="mb-3 fs-heading1 text-dark-blue">Check-In</h1>
+
+  <table class="table table-striped" *ngIf="flights.length > 0; else noFlights">
+    <thead>
+      <tr>
+        <th class="bg-gray">Data/Hora</th>
+        <th class="bg-gray">Aeroporto de Origem</th>
+        <th class="bg-gray">Aeroporto de Destino</th>
+        <th class="bg-gray">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let flight of flights">
+        <td>{{ flight.date | date : "dd/MM/yyyy HH:mm" }}</td>
+        <td>{{ flight.originAirport }}</td>
+        <td>{{ flight.destinationAirport }}</td>
+        <td>
+          <button
+            class="btn btn-primary btn-sm mx-1"
+          >
+            Check-In
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ng-template #noFlights>
+    <p class="text-paragraph">Nenhum voo nas próximas 48h.</p>
+  </ng-template>
+</div>

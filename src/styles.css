@@ -1,1 +1,36 @@
-/* You can add global styles to this file, and also import other style files */
+.text-dark-blue {
+  color: rgb(7, 3, 237);
+}
+
+.fs-paragraph {
+  font-size: 18px;
+}
+
+.fs-heading1 {
+  font-size: 32px;
+}
+
+.p-25 {
+    padding: 0.75rem;
+}
+
+.min-w-750px {
+    min-width: 750px;
+}
+
+.max-w-500px {
+    max-width: 500px;
+}
+
+.btn-primary{
+    background-color: rgb(7, 3, 237) !important;
+    color: #ffff;
+}
+
+.bg-gray {
+    background-color: #7e7e7e !important;
+}
+
+td {
+    vertical-align: middle;
+}

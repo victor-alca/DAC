@@ -24,6 +24,7 @@ import { FlightRegistrationComponent } from './pages/flight-registration/flight-
 import { EmployeesComponent } from './pages/employees/employees.component';
 import { EmployeesModalComponent } from './pages/employees-modal/employees-modal.component';
 import { ConfimationModalComponent } from './pages/confimation-modal/confimation-modal.component';
+import { CheckInComponent } from './pages/check-in/check-in.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,8 @@ import { ConfimationModalComponent } from './pages/confimation-modal/confimation
     FlightRegistrationComponent,
     EmployeesComponent,
     EmployeesModalComponent,
-    ConfimationModalComponent
+    ConfimationModalComponent,
+    CheckInComponent
   ],
   imports: [
     BrowserModule,
