@@ -1,6 +1,4 @@
-<section
-  class="container d-flex justify-content-center align-items-center mt-4"
->
+<section class="container d-flex justify-content-center align-items-center mt-4">
   <div class="d-flex flex-column p-3">
     <h1 class="text-dark-blue fs-heading1 mb-4">Comprar Milhas</h1>
     <p class="fs-paragraph">Quantidade de milhas:</p>
@@ -14,9 +12,7 @@
         [value]="1000"
         [(ngModel)]="miles"
       />
-      <label class="btn btn-secondary rounded-pill px-3" for="option1"
-        >1.000</label
-      >
+      <label class="btn btn-secondary rounded-pill px-3" for="option1">1.000</label>
 
       <input
         type="radio"
@@ -27,9 +23,7 @@
         [value]="5000"
         [(ngModel)]="miles"
       />
-      <label class="btn btn-secondary rounded-pill px-3" for="option2"
-        >5.000</label
-      >
+      <label class="btn btn-secondary rounded-pill px-3" for="option2">5.000</label>
 
       <input
         type="radio"
@@ -40,35 +34,9 @@
         [value]="10000"
         [(ngModel)]="miles"
       />
-      <label class="btn btn-secondary rounded-pill px-3" for="option3"
-        >10.000</label
-      >
-
-      <input
-        type="radio"
-        class="btn-check"
-        name="options"
-        id="option4"
-        autocomplete="off"
-        [value]="50000"
-        [(ngModel)]="miles"
-      />
-      <label class="btn btn-secondary rounded-pill px-3" for="option4"
-        >50.000</label
-      >
-      <input
-        type="radio"
-        class="btn-check"
-        name="options"
-        id="option5"
-        autocomplete="off"
-        [value]="100000"
-        [(ngModel)]="miles"
-      />
-      <label class="btn btn-secondary rounded-pill px-3" for="option5"
-        >100.000</label
-      >
+      <label class="btn btn-secondary rounded-pill px-3" for="option3">10.000</label>
     </div>
+
     <input
       class="form-control p-25 min-w-750px border-dark mb-5"
       type="number"
@@ -76,18 +44,25 @@
       [(ngModel)]="miles"
       (ngModelChange)="updateMiles($event)"
     />
+
     <div class="card p-3 w-100 gap-2 mb-4">
       <h2 class="fs-5">Resumo da compra</h2>
       <div class="d-flex justify-content-between">
         <p class="fs-paragraph mb-0">Quantidade</p>
-        <p class="fs-paragraph fw-semibold mb-0">{{miles}}</p>
+        <p class="fs-paragraph fw-semibold mb-0">{{ miles }}</p>
       </div>
       <hr />
       <div class="d-flex justify-content-between">
         <h3 class="fs-5">Total</h3>
-        <p class="fs-paragraph fw-semibold mb-0">R${{value}}</p>
+        <p class="fs-paragraph fw-semibold mb-0">R${{ value }}</p>
       </div>
     </div>
+
     <button class="btn btn-primary text-light" (click)="submit()">Comprar</button>
+
+    <!-- Mensagem de sucesso -->
+    <div *ngIf="successMessage" class="alert alert-success mt-3">
+      {{ successMessage }}
+    </div>
   </div>
 </section>

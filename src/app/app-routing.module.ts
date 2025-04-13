@@ -16,7 +16,8 @@ const routes: Routes = [
   { path: 'booking-lookup', component: pages.BookingLookupComponent },
   { path: 'flight-registration', component: pages.FlightRegistrationComponent },
   { path: 'employees', component: pages.EmployeesComponent },
-  { path: 'check-in', component: pages.CheckInComponent }
+  { path: 'check-in', component: pages.CheckInComponent },
+  { path: 'extract', component: pages.ExtractComponent },
 ];
 
 @NgModule({

@@ -25,6 +25,7 @@ import { EmployeesComponent } from './pages/employees/employees.component';
 import { EmployeesModalComponent } from './pages/employees-modal/employees-modal.component';
 import { ConfimationModalComponent } from './pages/confimation-modal/confimation-modal.component';
 import { CheckInComponent } from './pages/check-in/check-in.component';
+import { ExtractComponent } from './pages/extract/extract.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { CheckInComponent } from './pages/check-in/check-in.component';
     EmployeesComponent,
     EmployeesModalComponent,
     ConfimationModalComponent,
-    CheckInComponent
+    CheckInComponent,
+    ExtractComponent,
   ],
   imports: [
     BrowserModule,

@@ -19,4 +19,12 @@ export class AppComponent {
         this.showHeader = !['/login', '/sign'].includes(currentUrl);
       });
   }
+
+  logout(): void {
+    // Limpa dados do usuário (se necessário)
+    // localStorage.clear();
+  
+    // Redireciona para a página de login
+    this.router.navigate(['/login']);
+  }
 }
