@@ -15,7 +15,7 @@
   </div>
 </div>
 
-<div class="container-a mt-4" [hidden]="formBooking.form.valid">
+<div class="container-a mt-4" *ngIf="formBooking.form.invalid">
   <div class="cell large">
     <strong>Data:</strong> <br />
     <p>02/04/2025</p>

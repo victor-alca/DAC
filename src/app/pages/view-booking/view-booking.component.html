@@ -1,17 +1,66 @@
-<div class="container mt-4">
-  <h2 class="mb-3">Detalhes da Reserva</h2>
+<div class="container d-flex justify-content-center align-items-center mt-4">
+  <div class="d-flex flex-column min-w-750px p-3">
+    <h1 class="text-dark-blue fs-heading1 mb-4">Detalhes da Reserva</h1>
 
-  <div *ngIf="reservas.length > 0; else noReservations">
-    <div *ngFor="let reserva of reservas">
-      <p>Origem: {{ reserva.flight.originAirport }}</p>
-      <p>Destino: {{ reserva.flight.destinationAirport }}</p>
-      <p>Data: {{ reserva.flight.date | date : "dd/MM/yyyy HH:mm" }}</p>
-      <p>Preço: R${{ reserva.flight.ticketCost }}</p>
-      <p>Status: {{ reserva.status }}</p>
+    <div *ngIf="reservas.length > 0; else noReservations">
+      <div *ngFor="let reserva of reservas">
+        <div class="mb-4 w-100">
+          <label for="status" class="fs-paragraph">Status</label>
+          <input
+            id="status"
+            class="form-control p-25 border-dark"
+            [(ngModel)]="reserva.status"
+            name="status"
+            disabled
+          />
+        </div>
+        <div class="d-flex gap-2 justify-content-between">
+          <div class="mb-4 w-100">
+            <label for="from" class="fs-paragraph">Origem:</label>
+            <input
+              id="from"
+              class="form-control p-25 border-dark"
+              [(ngModel)]="reserva.flight.originAirport"
+              name="from"
+              disabled
+            />
+          </div>
+          <div class="mb-4 w-100">
+            <label for="to" class="fs-paragraph">Destino:</label>
+            <input
+              id="to"
+              class="form-control p-25 border-dark"
+              [(ngModel)]="reserva.flight.destinationAirport"
+              name="to"
+              disabled
+            />
+          </div>
+        </div>
+        <div class="mb-4 w-100">
+          <label for="date" class="fs-paragraph">Data:</label>
+          <input
+            id="date"
+            class="form-control p-25 border-dark"
+            [value]="reserva.flight.date | date:'dd/MM/yyyy HH:mm'"
+            name="date"
+            disabled
+          />
+        </div>
+        <div class="mb-4 w-100">
+          <label for="price" class="fs-paragraph">Preço: (R$)</label>
+          <input
+            id="price"
+            class="form-control p-25 border-dark"
+            [(ngModel)]="reserva.flight.ticketCost"
+            name="price"
+            disabled
+          />
+        </div>
+      </div>
     </div>
-  </div>
 
-  <ng-template #noReservations>
-    <p class="text-muted">Nenhuma reserva encontrada.</p>
-  </ng-template>
+    <ng-template #noReservations>
+      <p class="text-muted">Nenhuma reserva encontrada.</p>
+    </ng-template>
+  </div>
 </div>

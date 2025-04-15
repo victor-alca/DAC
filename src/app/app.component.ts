@@ -15,7 +15,7 @@ export class AppComponent {
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event) => {
-        const currentUrl = (event as NavigationEnd).url;
+        const currentUrl = (event as NavigationEnd).urlAfterRedirects;
         this.showHeader = !['/login', '/sign'].includes(currentUrl);
       });
   }

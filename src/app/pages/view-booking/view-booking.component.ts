@@ -22,9 +22,6 @@ export class ViewBookingComponent implements OnInit {
 
     this.reservas = [
       new Booking(1, flights[0], new Date('2024-03-22'), BookingStatus.CREATED),
-      new Booking(2, flights[1], new Date('2024-04-20'), BookingStatus.CHECK_IN),
-      new Booking(3, flights[2], new Date('2024-05-10'), BookingStatus.CREATED),
-      new Booking(4, flights[3], new Date('2024-06-15'), BookingStatus.CANCELED),
     ];
   }
 }
