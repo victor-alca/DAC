@@ -1,68 +1,173 @@
 package backend.clients.models;
 
-public class Client {
-    private int ID;
-    private String Name;
-    private String Email;
-    private String Phone;
-    private String Password;
-    private Double Miles;
-    private Address Address;
+import java.io.Serializable;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "Client")
+public class Client implements Serializable{
+    @Id
+    private String cpf;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String phone;
+
+    @Column(nullable = false)
+    private Double miles;
+
+    @Column(nullable = false)
+    private boolean active;
+
+    @Column(nullable = false)
+    private String cep;
+
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private String neighborhood;
+
+    @Column(nullable = false)
+    private String street;
+
+    @Column(nullable = false, name="federative_unit")
+    private String federativeUnit;
+
+    @Column()
+    private String number;
+
+    @Column()
+    private String complement;
+
+    public Client(String cpf, String name, String email, String phone, Double miles, boolean active, String cep,
+            String city, String neighborhood, String street, String federativeUnit, String number, String complement) {
+        this.cpf = cpf;
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.miles = miles;
+        this.active = active;
+        this.cep = cep;
+        this.city = city;
+        this.neighborhood = neighborhood;
+        this.street = street;
+        this.federativeUnit = federativeUnit;
+        this.number = number;
+        this.complement = complement;
+    }
 
     public Client() {
     }
 
-    public Client(int iD, String name, String email, String phone, String password, Double miles,
-            backend.clients.models.Address address) {
-        ID = iD;
-        Name = name;
-        Email = email;
-        Phone = phone;
-        Password = password;
-        Miles = miles;
-        Address = address;
+    public String getCpf() {
+        return cpf;
     }
 
-    public int getID() {
-        return ID;
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
     }
-    public void setID(int iD) {
-        ID = iD;
-    }
+
     public String getName() {
-        return Name;
+        return name;
     }
+
     public void setName(String name) {
-        Name = name;
+        this.name = name;
     }
+
     public String getEmail() {
-        return Email;
+        return email;
     }
+
     public void setEmail(String email) {
-        Email = email;
+        this.email = email;
     }
+
     public String getPhone() {
-        return Phone;
+        return phone;
     }
+
     public void setPhone(String phone) {
-        Phone = phone;
+        this.phone = phone;
     }
-    public String getPassword() {
-        return Password;
-    }
-    public void setPassword(String password) {
-        Password = password;
-    }
+
     public Double getMiles() {
-        return Miles;
+        return miles;
     }
+
     public void setMiles(Double miles) {
-        Miles = miles;
+        this.miles = miles;
     }
-    public Address getAddress() {
-        return Address;
+
+    public boolean isActive() {
+        return active;
     }
-    public void setAddress(Address address) {
-        Address = address;
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
+
+    public String getCep() {
+        return cep;
+    }
+
+    public void setCep(String cep) {
+        this.cep = cep;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getNeighborhood() {
+        return neighborhood;
+    }
+
+    public void setNeighborhood(String neighborhood) {
+        this.neighborhood = neighborhood;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public String getFederativeUnit() {
+        return federativeUnit;
+    }
+
+    public void setFederativeUnit(String federativeUnit) {
+        this.federativeUnit = federativeUnit;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
+    }
+
+    public String getComplement() {
+        return complement;
+    }
+
+    public void setComplement(String complement) {
+        this.complement = complement;
+    }
+    
 }
