@@ -19,6 +19,7 @@
         <td>
           <button
             class="btn btn-primary btn-sm mx-1"
+            (click)="checkIn(flight)"
           >
             Check-In
           </button>
@@ -30,4 +31,9 @@
   <ng-template #noFlights>
     <p class="text-paragraph">Nenhum voo nas próximas 48h.</p>
   </ng-template>
+
+  <!-- Mensagem de sucesso -->
+  <div *ngIf="successMessage" class="alert alert-success mt-3">
+    {{ successMessage }}
+  </div>
 </div>

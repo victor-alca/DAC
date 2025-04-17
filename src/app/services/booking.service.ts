@@ -11,7 +11,7 @@ const LS_KEY = 'bookings';
   providedIn: 'root',
 })
 export class BookingService {
-  constructor() {}
+  constructor() { }
 
   getAll(): Booking[] {
     const bookings = localStorage[LS_KEY];
@@ -69,21 +69,53 @@ export class BookingService {
     const flights: Flight[] = JSON.parse(localStorage.getItem('flights') || '[]');
     return flights.find(flight => flight.ID === flightId);
   }
+
   // Método temporário para inserir reservas manualmente
   seedBookings(): void {
-    const flights: Flight[] = [
-      new Flight('1', new Date('2025-04-06T12:10:03.087Z'), 'CWB', 'GRU', 500, 180, 50, FlightStatus.CONFIRMED),
-      new Flight('2', new Date('2025-04-06T00:10:03.087Z'), 'GRU', 'GIG', 400, 200, 120, FlightStatus.CONFIRMED),
-      new Flight('3', new Date('2025-04-06T11:10:03.087Z'), 'BSB', 'POA', 300, 150, 80, FlightStatus.CANCELED),
-      new Flight('4', new Date('2025-04-05T12:10:03.087Z'), 'REC', 'FOR', 600, 100, 60, FlightStatus.REALIZED),
-    ];
+    const now = new Date();
 
     const bookings: Booking[] = [
-      new Booking(1, flights[0], new Date('2025-03-29T10:00:00'), BookingStatus.CREATED),
-      new Booking(2, flights[0], new Date('2025-03-29T10:00:00'), BookingStatus.CHECK_IN),
-      new Booking(3, flights[1], new Date('2025-03-29T14:30:00'), BookingStatus.CREATED),
-      new Booking(4, flights[2], new Date('2025-03-29T08:00:00'), BookingStatus.CANCELED),
+      // Reservas para o primeiro voo
+      new Booking(
+        1,
+        this.getFlightDetails('1')!, // Busca o voo com ID '1'
+        new Date(now.getTime() + 1 * 60 * 60 * 1000), // 1 hora a partir de agora
+        BookingStatus.CREATED
+      ),
+      new Booking(
+        2,
+        this.getFlightDetails('1')!, // Busca o voo com ID '1'
+        new Date(now.getTime() + 2 * 60 * 60 * 1000), // 2 horas a partir de agora
+        BookingStatus.CHECK_IN
+      ),
+      // Reservas para o segundo voo
+      new Booking(
+        3,
+        this.getFlightDetails('2')!, // Busca o voo com ID '2'
+        new Date(now.getTime() + 12 * 60 * 60 * 1000), // 12 horas a partir de agora
+        BookingStatus.CREATED
+      ),
+      new Booking(
+        4,
+        this.getFlightDetails('2')!, // Busca o voo com ID '2'
+        new Date(now.getTime() + 14 * 60 * 60 * 1000), // 14 horas a partir de agora
+        BookingStatus.CHECK_IN
+      ),
+      // Reservas para o terceiro voo
+      new Booking(
+        5,
+        this.getFlightDetails('3')!, // Busca o voo com ID '3'
+        new Date(now.getTime() + 72 * 60 * 60 * 1000), // 72 horas a partir de agora
+        BookingStatus.CANCELED
+      ),
+      new Booking(
+        6,
+        this.getFlightDetails('3')!, // Busca o voo com ID '3'
+        new Date(now.getTime() + 74 * 60 * 60 * 1000), // 74 horas a partir de agora
+        BookingStatus.CREATED
+      ),
     ];
-    localStorage[LS_KEY] = JSON.stringify(bookings);
+
+    localStorage.setItem('bookings', JSON.stringify(bookings));
   }
 }

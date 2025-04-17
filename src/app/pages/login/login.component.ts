@@ -24,6 +24,20 @@ export class LoginComponent {
     submit(): void {
       if (this.formLogin.form.valid)
         console.log(this.login)
+
+      // Simulação de autenticação
+      if (this.login.email === 'funcionario@empresa.com') {
+        this.login.role = 'employee';
+      } else {
+        this.login.role = 'user';
+      }
+
+      // Redireciona com base no tipo de usuário
+      if (this.login.role === 'employee') {
+        this.router.navigate(['/employee-dashboard']);
+      } else {
+        this.router.navigate(['/customer-home']);
+      }
     }
 
 }
