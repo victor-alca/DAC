@@ -5,7 +5,7 @@ import { filter } from 'rxjs';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  styleUrls: ['./app.component.css'], // corrigido: era 'styleUrl' (deveria ser plural)
 })
 export class AppComponent {
   title = 'dac';
@@ -15,7 +15,7 @@ export class AppComponent {
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event) => {
-        const currentUrl = (event as NavigationEnd).url;
+        const currentUrl = (event as NavigationEnd).urlAfterRedirects;
         this.showHeader = !['/login', '/sign'].includes(currentUrl);
       });
   }
@@ -23,7 +23,7 @@ export class AppComponent {
   logout(): void {
     // Limpa dados do usuário (se necessário)
     // localStorage.clear();
-  
+
     // Redireciona para a página de login
     this.router.navigate(['/login']);
   }
