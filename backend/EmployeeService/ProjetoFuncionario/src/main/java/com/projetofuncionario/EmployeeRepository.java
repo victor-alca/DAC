@@ -1,4 +1,4 @@
-package EmployeeService.ProjetoFuncionario.src.main.java.com.projetofuncionario;
+package com.projetofuncionario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,4 +1,4 @@
-package EmployeeService.ProjetoFuncionario.src.main.java.com.projetofuncionario;
+package com.projetofuncionario;
 import java.time.LocalDate;
 import java.io.Serializable;
 import jakarta.persistence.*;
