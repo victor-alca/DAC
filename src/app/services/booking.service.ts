@@ -118,4 +118,25 @@ export class BookingService {
 
     localStorage.setItem('bookings', JSON.stringify(bookings));
   }
+
+  getBookingStatusText(status: BookingStatus): string {
+    switch (status) {
+      case BookingStatus.CREATED:
+        return 'Criada';
+      case BookingStatus.CHECK_IN:
+        return 'Check-In Realizado';
+      case BookingStatus.CANCELED:
+        return 'Cancelada';
+      case BookingStatus.FLIGHT_CANCELED:
+        return 'Voo Cancelado';
+      case BookingStatus.SHIPPED:
+        return 'Embarcado';
+      case BookingStatus.REALIZED:
+        return 'Realizada';
+      case BookingStatus.NOT_REALIZED:
+        return 'Não Realizada';
+      default:
+        return 'Desconhecido';
+    }
+  }
 }

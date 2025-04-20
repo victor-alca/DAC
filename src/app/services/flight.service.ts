@@ -99,4 +99,17 @@ export class FlightService {
   
     localStorage[LS_KEY] = JSON.stringify(flights);
   }
+
+  getFlightStatusText(status: FlightStatus): string {
+    switch (status) {
+      case FlightStatus.CONFIRMED:
+        return 'Confirmado';
+      case FlightStatus.CANCELED:
+        return 'Cancelado';
+      case FlightStatus.REALIZED:
+        return 'Realizado';
+      default:
+        return 'Desconhecido';
+    }
+  }
 }
