@@ -7,8 +7,8 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "MilesRecord")
-@IdClass(MilesRecordId.class)
-public class MilesRecord implements Serializable{
+public class MilesRecord implements Serializable {
+
     @Id
     @Column(name = "client_cpf", nullable = false)
     private String clientCpf;
@@ -16,6 +16,10 @@ public class MilesRecord implements Serializable{
     @Id
     @Column(name = "transaction_date", nullable = false)
     private Date transactionDate;
+
+    @ManyToOne
+    @JoinColumn(name = "client_cpf", referencedColumnName = "cpf", insertable = false, updatable = false)
+    private Client client;
 
     @Column(nullable = false)
     private int value;

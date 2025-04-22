@@ -1,9 +1,17 @@
 package backend.clients.rest;
 
+import org.apache.catalina.connector.Response;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import backend.clients.models.Client;
+import backend.clients.models.addMilesReturn;
+import backend.clients.repository.ClientRepository;
+import backend.clients.services.ClientService;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,55 +26,41 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RestController
 public class ClientsREST {
     
-
-    //TODO: Inserir cliente não cadastrado
+    @Autowired
+    private ClientService clientService;
     @PostMapping("clientes")
-    public Client createClient(@RequestBody Client client) {
-
-        
-        return client;
+    public ResponseEntity<Client> createClient(@RequestBody Client client) {
+        clientService.addClient(client);
+        return ResponseEntity.status(HttpStatus.CREATED).body(client);
     }
 
-    //TODO: efetuar login do cliente
-    @PostMapping("login")
-    public String login(@RequestBody String entity) {
-        
-        
-        return "Login successful";
-    }
-
-    //TODO: Efetuar logout do cliente
-    @PostMapping("logout")
-    public String logout(@RequestBody String entity) {
-        
-        return "Logout successful";
-    }
 
     //TODO: Retornar dados do cliente
     @GetMapping("clientes/{id}")
-    public Client getClient(@PathVariable("id") int id) {
-
-        return new Client();
+    public ResponseEntity<Client> getClient(@PathVariable("id") String id) {
+        Client client = clientService.getClient(id);
+        return ResponseEntity.status(HttpStatus.OK).body(client);
     }
 
     //TODO: Listar as reservas do cliente
     @GetMapping("clientes/{id}/reservas")
     public String getClientBookings(@PathVariable("id") int id) {
-        
+        //Request para service de reservas?
         return "Client reservations";
     }
 
     //TODO: Adicionar milhas ao cliente
     @PutMapping("clientes/{id}/milhas")
-    public String addClientMiles(@RequestBody Double miles, @PathVariable("id") int id) {
-        //TODO: process POST request
-        
-        return "OK";
+    public ResponseEntity<addMilesReturn> addClientMiles(@RequestBody Double miles, @PathVariable("id") String id) {
+        Double newBalance = clientService.addMiles(id, miles);
+        addMilesReturn response = new addMilesReturn(1, newBalance);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     //TODO: Buscar o extrato de todas as transações com milhas
     @GetMapping("clientes/{id}/milhas")
     public String getAllMilesTransactions(@PathVariable("id") int id) {
+
         return new String();
     }
     

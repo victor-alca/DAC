@@ -4,10 +4,12 @@ import java.io.Serializable;
 
 import jakarta.persistence.*;
 
+
 @Entity
 @Table(name = "Client")
 public class Client implements Serializable{
     @Id
+    @Column(nullable = false)
     private String cpf;
 
     @Column(nullable = false)
