@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
+import { Login } from './shared';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +11,14 @@ import { filter } from 'rxjs';
 export class AppComponent {
   title = 'dac';
   showHeader = true;
+
+  getUser() {
+    const rawUser = localStorage.getItem('LOGGED_USER');
+    const user = rawUser ? JSON.parse(rawUser) as Login : null;
+    return user
+  }
+
+
 
   constructor(private router: Router) {
     this.router.events
