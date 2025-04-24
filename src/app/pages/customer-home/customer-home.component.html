@@ -1,13 +1,48 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="text-dark-blue fs-heading1">Minhas Reservas</h1>
-    <p class="fs-paragraph"><span class="fw-bold">Suas milhas:</span> 2303</p>
+    <p class="fs-paragraph"><span class="fw-bold">Milhas milhas:</span> 5000</p>
   </div>
+
   <hr class="separador" />
 
+  <!-- Reservas Reservadas -->
+  <h2 class="fs-heading2">Reservas Ativas</h2>
   <table
     class="table table-striped mt-3"
-    *ngIf="reservas.length > 0; else noReservations"
+    *ngIf="reservasReservadas.length > 0; else noActiveReservations"
+  >
+    <thead>
+      <tr>
+        <th class="bg-gray">Origem</th>
+        <th class="bg-gray">Destino</th>
+        <th class="bg-gray">Data</th>
+        <th class="bg-gray">Status</th>
+        <th class="bg-gray">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let reserva of reservasReservadas">
+        <td>{{ reserva.flight.originAirport }}</td>
+        <td>{{ reserva.flight.destinationAirport }}</td>
+        <td>{{ reserva.flight.date | date : "dd/MM/yyyy HH:mm" }}</td>
+        <td>{{ getBookingStatusText(reserva.status) }}</td>
+        <td>
+          <button class="btn btn-sm btn-info me-2" [routerLink]="['/view-booking', reserva.ID]">Ver</button>
+          <button class="btn btn-sm btn-danger" (click)="cancelBooking(reserva.ID)">Cancelar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <ng-template #noActiveReservations>
+    <p class="text-muted">Nenhuma reserva ativa encontrada.</p>
+  </ng-template>
+
+  <!-- Reservas Feitas -->
+  <h2 class="fs-heading2 mt-5">Voos Realizados</h2>
+  <table
+    class="table table-striped mt-3"
+    *ngIf="reservasFeitas.length > 0; else noCompletedFlights"
   >
     <thead>
       <tr>
@@ -18,16 +53,42 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let reserva of reservas">
+      <tr *ngFor="let reserva of reservasFeitas">
         <td>{{ reserva.flight.originAirport }}</td>
         <td>{{ reserva.flight.destinationAirport }}</td>
         <td>{{ reserva.flight.date | date : "dd/MM/yyyy HH:mm" }}</td>
-        <td>{{ reserva.status }}</td>
+        <td>{{ getBookingStatusText(reserva.status) }}</td>
       </tr>
     </tbody>
   </table>
+  <ng-template #noCompletedFlights>
+    <p class="text-muted">Nenhum voo realizado encontrado.</p>
+  </ng-template>
 
-  <ng-template #noReservations>
-    <p class="text-muted">Nenhuma reserva encontrada.</p>
+  <!-- Reservas Canceladas -->
+  <h2 class="fs-heading2 mt-5">Reservas Canceladas</h2>
+  <table
+    class="table table-striped mt-3"
+    *ngIf="reservasCanceladas.length > 0; else noCanceledReservations"
+  >
+    <thead>
+      <tr>
+        <th class="bg-gray">Origem</th>
+        <th class="bg-gray">Destino</th>
+        <th class="bg-gray">Data</th>
+        <th class="bg-gray">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let reserva of reservasCanceladas">
+        <td>{{ reserva.flight.originAirport }}</td>
+        <td>{{ reserva.flight.destinationAirport }}</td>
+        <td>{{ reserva.flight.date | date : "dd/MM/yyyy HH:mm" }}</td>
+        <td>{{ getBookingStatusText(reserva.status) }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <ng-template #noCanceledReservations>
+    <p class="text-muted">Nenhuma reserva cancelada encontrada.</p>
   </ng-template>
 </div>

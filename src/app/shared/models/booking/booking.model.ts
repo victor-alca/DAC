@@ -7,5 +7,7 @@ export class Booking {
     public flight: Flight,
     public date: Date,
     public status: BookingStatus,
+    public moneySpent: number,
+    public milesSpent: number,
   ) {}
 }
