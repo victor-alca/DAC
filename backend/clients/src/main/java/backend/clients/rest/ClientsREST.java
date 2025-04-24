@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import backend.clients.models.Client;
-import backend.clients.models.addMilesReturn;
+import backend.clients.models.MilesBalance;
+import backend.clients.models.MilesTransactionHistory;
 import backend.clients.repository.ClientRepository;
 import backend.clients.services.ClientService;
 
@@ -51,17 +52,17 @@ public class ClientsREST {
 
     //TODO: Adicionar milhas ao cliente
     @PutMapping("clientes/{id}/milhas")
-    public ResponseEntity<addMilesReturn> addClientMiles(@RequestBody Double miles, @PathVariable("id") String id) {
+    public ResponseEntity<MilesBalance> addClientMiles(@RequestBody Double miles, @PathVariable("id") String id) {
         Double newBalance = clientService.addMiles(id, miles);
-        addMilesReturn response = new addMilesReturn(1, newBalance);
+        MilesBalance response = new MilesBalance(1, newBalance);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     //TODO: Buscar o extrato de todas as transações com milhas
     @GetMapping("clientes/{id}/milhas")
-    public String getAllMilesTransactions(@PathVariable("id") int id) {
-
-        return new String();
+    public ResponseEntity<MilesTransactionHistory> getAllMilesTransactions(@PathVariable("id") String cpf) {
+        MilesTransactionHistory transactionHistory = clientService.getMilesTransactionHistory(cpf);
+        return ResponseEntity.status(HttpStatus.OK).body(transactionHistory);
     }
     
 }
