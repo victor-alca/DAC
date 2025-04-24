@@ -1,6 +1,7 @@
 <div class="container mt-4">
   <h1 class="mb-3 fs-heading1 text-dark-blue">Check-In</h1>
-
+  <hr class="separador" />
+  
   <table class="table table-striped" *ngIf="flights.length > 0; else noFlights">
     <thead>
       <tr>
@@ -18,6 +19,7 @@
         <td>
           <button
             class="btn btn-primary btn-sm mx-1"
+            (click)="checkIn(flight)"
           >
             Check-In
           </button>
@@ -29,4 +31,9 @@
   <ng-template #noFlights>
     <p class="text-paragraph">Nenhum voo nas próximas 48h.</p>
   </ng-template>
+
+  <!-- Mensagem de sucesso -->
+  <div *ngIf="successMessage" class="alert alert-success mt-3">
+    {{ successMessage }}
+  </div>
 </div>

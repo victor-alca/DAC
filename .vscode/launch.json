@@ -1,5 +1,4 @@
 {
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
@@ -23,6 +22,16 @@
       "cwd": "${workspaceFolder}",
       "mainClass": "com.projetofuncionario.ProjetoFuncionarioApplication",
       "projectName": "ProjetoFuncionario",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-ClientsApplication<clients>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "backend.clients.ClientsApplication",
+      "projectName": "clients",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
     }
