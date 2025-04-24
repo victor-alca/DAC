@@ -1,4 +1,4 @@
-package EmployeeService.ProjetoFuncionario.src.main.java.com.projetofuncionario;
+package com.projetofuncionario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

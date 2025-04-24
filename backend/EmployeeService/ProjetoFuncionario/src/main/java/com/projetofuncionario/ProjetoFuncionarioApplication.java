@@ -1,4 +1,4 @@
-package EmployeeService.ProjetoFuncionario.src.main.java.com.projetofuncionario;
+package com.projetofuncionario;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

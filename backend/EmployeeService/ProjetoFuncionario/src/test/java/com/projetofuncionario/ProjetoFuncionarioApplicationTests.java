@@ -1,4 +1,4 @@
-package EmployeeService.ProjetoFuncionario.src.test.java.com.projetofuncionario;
+package com.projetofuncionario;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
