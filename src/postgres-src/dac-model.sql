@@ -11,7 +11,6 @@ CREATE TABLE "Flight"."Flight" (
   "date" datetime,
   "origin_airport" varchar NOT NULL,
   "destination_airport" varchar NOT NULL,
-  "ticket_cost" integer,
   "total_seats" integer,
   "occupated_seats" integer,
   "status" integer NOT NULL
@@ -66,7 +65,9 @@ CREATE TABLE "Booking"."Booking" (
   "code" varchar PRIMARY KEY,
   "flight_code" varchar NOT NULL,
   "date" datetime,
-  "status" integer NOT NULL
+  "status" integer NOT NULL,
+  "money_spent" integer,
+  "miles_spent" integer
 );
 
 CREATE TABLE "Booking"."BookingStatus" (
