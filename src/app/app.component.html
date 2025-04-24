@@ -11,18 +11,67 @@
       </a>
 
       <ul
+        *ngIf="getUser()?.role === 'user'"
         class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0"
       >
-        <li><a href="/customer-home" class="nav-link px-2 text-white">Home</a></li>
-        <li><a href="/buy-miles" class="nav-link px-2 text-white">Comprar Milhas</a></li>
-        <li><a href="/booking-lookup" class="nav-link px-2 text-white">Reservar Voo</a></li>
-        <li><a href="/check-in" class="nav-link px-2 text-white">Efetuar Check-In</a></li>
-        <li><a href="/extract" class="nav-link px-2 text-white">Consultar Extrato</a></li> 
+        <li>
+          <a href="/customer-home" class="nav-link px-2 text-white">Home</a>
+        </li>
+        <li>
+          <a href="/buy-miles" class="nav-link px-2 text-white"
+            >Comprar Milhas</a
+          >
+        </li>
+        <li>
+          <a href="/booking" class="nav-link px-2 text-white">Reservar Voo</a>
+        </li>
+        <li>
+          <a href="/check-in" class="nav-link px-2 text-white"
+            >Efetuar Check-In</a
+          >
+        </li>
+        <li>
+          <a href="/extract" class="nav-link px-2 text-white"
+            >Consultar Extrato</a
+          >
+        </li>
+        <li>
+          <a href="/booking-lookup" class="nav-link px-2 text-white"
+            >Consultar Voo</a
+          >
+        </li>
+      </ul>
+      <ul
+        *ngIf="getUser()?.role === 'employee'"
+        class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0"
+      >
+        <li>
+          <a href="/employee-dashboard" class="nav-link px-2 text-white">Home</a>
+        </li>
+        <li>
+          <a href="/boarding-confirmation" class="nav-link px-2 text-white"
+            >Confirmação de Embarque</a
+          >
+        </li>
+        <li>
+          <a href="/flight-registration" class="nav-link px-2 text-white">Cadastrar Voo</a>
+        </li>
+        <li>
+          <a href="/employees" class="nav-link px-2 text-white"
+            >Lista de Funcionários</a
+          >
+        </li>
       </ul>
 
       <div class="text-end d-flex gap-3 align-items-center">
-        <span class="badge text-bg-success">Minhas Milhas: 5000</span>
-        <button type="button" class="btn btn-warning" (click)="logout()">Sair</button>
+        <span *ngIf="getUser()?.role === 'employee'" class="badge text-bg-success"
+        >{{ getUser()?.email }}</span>
+        <span *ngIf="getUser()?.role === 'user'" class="badge text-bg-success"
+          >Minhas Milhas: 5000</span
+        >
+        <button type="button" class="btn btn-warning" (click)="logout()">
+          Sair
+        </button>
       </div>
     </div>
   </div>

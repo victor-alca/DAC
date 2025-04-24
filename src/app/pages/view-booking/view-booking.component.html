@@ -2,65 +2,80 @@
   <div class="d-flex flex-column min-w-750px p-3">
     <h1 class="text-dark-blue fs-heading1 mb-4">Detalhes da Reserva</h1>
 
-    <div *ngIf="reservas.length > 0; else noReservations">
-      <div *ngFor="let reserva of reservas">
+    <div *ngIf="reserva; else noReservation">
+      <div class="mb-4 w-100">
+        <label for="code" class="fs-paragraph">Código da Reserva:</label>
+        <input
+          id="code"
+          class="form-control p-25 border-dark"
+          [value]="reserva.ID"
+          disabled
+        />
+      </div>
+      <div class="mb-4 w-100">
+        <label for="status" class="fs-paragraph">Estado da Reserva:</label>
+        <input
+          id="status"
+          class="form-control p-25 border-dark"
+          [value]="statusText"
+          disabled
+        />
+      </div>
+      <div class="d-flex gap-2 justify-content-between">
         <div class="mb-4 w-100">
-          <label for="status" class="fs-paragraph">Status</label>
+          <label for="from" class="fs-paragraph">Origem:</label>
           <input
-            id="status"
+            id="from"
             class="form-control p-25 border-dark"
-            [(ngModel)]="reserva.status"
-            name="status"
-            disabled
-          />
-        </div>
-        <div class="d-flex gap-2 justify-content-between">
-          <div class="mb-4 w-100">
-            <label for="from" class="fs-paragraph">Origem:</label>
-            <input
-              id="from"
-              class="form-control p-25 border-dark"
-              [(ngModel)]="reserva.flight.originAirport"
-              name="from"
-              disabled
-            />
-          </div>
-          <div class="mb-4 w-100">
-            <label for="to" class="fs-paragraph">Destino:</label>
-            <input
-              id="to"
-              class="form-control p-25 border-dark"
-              [(ngModel)]="reserva.flight.destinationAirport"
-              name="to"
-              disabled
-            />
-          </div>
-        </div>
-        <div class="mb-4 w-100">
-          <label for="date" class="fs-paragraph">Data:</label>
-          <input
-            id="date"
-            class="form-control p-25 border-dark"
-            [value]="reserva.flight.date | date:'dd/MM/yyyy HH:mm'"
-            name="date"
+            [value]="reserva.flight.originAirport"
             disabled
           />
         </div>
         <div class="mb-4 w-100">
-          <label for="price" class="fs-paragraph">Preço: (R$)</label>
+          <label for="to" class="fs-paragraph">Destino:</label>
           <input
-            id="price"
+            id="to"
             class="form-control p-25 border-dark"
-            [(ngModel)]="reserva.flight.ticketCost"
-            name="price"
+            [value]="reserva.flight.destinationAirport"
             disabled
           />
         </div>
       </div>
+      <div class="mb-4 w-100">
+        <label for="date" class="fs-paragraph">Data/Hora:</label>
+        <input
+          id="date"
+          class="form-control p-25 border-dark"
+          [value]="reserva.flight.date | date:'dd/MM/yyyy HH:mm'"
+          disabled
+        />
+      </div>
+      <div class="mb-4 w-100">
+        <label for="price" class="fs-paragraph">Valor Gasto (R$):</label>
+        <input
+          id="price"
+            class="form-control p-25 border-dark"
+            [value]="(reserva.moneySpent | number:'1.2-2')?.replace('.', ',')"
+          disabled
+        />
+      </div>
+      <div class="mb-4 w-100">
+        <label for="miles" class="fs-paragraph">Milhas Gastas:</label>
+        <input
+          id="miles"
+          class="form-control p-25 border-dark"
+          [value]="reserva.milesSpent"
+          disabled
+        />
+      </div>
     </div>
 
-    <ng-template #noReservations>
-      <p class="text-muted">Nenhuma reserva encontrada.</p>
+    <ng-template #noReservation>
+      <p class="text-muted">Reserva não encontrada.</p>
     </ng-template>
+
+    <div class="d-flex justify-content-start mt-4">
+      <a class="btn btn-secondary" routerLink="/customer-home">Voltar</a>
+    </div>
   </div>
 </div>

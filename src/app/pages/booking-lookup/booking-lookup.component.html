@@ -1,53 +1,76 @@
-<div
-  class="flex-column container d-flex justify-content-center align-items-center mt-4"
->
+<div class="flex-column container d-flex justify-content-center align-items-center mt-4">
   <div class="d-flex flex-column p-3">
     <h1 class="text-dark-blue fs-heading1 mb-4">Consultar Reserva</h1>
-    <form #formBooking="ngForm" (ngSubmit)="onSubmit(formBooking)">
-      <label class="fs-paragraph mb-1" for="booking"
-        >Insira o código da Reserva:
-      </label>
+    <form (ngSubmit)="onSubmit()">
+      <label class="fs-paragraph mb-1" for="booking">Insira o código da Reserva:</label>
       <div class="d-flex gap-3">
-        <input class="form-control border-dark min-w-750px" ngModel required />
+        <input
+          class="form-control border-dark min-w-750px"
+          [(ngModel)]="bookingId"
+          name="bookingId"
+          required
+        />
         <button class="btn btn-primary" type="submit">Buscar</button>
       </div>
     </form>
   </div>
 </div>
 
-<div class="container-a mt-4" *ngIf="formBooking.form.invalid">
-  <div class="cell large">
-    <strong>Data:</strong> <br />
-    <p>02/04/2025</p>
+<div class="flex-column container d-flex justify-content-center align-items-center mt-4 pb-5" *ngIf="reserva">
+  <div class="card shadow p-4 w-50 pb-4">
+    <h2 class="text-center mb-4">Detalhes da Reserva</h2>
+    <table class="table table-bordered">
+      <tbody>
+        <tr>
+          <th scope="row">ID</th>
+          <td>{{ reserva.ID }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Data/Hora</th>
+          <td>{{ reserva.date | date: 'dd/MM/yyyy HH:mm' }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Origem</th>
+          <td>{{ reserva.flight.originAirport }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Destino</th>
+          <td>{{ reserva.flight.destinationAirport }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Valor Gasto</th>
+          <td>R$ {{ reserva.moneySpent }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Milhas Gastas</th>
+          <td>{{ reserva.milesSpent }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Status do Voo</th>
+          <td>{{ getFlightStatusText(reserva.flight.status) }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Status da Reserva</th>
+          <td>{{ getBookingStatusText(reserva.status) }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="text-center mt-4">
+      <button
+        class="btn btn-success me-2"
+        *ngIf="canCheckIn()"
+        (click)="onCheckIn()"
+      >
+        Fazer Check-In
+      </button>
+      <button class="btn btn-danger" (click)="onCancel()">Cancelar Reserva</button>
+    </div>
   </div>
-  <div class="cell">
-    <strong>Origem:</strong> <br />
-    <p>{{ voo.originAirport }}</p>
+</div>
+
+<div class="flex-column container d-flex justify-content-center align-items-center mt-4" *ngIf="errorMessage">
+  <div class="d-flex flex-column p-3 pb-4">
+    <p class="text-danger">{{ errorMessage }}</p>
   </div>
-  <div class="cell">
-    <strong>Destino:</strong> <br />
-    <p>{{ voo.destinationAirport }}</p>
-  </div>
-  <div class="cell medium">
-    <strong>ID:</strong> <br />
-    <p>{{ reserva.ID }}</p>
-  </div>
-  <div class="cell">
-    <strong>Preço pago:</strong> <br />
-    <p>R${{ voo.ticketCost }}</p>
-  </div>
-  <div class="cell">
-    <strong>Código:</strong> <br />
-    <p>AAA111</p>
-  </div>
-  <div class="cell medium">
-    <strong>Status:</strong> <br />
-    <p>{{ reserva.status }}</p>
-  </div>
-  <button class="cell large cancel-button btn btn-outline-warning">
-    Cancelar
-  </button>
-  <button class="cell large check-in-button btn btn-outline-warning">
-    Check-In
-  </button>
 </div>

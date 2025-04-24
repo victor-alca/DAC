@@ -17,7 +17,10 @@
         />
       </div>
 
-      <button type="submit" class="btn btn-primary">Confirmar Embarque</button>
+      <div class="d-flex justify-content-between">
+        <a class="btn btn-secondary" routerLink="/employee-dashboard">Voltar</a>
+        <button type="submit" class="btn btn-primary">Confirmar Embarque</button>
+      </div>
 
       <!-- Mensagens -->
       <div *ngIf="errorMessage" class="alert alert-danger mt-3">
