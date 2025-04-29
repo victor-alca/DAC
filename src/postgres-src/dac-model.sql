@@ -47,11 +47,13 @@ CREATE TABLE "Client"."Client" (
 );
 
 CREATE TABLE "Client"."MilesRecord" (
-  "client_cpf" varchar,
-  "transaction_date" timestamp,
+  "client_cpf" varchar not NULL,
+  "transaction_date" timestamp not NULL,
   "value" integer,
-  "in_out" boolean,
+  "amount" integer,
+  "type" varchar, -- "ENTRADA OU SAÍDA"
   "description" varchar,
+  "booking_code" varchar,
   PRIMARY KEY ("client_cpf", "transaction_date")
 );
 

@@ -1,9 +1,9 @@
-package backend.clients.models;
+package backend.clients.dto;
 
 
-public class MilesBalance {
+public class MilesBalanceDTO {
 
-    public MilesBalance(int i, Double balance) {
+    public MilesBalanceDTO(int i, Double balance) {
         this.codigo = i;
         this.saldo_milhas = balance;
     }
