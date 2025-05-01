@@ -1,27 +1,16 @@
-# Dac
+## Funcionamento do Cadastro e Login (Protótipo)
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.4.
+### Cadastro
+- O cadastro é completamente **fake** e não realiza validações reais no backend.
+- Os dados do cliente são armazenados no `localStorage` do navegador.
+- Após o cadastro, uma mensagem de confirmação é exibida informando que a senha foi enviada para o email (simulação). A senha padrão é sempre **"1234"**.
+- O usuário é redirecionado para a página de login após o cadastro.
 
-## Development server
+### Login
+- O login também é **fake** e não realiza autenticação real.
+- Qualquer email e senha podem ser usados para fazer login como **cliente**.
+- Se o email utilizado for **funcionario@empresa.com**, o sistema identifica o usuário como **funcionário** e redireciona para a página de funcionário.
+- Para qualquer outro email, o sistema redireciona para a página de cliente.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
-
-## Code scaffolding
-
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### Observação
+Este comportamento é apenas para fins de prototipação e demonstração. Em um sistema real, seria necessário implementar autenticação e autorização seguras com backend e banco de dados.

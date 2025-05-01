@@ -57,12 +57,59 @@ export class FlightService {
 
   // Método temporário para inserir voos manualmente
   seedFlights(): void {
+    const now = new Date();
+    const next48Hours = new Date();
+    next48Hours.setHours(now.getHours() + 48);
+  
     const flights: Flight[] = [
-      new Flight('1', new Date('2025-04-06T12:10:03.087Z'), 'CWB', 'GRU', 500, 180, 50, FlightStatus.CONFIRMED),
-      new Flight('2', new Date('2025-04-06T00:10:03.087Z'), 'GRU', 'GIG', 400, 200, 120, FlightStatus.CONFIRMED),
-      new Flight('3', new Date('2025-04-06T11:10:03.087Z'), 'BSB', 'POA', 300, 150, 80, FlightStatus.CANCELED),
-      new Flight('4', new Date('2025-04-05T12:10:03.087Z'), 'REC', 'FOR', 600, 100, 60, FlightStatus.REALIZED),
+      // Voo 1: Dentro das próximas 48 horas
+      new Flight(
+        '1',
+        new Date(now.getTime() + 2 * 60 * 60 * 1000), // 2 horas a partir de agora
+        'CWB',
+        'GRU',
+        500,
+        180,
+        50,
+        FlightStatus.CONFIRMED
+      ),
+      // Voo 2: Dentro das próximas 48 horas
+      new Flight(
+        '2',
+        new Date(now.getTime() + 24 * 60 * 60 * 1000), // 24 horas a partir de agora
+        'GRU',
+        'GIG',
+        400,
+        200,
+        120,
+        FlightStatus.CONFIRMED
+      ),
+      // Voo 3: Fora das próximas 48 horas
+      new Flight(
+        '3',
+        new Date(next48Hours.getTime() + 24 * 60 * 60 * 1000), // 72 horas a partir de agora
+        'BSB',
+        'POA',
+        300,
+        150,
+        80,
+        FlightStatus.CANCELED
+      ),
     ];
+  
     localStorage[LS_KEY] = JSON.stringify(flights);
+  }
+
+  getFlightStatusText(status: FlightStatus): string {
+    switch (status) {
+      case FlightStatus.CONFIRMED:
+        return 'Confirmado';
+      case FlightStatus.CANCELED:
+        return 'Cancelado';
+      case FlightStatus.REALIZED:
+        return 'Realizado';
+      default:
+        return 'Desconhecido';
+    }
   }
 }

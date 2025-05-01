@@ -31,9 +31,9 @@
     </thead>
     <tbody>
       <tr *ngFor="let booking of filteredBookings">
-        <td>{{ booking.data.toLocaleDateString() }}</td>
-        <td>{{ booking.origin }}</td>
-        <td>{{ booking.destination }}</td>
+        <td>{{ booking.date.toLocaleDateString() }}</td>
+        <td>{{ booking.flight.originAirport }}</td>
+        <td>{{ booking.flight.destinationAirport }}</td>
         <td>
           <button class="btn btn-primary" (click)="openBookingModal()">
             Selecionar

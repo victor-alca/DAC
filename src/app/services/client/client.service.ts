@@ -26,6 +26,7 @@ export class ClientService {
     const clients = this.getAll();
 
     client.ID = (clients.length > 0 ? Math.max(...clients.map(c => c.ID)) : 0) + 1;
+    client.password = "1234";
 
     clients.push(client);
 
