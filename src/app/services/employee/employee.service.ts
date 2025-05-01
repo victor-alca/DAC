@@ -10,6 +10,8 @@ const LS_KEY = "employee"
 })
 export class EmployeeService {
 
+  constructor (){}
+  
   getAll(): Employee[] {
       const employees = localStorage[LS_KEY];
   
@@ -66,7 +68,7 @@ export class EmployeeService {
     // algumas funcoes para serem usadas no futuro
     private apiUrl = 'http://localhost:8080/api/employees';
     
-    constructor(private http: HttpClient) {}
+    //constructor(private http: HttpClient) {}
   
     getAllHttp(): Observable<Employee[]> {
       return this.http.get<Employee[]>(this.apiUrl);
