@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Employee } from '../../shared/models/employee/employee';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 const LS_KEY = "employee"
 
@@ -7,8 +9,6 @@ const LS_KEY = "employee"
   providedIn: 'root'
 })
 export class EmployeeService {
-
-  constructor() { }
 
   getAll(): Employee[] {
       const employees = localStorage[LS_KEY];
@@ -61,4 +61,18 @@ export class EmployeeService {
       ];
       localStorage[LS_KEY] = JSON.stringify(employees);
     }
-}
+
+    // teste backend
+    // algumas funcoes para serem usadas no futuro
+    private apiUrl = 'http://localhost:8080/api/employees';
+    
+    constructor(private http: HttpClient) {}
+  
+    getAllHttp(): Observable<Employee[]> {
+      return this.http.get<Employee[]>(this.apiUrl);
+    }
+  
+    deleteHttp(id: number): Observable<void> {
+      return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    }
+  }

@@ -5,12 +5,19 @@ import { EmployeesModalComponent } from '../employees-modal/employees-modal.comp
 import { EmployeeService } from '../../services/employee/employee.service';
 import { from } from 'rxjs';
 import { ConfimationModalComponent } from '../confimation-modal/confimation-modal.component';
+import { Injectable } from '@angular/core';
+
 
 @Component({
   selector: 'app-employees',
   templateUrl: './employees.component.html',
   styleUrl: './employees.component.css'
 })
+
+@Injectable({
+  providedIn: 'root'
+})
+
 export class EmployeesComponent {
 
   constructor(private modalService: NgbModal, public employeeService: EmployeeService) {}
@@ -61,4 +68,38 @@ export class EmployeesComponent {
 
     this.employeeList = filteredEmployees;
   }
+
+
+// teste backend
+// algumas funcoes para serem usadas no futuro
+
+loadEmployees(): void {
+  this.employeeService.getAllHttp().subscribe({
+    next: (data) => {
+      console.log('Funcionários:', data);
+    },
+    error: (err) => console.error('Erro ao carregar funcionários', err)
+  });
+}
+
+removeb(emp: Employee): void {
+  if (confirm(`Deseja remover ${emp.name}?`)) {
+    this.employeeService.deleteHttp(emp.id).subscribe({
+      next: () => {
+        console.log(`${emp.name} removido.`);
+        this.loadEmployees();
+      },
+      error: (err) => console.error('Erro ao remover', err)
+    });
+  }
+}
+
+openEmployeesModalb(emp: Employee | null): void {
+  const modalRef = this.modalService.open(EmployeesModalComponent);
+  if (emp) {
+    modalRef.componentInstance.employee = emp;
+  }
+  modalRef.result.then(() => {
+    this.loadEmployees();
+  }).catch(() => {});
 }
