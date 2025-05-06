@@ -53,9 +53,8 @@ public class ClientsREST {
     //TODO: Adicionar milhas ao cliente
     @PutMapping("clientes/{id}/milhas")
     public ResponseEntity<MilesBalanceDTO> addClientMiles(@RequestBody Double miles, @PathVariable("id") String id) {
-        Double newBalance = clientService.addMiles(id, miles);
-        MilesBalanceDTO response = new MilesBalanceDTO(1, newBalance);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        MilesBalanceDTO milesBalanceDTO = clientService.addMiles(id, miles);
+        return ResponseEntity.status(HttpStatus.OK).body(milesBalanceDTO);
     }
 
     //TODO: Buscar o extrato de todas as transações com milhas
