@@ -56,8 +56,8 @@ export class EmployeeService {
 
     seedEmployees(): void {
       const employees: Employee[] = [
-        new Employee(1, true, '123.456.789-00', 'João Silva', 'joao@email.com', '123456789'),
-        new Employee(2, true, '987.654.321-00', 'Maria Oliveira', 'maria@email.com', '987654321'),
+        new Employee(1, true, '123.456.789-00', 'João Silva', 'joao@email.com', '1234567899'),
+        new Employee(2, true, '987.654.321-00', 'Maria Oliveira', 'maria@email.com', '9876543211'),
       ];
       localStorage[LS_KEY] = JSON.stringify(employees);
     }

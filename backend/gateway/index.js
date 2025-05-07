@@ -182,8 +182,41 @@ app.get('/clientes/:codigoCliente/reservas', verifyJWT, async (req, res) => {
     }
 });
 
-app.delete('/reservas/:codigoReserva', verifyJWT, (req, res, next) => {
-    reservationsServiceProxy(req, res, next);
+app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
+    try {
+        // Busca os detalhes da reserva no serviço de Reservas
+        const reservaResponse = await axios.get(`${BASE_URL_RESERVATIONS}/reservas/${req.params.codigoReserva}`, {
+            headers: { Authorization: req.headers['authorization'] }
+        });
+
+        const reserva = reservaResponse.data;
+
+        // Busca os detalhes do voo associado à reserva no serviço de Voos
+        const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${reserva.codigo_voo}`, {
+            headers: { Authorization: req.headers['authorization'] }
+        });
+
+        const voo = vooResponse.data;
+
+        // Combina os dados da reserva com os dados do voo
+        const reservaComVoo = {
+            ...reserva,
+            voo
+        };
+
+        // Retorna a resposta consolidada
+        res.status(200).json(reservaComVoo);
+    } catch (error) {
+        // Trata erros de resposta da API
+        if (error.response) {
+            if (error.response.status === 404) {
+                return res.status(404).json({ message: 'Reserva ou voo não encontrado.' });
+            }
+            return res.status(error.response.status).json(error.response.data);
+        }
+        // Trata erros genéricos
+        res.status(500).json({ message: 'Erro ao buscar reserva com detalhes do voo.', error: error.message });
+    }
 });
 
 app.patch('/reservas/:codigoReserva/estado', verifyJWT, (req, res, next) => {
@@ -196,7 +229,7 @@ app.get('/voos', (req, res, next) => {
 });
 
 app.get('/voos/:codigoVoo', (req, res, next) => {
-    flightsServiceProxy(req, res, next);
+    flightsServiceProxy(req, res, next);    
 });
 
 app.post('/voos', verifyJWT, (req, res, next) => {
