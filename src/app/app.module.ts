@@ -26,6 +26,7 @@ import { EmployeesModalComponent } from './pages/employees-modal/employees-modal
 import { ConfimationModalComponent } from './pages/confimation-modal/confimation-modal.component';
 import { CheckInComponent } from './pages/check-in/check-in.component';
 import { ExtractComponent } from './pages/extract/extract.component';
+import { PhoneMaskPipe } from './shared/pipes/phone-mask.pipe';
 
 @NgModule({
   declarations: [
@@ -44,6 +45,7 @@ import { ExtractComponent } from './pages/extract/extract.component';
     ConfimationModalComponent,
     CheckInComponent,
     ExtractComponent,
+    PhoneMaskPipe,
   ],
   imports: [
     BrowserModule,

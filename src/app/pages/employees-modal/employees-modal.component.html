@@ -22,14 +22,14 @@
     </div>
     <div class="mb-3">
       <label for="cpf" class="fs-paragraph">CPF</label>
-      <input
+        <input
         type="text"
         class="form-control p-25 border-dark"
         id="cpf"
         name="cpf"
         placeholder="Digite o CPF"
-        ngModel="{{ employee.cpf }}"
-        disabled="{{ edit }}"
+        [(ngModel)]="employee.cpf"
+        [readonly]="edit"
         #cpf="ngModel"
         cpf
         mask="000.000.000-00"
