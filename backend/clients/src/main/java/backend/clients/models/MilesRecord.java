@@ -6,7 +6,8 @@ import java.sql.Timestamp;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "MilesRecord", schema = "Client")
+@Table(name = "MilesRecord")
+@IdClass(MilesRecordId.class)
 public class MilesRecord implements Serializable {
 
     @Id
