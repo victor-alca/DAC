@@ -40,6 +40,9 @@ export class CustomerHomeComponent implements OnInit {
   }
 
   cancelBooking(bookingId: number): void {
+    const confirmCancel = confirm("Tem certeza que deseja cancelar esta reserva?");
+    if (!confirmCancel) return;
+  
     const booking = this.reservas.find((reserva) => reserva.ID === bookingId);
     if (booking) {
       booking.status = BookingStatus.CANCELED;
@@ -48,4 +51,5 @@ export class CustomerHomeComponent implements OnInit {
       this.filterReservas();
     }
   }
+  
 }
