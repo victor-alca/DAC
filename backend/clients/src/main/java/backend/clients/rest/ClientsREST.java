@@ -36,28 +36,28 @@ public class ClientsREST {
         return ResponseEntity.status(HttpStatus.CREATED).body(client);
     }
 
-    @GetMapping("clientes/{id}")
-    public ResponseEntity<Client> getClient(@PathVariable("id") String id) {
-        Client client = clientService.getClient(id);
+    @GetMapping("clientes/{code}")
+    public ResponseEntity<Client> getClient(@PathVariable("code") int code) {
+        Client client = clientService.getClient(code);
         return ResponseEntity.status(HttpStatus.OK).body(client);
     }
 
     //Retorna uma lista de códigos de reservas do histórico do cliente
-    @GetMapping("clientes/{id}/reservas")
-    public ResponseEntity<ClientBookingsDTO> getClientBookings(@PathVariable("id") String id) {
-        ClientBookingsDTO clientBookingsDTO = clientService.getClientBookings(id);
+    @GetMapping("clientes/{code}/reservas")
+    public ResponseEntity<ClientBookingsDTO> getClientBookings(@PathVariable("code") int code) {
+        ClientBookingsDTO clientBookingsDTO = clientService.getClientBookings(code);
         return ResponseEntity.status(HttpStatus.OK).body(clientBookingsDTO);
     }
 
-    @PutMapping("clientes/{id}/milhas")
-    public ResponseEntity<MilesBalanceDTO> addClientMiles(@RequestBody Double miles, @PathVariable("id") String id) {
-        MilesBalanceDTO milesBalanceDTO = clientService.addMiles(id, miles);
+    @PutMapping("clientes/{code}/milhas")
+    public ResponseEntity<MilesBalanceDTO> addClientMiles(@RequestBody Double miles, @PathVariable("code") int code) {
+        MilesBalanceDTO milesBalanceDTO = clientService.addMiles(code, miles);
         return ResponseEntity.status(HttpStatus.OK).body(milesBalanceDTO);
     }
 
-    @GetMapping("clientes/{id}/milhas")
-    public ResponseEntity<MilesTransactionDTO> getMilesTransactions(@PathVariable("id") String cpf) {
-        MilesTransactionDTO milesTransactionDTO = clientService.getMilesTransactions(cpf);
+    @GetMapping("clientes/{code}/milhas")
+    public ResponseEntity<MilesTransactionDTO> getMilesTransactions(@PathVariable("code") int code) {
+        MilesTransactionDTO milesTransactionDTO = clientService.getMilesTransactions(code);
         return ResponseEntity.status(HttpStatus.OK).body(milesTransactionDTO);
     }
     

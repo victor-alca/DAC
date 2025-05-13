@@ -6,25 +6,25 @@ import java.util.Objects;
 
 public class MilesRecordId implements Serializable {
 
-    private String clientCpf;
+    private int clientCode;
     private Timestamp transactionDate;
 
     // Construtor padrão
     public MilesRecordId() {}
 
     // Construtor com argumentos
-    public MilesRecordId(String clientCpf, Timestamp transactionDate) {
-        this.clientCpf = clientCpf;
+    public MilesRecordId(int clientCode, Timestamp transactionDate) {
+        this.clientCode = clientCode;
         this.transactionDate = transactionDate;
     }
 
     // Getters e Setters
-    public String getClientCpf() {
-        return clientCpf;
+    public int getclientCode() {
+        return clientCode;
     }
 
-    public void setClientCpf(String clientCpf) {
-        this.clientCpf = clientCpf;
+    public void setclientCode(int clientCode) {
+        this.clientCode = clientCode;
     }
 
     public Timestamp getTransactionDate() {
@@ -41,12 +41,12 @@ public class MilesRecordId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MilesRecordId that = (MilesRecordId) o;
-        return Objects.equals(clientCpf, that.clientCpf) &&
+        return Objects.equals(clientCode, that.clientCode) &&
                Objects.equals(transactionDate, that.transactionDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(clientCpf, transactionDate);
+        return Objects.hash(clientCode, transactionDate);
     }
 }
