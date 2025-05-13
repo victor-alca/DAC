@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import backend.clients.dto.ClientBookingsDTO;
 import backend.clients.dto.MilesBalanceDTO;
 import backend.clients.dto.MilesTransactionDTO;
 import backend.clients.dto.MilesTransactionDTO.Transaction;
@@ -93,5 +94,23 @@ public class ClientService {
 
         return milesTransactionDTO;
         
+    }
+
+    public ClientBookingsDTO getClientBookings(String cpf){
+        Client client = clientRepository.findByCpf(cpf);
+
+        if(client == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+        }
+        
+        List<MilesRecord> milesRecords = milesRecordRepository.findByClientCpf(cpf);
+        List<String> bookingCodes = new ArrayList<String>();
+
+        for (MilesRecord milesRecord : milesRecords) {
+            bookingCodes.add(milesRecord.getBookingCode());
+        }
+
+        return new ClientBookingsDTO(bookingCodes);
+
     }
 }
