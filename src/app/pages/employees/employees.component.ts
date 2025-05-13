@@ -13,6 +13,52 @@ import { ConfimationModalComponent } from '../confimation-modal/confimation-moda
 })
 export class EmployeesComponent {
 
+  employeeList: Employee[] = [];
+
+  constructor(
+    private modalService: NgbModal,
+    public employeeService: EmployeeService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadList();
+  }
+
+  openEmployeesModal(employeeToEdit: Employee | null): void {
+    const modalRef = this.modalService.open(EmployeesModalComponent);
+    if (employeeToEdit) {
+      modalRef.componentInstance.employee = employeeToEdit;
+    }
+    modalRef.result.then(() => {
+      this.loadList();
+    }).catch(() => {});
+  }
+
+  remove(employee: Employee): void {
+    const modalRef = this.modalService.open(ConfimationModalComponent);
+    modalRef.componentInstance.text = 'Tem certeza que deseja remover o funcionário?';
+    modalRef.componentInstance.extraText = 'A ação vai inativá-lo.';
+    modalRef.result.then((result) => {
+      if (result) {
+        employee.active = false;
+        this.employeeService.update(employee).subscribe(() => {
+          this.loadList();
+        });
+      }
+    }).catch(() => {});
+  }
+
+  loadList(): void {
+    this.employeeService.getByActive(true).subscribe({
+      next: (data) => {
+        this.employeeList = data.sort((a, b) => a.name.length - b.name.length);
+      },
+      error: (err) => {
+        console.error('Erro ao carregar a lista de funcionários:', err);
+      }
+    });
+  }
+  /*
   constructor(private modalService: NgbModal, public employeeService: EmployeeService) {}
 
   employeeList: Employee[] = []
@@ -61,4 +107,5 @@ export class EmployeesComponent {
 
     this.employeeList = filteredEmployees;
   }
+    */
 }
