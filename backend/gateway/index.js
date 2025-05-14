@@ -28,6 +28,7 @@ const BASE_URL_CLIENTS = 'http://localhost:5001';
 const BASE_URL_EMPLOYEES = 'http://localhost:5002';
 const BASE_URL_FLIGHTS = 'http://localhost:5003';
 const BASE_URL_RESERVATIONS = 'http://localhost:5004';
+const BASE_URL_SAGA_ORCHESTRATOR = 'http://localhost:5005';
 
 // Serviços
 const authServiceProxy = httpProxy(BASE_URL_AUTH);
@@ -106,8 +107,37 @@ app.get('/clientes/:codigoCliente/milhas', verifyJWT, (req, res, next) => {
 });
 
 // Rotas para o serviço de Reservas
-app.post('/reservas', verifyJWT, (req, res, next) => {
-    reservationsServiceProxy(req, res, next);
+app.post('/reservas', verifyJWT, async (req, res) => { // <- NOVA ABORDAGEM (SAGA)
+    try {
+        const sagaPayload = req.body;
+
+        console.log('API Gateway: Recebido POST /reservations. Payload:', sagaPayload);
+
+        // Chamada para o Serviço Saga (Spring Boot)
+        const sagaServiceResponse = await axios.post(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/reservas/iniciar`,
+            sagaPayload,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+
+        console.log('API Gateway: Resposta do Serviço Saga:', sagaServiceResponse.data);
+
+        // Retorna imediatamente a resposta do Serviço Saga para o cliente.
+        // Exemplo: { saga_id: "...", status: "STARTED", message: "..." }
+        res.status(sagaServiceResponse.status).json(sagaServiceResponse.data);
+
+    } catch (error) {
+        console.error('API Gateway: Erro ao processar POST /reservations via Serviço Saga:', error.message);
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ message: 'Erro interno no API Gateway ao processar a reserva.' });
+        }
+    }
 });
 
 // Rota para buscar detalhes de uma reserva específica, incluindo informações do voo
