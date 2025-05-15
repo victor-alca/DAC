@@ -1,45 +1,50 @@
 package com.orchestrator.orchestrator.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
+@Profile("!test")
 @Configuration
 public class RabbitMQConfig {
 
-    @Value("${app.rabbitmq.exchange-name}")
-    private String sagaExchangeName;
-
-    // Nome da fila que o serviço de Reservas (ou o primeiro da cadeia) irá escutar
-    public static final String RESERVATION_START_COMMAND_QUEUE = "reserva.iniciar.comando.queue";
-    @Value("${app.rabbitmq.routingkey.iniciar-reserva}")
-    private String iniciarReservaRoutingKey;
-
+    // Queues para comunicação com outros serviços
     @Bean
-    public TopicExchange sagaExchange() {
-        return new TopicExchange(sagaExchangeName);
+    public Queue reservaQueue() {
+        return new Queue("reserva.v1.reserva");
     }
 
     @Bean
-    public Queue iniciarReservaComandoQueue() {
-        return new Queue(RESERVATION_START_COMMAND_QUEUE, true);
+    public Queue vooQueue() {
+        return new Queue("voo.v1.voo");
     }
 
     @Bean
-    public Binding bindingIniciarReserva(TopicExchange sagaExchange, Queue iniciarReservaComandoQueue) {
-        return BindingBuilder.bind(iniciarReservaComandoQueue)
-                             .to(sagaExchange)
-                             .with(iniciarReservaRoutingKey);
+    public Queue milhasQueue() {
+        return new Queue("milhas.v1.milhas");
+    }
+
+    // RabbitAdmin para inicializar as queues
+    @Bean
+    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory) {
+        return new RabbitAdmin(connectionFactory);
     }
 
     @Bean
-    public MessageConverter jsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
+    public ApplicationListener<ApplicationReadyEvent> applicationReadyEventApplicationListener(
+            RabbitAdmin rabbitAdmin) {
+        return event -> rabbitAdmin.initialize();
+    }
+
+    // RabbitTemplate para enviar mensagens
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        return new RabbitTemplate(connectionFactory);
     }
 }
