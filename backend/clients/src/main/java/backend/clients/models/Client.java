@@ -9,6 +9,10 @@ import jakarta.persistence.*;
 @Table(name = "Client")
 public class Client implements Serializable{
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(nullable = false)
+    private int code;
+
     @Column(nullable = false)
     private String cpf;
 
