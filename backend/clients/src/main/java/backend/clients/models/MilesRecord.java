@@ -1,54 +1,55 @@
 package backend.clients.models;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.sql.Timestamp;
 
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "MilesRecord")
+@IdClass(MilesRecordId.class)
 public class MilesRecord implements Serializable {
 
     @Id
-    @Column(name = "client_cpf", nullable = false)
-    private String clientCpf;
+    @Column(name = "client_code", nullable = false)
+    private int clientCode;
 
     @Id
     @Column(name = "transaction_date", nullable = false)
-    private Date transactionDate;
+    private Timestamp transactionDate;
 
     @ManyToOne
-    @JoinColumn(name = "client_cpf", referencedColumnName = "cpf", insertable = false, updatable = false)
+    @JoinColumn(name = "client_code", referencedColumnName = "code", insertable = false, updatable = false)
     private Client client;
 
-    @Column(nullable = false)
-    private double value;
+    @Column(name = "value")
+    private Integer value;
 
-    @Column(name = "in_out", nullable = false)
-    private boolean inOut;
+    @Column(name = "amount")
+    private Integer amount;
 
-    @Column(nullable = false)
+    @Column(name = "type")
+    private String type;
+
+    @Column(name = "description")
     private String description;
 
-    @Column(nullable = false)
-    private int amountOfMiles;
-
-    @Column(nullable = false)
+    @Column(name = "booking_code")
     private String bookingCode;
-
-    public String getClientCpf() {
-        return clientCpf;
+    
+    public int getClientCode() {
+        return clientCode;
     }
 
-    public void setClientCpf(String clientCpf) {
-        this.clientCpf = clientCpf;
+    public void setClientCode(int clientCode) {
+        this.clientCode = clientCode;
     }
 
-    public Date getTransactionDate() {
+    public Timestamp getTransactionDate() {
         return transactionDate;
     }
 
-    public void setTransactionDate(Date transactionDate) {
+    public void setTransactionDate(Timestamp transactionDate) {
         this.transactionDate = transactionDate;
     }
 
@@ -60,20 +61,28 @@ public class MilesRecord implements Serializable {
         this.client = client;
     }
 
-    public double getValue() {
+    public Integer getValue() {
         return value;
     }
 
-    public void setValue(int value) {
+    public void setValue(Integer value) {
         this.value = value;
     }
 
-    public boolean isInOut() {
-        return inOut;
+    public Integer getAmount() {
+        return amount;
     }
 
-    public void setInOut(boolean inOut) {
-        this.inOut = inOut;
+    public void setAmount(Integer amount) {
+        this.amount = amount;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getDescription() {
@@ -82,18 +91,6 @@ public class MilesRecord implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public int getAmountOfMiles() {
-        return amountOfMiles;
-    }
-
-    public void setValue(double value) {
-        this.value = value;
-    }
-
-    public void setAmountOfMiles(int amountOfMiles) {
-        this.amountOfMiles = amountOfMiles;
     }
 
     public String getBookingCode() {

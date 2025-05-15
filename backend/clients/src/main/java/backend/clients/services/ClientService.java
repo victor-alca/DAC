@@ -1,5 +1,6 @@
 package backend.clients.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,9 +8,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import backend.clients.dto.ClientBookingsDTO;
+import backend.clients.dto.MilesBalanceDTO;
+import backend.clients.dto.MilesTransactionDTO;
+import backend.clients.dto.MilesTransactionDTO.Transaction;
 import backend.clients.models.Client;
 import backend.clients.models.MilesRecord;
-import backend.clients.models.MilesTransactionHistory;
 import backend.clients.repository.ClientRepository;
 import backend.clients.repository.MilesRecordRepository;
 
@@ -32,8 +36,8 @@ public class ClientService {
         return newClient;
     }
 
-    public Client getClient (String cpf) {
-        Client client = clientRepository.findByCpf(cpf);
+    public Client getClient (int code) {
+        Client client = clientRepository.findById(code).orElse(null);
         if(client == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
         }
@@ -49,32 +53,64 @@ public class ClientService {
         return client;
     }
     
-    public double addMiles(String cpf, Double miles) {
-        Client client = clientRepository.findByCpf(cpf);
+    public MilesBalanceDTO addMiles(int code, Double miles) {
+        Client client = clientRepository.findById(code).orElse(null);
         if(client == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
         }
         client.setMiles(client.getMiles() + miles);
         clientRepository.save(client);
-        return client.getMiles();
+        MilesBalanceDTO milesBalanceDTO = new MilesBalanceDTO(1, client.getMiles());
+        return milesBalanceDTO;
     }
     
-    public MilesTransactionHistory getMilesTransactionHistory(String cpf) {
-        Client client = clientRepository.findByCpf(cpf);
+    public MilesTransactionDTO getMilesTransactions(int code) {
+        Client client = clientRepository.findById(code).orElse(null);
+        
         if(client == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
         }
-        List<MilesRecord> milesRecords = milesRecordRepository.findByClientCpf(cpf);
-        MilesTransactionHistory milesTransactionHistory = new MilesTransactionHistory(1, client.getMiles());
+
+        List<MilesRecord> milesRecords = milesRecordRepository.findByClientCode(code);
+
+        MilesTransactionDTO milesTransactionDTO = new MilesTransactionDTO();
+
+        List<Transaction> transactions = new ArrayList<Transaction>();
+
         for (MilesRecord milesRecord : milesRecords) {
-            milesTransactionHistory.transacoes.add(new MilesTransactionHistory.Transacao(
+            Transaction transaction = new Transaction(
                 milesRecord.getTransactionDate(),
                 milesRecord.getValue(),
-                milesRecord.getAmountOfMiles(),
+                milesRecord.getAmount(),
                 milesRecord.getDescription(),
                 milesRecord.getBookingCode(),
-                milesRecord.isInOut() ? "ENTRADA" : "SAIDA"));
+                milesRecord.getType()
+            );
+
+            transactions.add(transaction);
         }
-        return milesTransactionHistory;
+
+        milesTransactionDTO.setTransacoes(transactions);
+
+        return milesTransactionDTO;
+        
+    }
+
+    public ClientBookingsDTO getClientBookings(int code){
+        Client client = clientRepository.findById(code).orElse(null);
+
+        if(client == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+        }
+        
+        List<MilesRecord> milesRecords = milesRecordRepository.findByClientCode(code);
+        List<String> bookingCodes = new ArrayList<String>();
+
+        for (MilesRecord milesRecord : milesRecords) {
+            bookingCodes.add(milesRecord.getBookingCode());
+        }
+
+        return new ClientBookingsDTO(bookingCodes);
+
     }
 }

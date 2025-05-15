@@ -53,7 +53,7 @@ export class SignComponent {
       this.ClientService.create(this.client)
 
       // Exibe o popup de confirmação
-      alert('Cadastro realizado com sucesso! Sua senha foi enviada para o seu email. (No momento essa função não está implementada, a senha é "1234")');
+      alert('Cadastro realizado com sucesso! Sua senha foi enviada para o seu email.');
 
       // Redireciona para a página de login
       this.router.navigate(['/login']);

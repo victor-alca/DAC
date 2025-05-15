@@ -32,8 +32,10 @@ export class BookingModalComponent {
   }
 
   endPayment(){
-    this.confirmingPayment = false;
-    this.endingPayment = true;
+    if (window.confirm('Você tem certeza que deseja finalizar a compra?')) {
+      this.confirmingPayment = false;
+      this.endingPayment = true;
+    }
   }
 
   finish(){
