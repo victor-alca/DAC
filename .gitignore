@@ -41,3 +41,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+backend/OrchestratorService/orchestrator/target/test-classes/com/orchestrator/orchestrator/OrchestratorApplicationTests.class
+backend/OrchestratorService/orchestrator/HELP.md
+backend/OrchestratorService/orchestrator/.vscode/NEWLY_CREATED_BY_SPRING_INITIALIZR
