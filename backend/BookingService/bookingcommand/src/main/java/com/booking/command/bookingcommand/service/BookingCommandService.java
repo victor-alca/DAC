@@ -1,9 +1,10 @@
-package main.java.com.booking.command.bookingcommand.service;
+package com.booking.command.bookingcommand.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import main.java.com.booking.command.bookingcommand.entity.Booking;
-import main.java.com.booking.command.bookingcommand.repository.BookingRepository;
+import com.booking.command.bookingcommand.entity.Booking;
+import com.booking.command.bookingcommand.repository.BookingRepository;
 
 @Service 
 public class BookingCommandService {
