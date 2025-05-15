@@ -6,19 +6,20 @@ import java.sql.Timestamp;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "MilesRecord", schema = "Client")
+@Table(name = "MilesRecord")
+@IdClass(MilesRecordId.class)
 public class MilesRecord implements Serializable {
 
     @Id
-    @Column(name = "client_cpf", nullable = false)
-    private String clientCpf;
+    @Column(name = "client_code", nullable = false)
+    private int clientCode;
 
     @Id
     @Column(name = "transaction_date", nullable = false)
     private Timestamp transactionDate;
 
     @ManyToOne
-    @JoinColumn(name = "client_cpf", referencedColumnName = "cpf", insertable = false, updatable = false)
+    @JoinColumn(name = "client_code", referencedColumnName = "code", insertable = false, updatable = false)
     private Client client;
 
     @Column(name = "value")
@@ -36,12 +37,12 @@ public class MilesRecord implements Serializable {
     @Column(name = "booking_code")
     private String bookingCode;
     
-    public String getClientCpf() {
-        return clientCpf;
+    public int getClientCode() {
+        return clientCode;
     }
 
-    public void setClientCpf(String clientCpf) {
-        this.clientCpf = clientCpf;
+    public void setClientCode(int clientCode) {
+        this.clientCode = clientCode;
     }
 
     public Timestamp getTransactionDate() {

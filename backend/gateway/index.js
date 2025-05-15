@@ -28,6 +28,7 @@ const BASE_URL_CLIENTS = 'http://localhost:5001';
 const BASE_URL_EMPLOYEES = 'http://localhost:5002';
 const BASE_URL_FLIGHTS = 'http://localhost:5003';
 const BASE_URL_RESERVATIONS = 'http://localhost:5004';
+const BASE_URL_SAGA_ORCHESTRATOR = 'http://localhost:5005';
 
 // Serviços
 const authServiceProxy = httpProxy(BASE_URL_AUTH);
@@ -106,8 +107,70 @@ app.get('/clientes/:codigoCliente/milhas', verifyJWT, (req, res, next) => {
 });
 
 // Rotas para o serviço de Reservas
-app.post('/reservas', verifyJWT, (req, res, next) => {
-    reservationsServiceProxy(req, res, next);
+
+// (via Orquestrador Saga)
+app.post('/reservas', verifyJWT, async (req, res) => {
+    try {
+        const sagaPayload = req.body;
+
+        console.log('API Gateway: Recebido POST /reservas. Payload:', sagaPayload);
+
+        // Chamada para o Serviço Saga (Spring Boot) - Endpoint de criação de reserva
+        const sagaServiceResponse = await axios.post(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/reservas`,
+            sagaPayload,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+
+        console.log('API Gateway: Resposta do Serviço Saga (criar reserva):', sagaServiceResponse.data);
+
+        // Retorna a resposta do Serviço Saga para o cliente.
+        res.status(sagaServiceResponse.status).json(sagaServiceResponse.data);
+
+    } catch (error) {
+        console.error('API Gateway: Erro ao processar POST /reservas via Serviço Saga:', error.message);
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ message: 'Erro interno no API Gateway ao processar a reserva.' });
+        }
+    }
+});
+
+// (via Orquestrador Saga)
+app.delete('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
+    try {
+        const codigoReserva = req.params.codigoReserva;
+
+        console.log(`API Gateway: Recebido DELETE /reservas/${codigoReserva}`);
+
+        // Chamada para o Serviço Saga (Spring Boot) - Endpoint de cancelamento de reserva
+        const sagaServiceResponse = await axios.delete(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/reservas/${codigoReserva}`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+
+        console.log('API Gateway: Resposta do Serviço Saga (cancelar reserva):', sagaServiceResponse.data);
+
+        // Retorna a resposta do Serviço Saga para o cliente.
+        res.status(sagaServiceResponse.status).json(sagaServiceResponse.data);
+
+    } catch (error) {
+        console.error(`API Gateway: Erro ao processar DELETE /reservas/${req.params.codigoReserva} via Serviço Saga:`, error.message);
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ message: 'Erro interno no API Gateway ao processar o cancelamento da reserva.' });
+        }
+    }
 });
 
 // Rota para buscar detalhes de uma reserva específica, incluindo informações do voo
@@ -236,8 +299,38 @@ app.post('/voos', verifyJWT, (req, res, next) => {
     flightsServiceProxy(req, res, next);
 });
 
-app.patch('/voos/:codigoVoo/estado', verifyJWT, (req, res, next) => {
-    flightsServiceProxy(req, res, next);
+// (via Orquestrador Saga)
+app.patch('/voos/:codigoVoo/estado', verifyJWT, async (req, res) => {
+    try {
+        const codigoVoo = req.params.codigoVoo;
+        const { estado } = req.body; 
+
+        console.log(`API Gateway: Recebido PATCH /voos/${codigoVoo}/estado com estado: ${estado}`);
+
+        // Chamada para o Serviço Saga (Spring Boot) - Endpoint de alteração de estado do voo
+        const sagaServiceResponse = await axios.patch(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/voos/${codigoVoo}/estado`,
+            { estado: estado }, // Envia o estado no corpo da requisição
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+
+        console.log('API Gateway: Resposta do Serviço Saga (alterar estado do voo):', sagaServiceResponse.data);
+
+        // Retorna a resposta do Serviço Saga para o cliente.
+        res.status(sagaServiceResponse.status).json(sagaServiceResponse.data);
+
+    } catch (error) {
+        console.error(`API Gateway: Erro ao processar PATCH /voos/${req.params.codigoVoo}/estado via Serviço Saga:`, error.message);
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ message: 'Erro interno no API Gateway ao processar a alteração do estado do voo.' });
+        }
+    }
 });
 
 app.get('/aeroportos', (req, res, next) => {

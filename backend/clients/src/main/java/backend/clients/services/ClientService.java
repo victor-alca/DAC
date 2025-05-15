@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import backend.clients.dto.ClientBookingsDTO;
 import backend.clients.dto.MilesBalanceDTO;
 import backend.clients.dto.MilesTransactionDTO;
 import backend.clients.dto.MilesTransactionDTO.Transaction;
@@ -35,8 +36,8 @@ public class ClientService {
         return newClient;
     }
 
-    public Client getClient (String cpf) {
-        Client client = clientRepository.findByCpf(cpf);
+    public Client getClient (int code) {
+        Client client = clientRepository.findById(code).orElse(null);
         if(client == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
         }
@@ -52,8 +53,8 @@ public class ClientService {
         return client;
     }
     
-    public MilesBalanceDTO addMiles(String cpf, Double miles) {
-        Client client = clientRepository.findByCpf(cpf);
+    public MilesBalanceDTO addMiles(int code, Double miles) {
+        Client client = clientRepository.findById(code).orElse(null);
         if(client == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
         }
@@ -63,14 +64,14 @@ public class ClientService {
         return milesBalanceDTO;
     }
     
-    public MilesTransactionDTO getMilesTransactions(String cpf) {
-        Client client = clientRepository.findByCpf(cpf);
+    public MilesTransactionDTO getMilesTransactions(int code) {
+        Client client = clientRepository.findById(code).orElse(null);
         
         if(client == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
         }
 
-        List<MilesRecord> milesRecords = milesRecordRepository.findByClientCpf(cpf);
+        List<MilesRecord> milesRecords = milesRecordRepository.findByClientCode(code);
 
         MilesTransactionDTO milesTransactionDTO = new MilesTransactionDTO();
 
@@ -93,5 +94,23 @@ public class ClientService {
 
         return milesTransactionDTO;
         
+    }
+
+    public ClientBookingsDTO getClientBookings(int code){
+        Client client = clientRepository.findById(code).orElse(null);
+
+        if(client == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+        }
+        
+        List<MilesRecord> milesRecords = milesRecordRepository.findByClientCode(code);
+        List<String> bookingCodes = new ArrayList<String>();
+
+        for (MilesRecord milesRecord : milesRecords) {
+            bookingCodes.add(milesRecord.getBookingCode());
+        }
+
+        return new ClientBookingsDTO(bookingCodes);
+
     }
 }

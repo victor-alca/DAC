@@ -3,8 +3,8 @@ package backend.clients.dto;
 
 public class MilesBalanceDTO {
 
-    public MilesBalanceDTO(int i, Double balance) {
-        this.codigo = i;
+    public MilesBalanceDTO(int code, Double balance) {
+        this.codigo = code;
         this.saldo_milhas = balance;
     }
     public int codigo;
