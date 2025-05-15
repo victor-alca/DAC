@@ -1,23 +1,25 @@
-package main.java.com.booking.command.bookingcommand.entity;
+package com.booking.command.bookingcommand.entity;
+
+import java.io.Serializable;
+import java.util.Date;
 
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "BOOKING_COMMAND")
-@Data
 
 public class Booking implements Serializable {
     @Id
     private String code;
 
     @Column(nullable = false)
-    private Integer flightCode;
+    private String flightCode;
 
     @Column(nullable = false)
-    private String date;
+    private Date date;
 
     @Column(nullable = false)
-    private String status;
+    private Integer status;
 
     @Column(nullable = false)
     private Double moneySpent;
@@ -25,19 +27,19 @@ public class Booking implements Serializable {
     @Column(nullable = false)
     private Double milesSpent;
 
-    public Integer getCode() {
+    public String getCode() {
         return code;
     }
 
-    public void setCode(Integer code) {
+    public void setCode(String code) {
         this.code = code;
     }
 
-    public Integer getFlightCode() {
+    public String getFlightCode() {
         return flightCode;
     }
 
-    public void setFlightCode(Integer flightCode) {
+    public void setFlightCode(String flightCode) {
         this.flightCode = flightCode;
     }
 
@@ -45,7 +47,7 @@ public class Booking implements Serializable {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
@@ -53,11 +55,11 @@ public class Booking implements Serializable {
         return moneySpent;
     }
 
-    public void setMoneySpent(String moneySpent) {
+    public void setMoneySpent(Double moneySpent) {
         this.moneySpent = moneySpent;
     }
 
-    public Integer getMilesSpent() {
+    public Double getMilesSpent() {
         return milesSpent;
     }
 
@@ -65,15 +67,15 @@ public class Booking implements Serializable {
         this.milesSpent = milesSpent;
     }
 
-    public Double getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(Double status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 
-    public Booking(String code, Date date, String flightCode, Double moneySpent, Integer milesSpent, Double status) {
+    public Booking(String code, Date date, String flightCode, Double moneySpent, Double milesSpent, Integer status) {
         this.code = code;
         this.date = date;
         this.flightCode = flightCode;
