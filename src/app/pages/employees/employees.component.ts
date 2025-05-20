@@ -18,8 +18,10 @@ export class EmployeesComponent {
   employeeList: Employee[] = []
 
   ngOnInit(){
-    this.employeeService.seedEmployees();
-    this.loadList()
+        this.employeeService.getAll().subscribe({
+      next: data => this.employeeList = data,
+      error: err => console.error('Erro ao buscar funcionários:', err)
+    });
   }
 
   openEmployeesModal(employeeToEdit: Employee | null){
@@ -61,4 +63,5 @@ export class EmployeesComponent {
 
     this.employeeList = filteredEmployees;
   }
+  
 }
