@@ -24,11 +24,11 @@ app.use(cookieParser()); // Parse de cookies
 
 // Base URLs para os serviços (atualize os endereços se necessário)
 const BASE_URL_AUTH = 'http://localhost:5000';
-const BASE_URL_CLIENTS = 'http://localhost:5001';
-const BASE_URL_EMPLOYEES = 'http://localhost:5002';
-const BASE_URL_FLIGHTS = 'http://localhost:5003';
-const BASE_URL_RESERVATIONS = 'http://localhost:5004';
-const BASE_URL_SAGA_ORCHESTRATOR = 'http://localhost:5005';
+const BASE_URL_CLIENTS = 'http://localhost:5000';
+const BASE_URL_EMPLOYEES = 'http://localhost:5000';
+const BASE_URL_FLIGHTS = 'http://localhost:5000';
+const BASE_URL_RESERVATIONS = 'http://localhost:5000';
+const BASE_URL_SAGA_ORCHESTRATOR = 'http://localhost:5000';
 
 // Serviços
 const authServiceProxy = httpProxy(BASE_URL_AUTH);
@@ -41,6 +41,10 @@ function verifyJWT(req, res, next) {
     const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
     if (!token)
         return res.status(401).json({ auth: false, message: 'Token não fornecido.' });
+
+    // >>> TEMPORARIO PARA MOCK
+    return next();
+
     jwt.verify(token, process.env.SECRET, function (err, decoded) {
         if (err)
             return res.status(500).json({ auth: false, message: 'Falha ao autenticar o token.' });
@@ -50,13 +54,15 @@ function verifyJWT(req, res, next) {
 }
 
 app.post('/login', async (req, res) => {
+    // >>> INICIO: Lógica Original para Produção (Comentada) <<<
+    /*
     try {
         // Chamada para o serviço de autenticação
         const authResponse = await axios.post(`${BASE_URL_AUTH}/login`, {
             login: req.body.login,
             senha: req.body.senha
         });
-
+        
         const { access_token, token_type, tipo, codigo } = authResponse.data;
 
         // Determina o serviço correto com base no tipo
@@ -87,6 +93,61 @@ app.post('/login', async (req, res) => {
         }
         return res.status(500).json({ message: 'Erro ao efetuar login.', error: error.message });
     }
+    */
+    // >>> FIM: Lógica Original para Produção (Comentada) <<<
+
+
+    // >>> INICIO: Lógica de Mock para Desenvolvimento (Ativa) <<<
+    const { login, senha } = req.body;
+
+    try {
+        // >>> INÍCIO: Lógica de Mock para Desenvolvimento (Ativa) <<<
+
+        const authServiceResponse = await axios.get(`${BASE_URL_AUTH}/usuarios`);
+        const mockUsers = authServiceResponse.data;
+
+        const usuarioEncontrado = mockUsers.find(user => user.login === login && user.senha === senha);
+
+        if (!usuarioEncontrado) {
+            console.warn('Login mock falhou: Credenciais inválidas do JSON-Server.');
+            return res.status(401).json({ auth: false, message: 'Login ou senha inválidos (mock com json-server).' });
+        }
+
+        const { tipo, codigo } = usuarioEncontrado; 
+
+        const token = jwt.sign({ tipo: tipo, codigo: codigo }, process.env.SECRET, {
+            expiresIn: '1h' 
+        });
+
+        let usuarioResponseData = usuarioEncontrado; // Começa com os dados básicos do usuário mockado
+
+        try {
+            if (tipo === 'CLIENTE') {
+                const clientDetailsResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/${codigo}`);
+                usuarioResponseData = clientDetailsResponse.data;
+            } else if (tipo === 'FUNCIONARIO') {
+                const employeeDetailsResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`);
+                usuarioResponseData = employeeDetailsResponse.data;
+            }
+        } catch (detailError) {
+            console.warn(`Não foi possível buscar detalhes completos para ${tipo} ${codigo} do mock (json-server GET falhou?):`, detailError.message);
+        }
+
+        return res.status(200).json({
+            access_token: token, // Retorne o JWT gerado
+            token_type: "bearer",
+            tipo: tipo,
+            usuario: usuarioResponseData // Retorna dados detalhados (do json-server) ou básicos
+        });
+
+    } catch (error) {
+        console.error('API Gateway: Erro na lógica de login mockada com JSON-Server:', error.message);
+        if (error.response) {
+            return res.status(error.response.status).json(error.response.data);
+        }
+        res.status(500).json({ message: 'Erro interno no API Gateway ao simular login com JSON-Server.', error: error.message });
+    }
+    // >>> FIM: Lógica de Mock para Desenvolvimento (Ativa) <<<
 });
 
 // Rotas para o serviço de Clientes
