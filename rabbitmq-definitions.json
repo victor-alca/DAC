@@ -1,0 +1,38 @@
+{
+  "users": [
+    {
+      "name": "guest",
+      "password": "guest",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [{ "name": "/" }],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "queues": [
+    {
+      "name": "create-auth-user",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "update-auth-user",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "delete-auth-user",
+      "vhost": "/",
+      "durable": true
+    }
+  ],
+  "exchanges": [],
+  "bindings": []
+}
