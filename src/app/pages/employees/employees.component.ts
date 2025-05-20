@@ -30,7 +30,6 @@ export class EmployeesComponent {
       modalRef.componentInstance.employee = employeeToEdit;
     }
     modalRef.result.then(() => {
-      this.loadList()
     }).catch(() => {});
   }
 
@@ -42,16 +41,8 @@ export class EmployeesComponent {
       if(result){
         employee.active = false;
         this.employeeService.update(employee)
-        this.loadList()
       }
     }).catch(() => {});
-  }
-
-  loadList(){
-    this.employeeList = this.employeeService.getAll();
-    console.log(this.employeeList);
-    this.filterEmployees();
-    console.log(this.employeeList);
   }
 
   filterEmployees() {
