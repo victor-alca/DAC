@@ -28,6 +28,7 @@ export class CepValidatorDirective {
 
     if (!onlyNumbers.test(cep) || !cepValid.test(cep)) {
       cepError = 'CEP inválido';
+      this.ngModel.control.setErrors({ cepInvalid: true });
       this.cepErrorChange.emit(cepError);
       this.updateNgModel();
       return;
@@ -51,8 +52,10 @@ export class CepValidatorDirective {
       this.stateChange.emit(this.state);
 
       cepError = null;
+      this.ngModel.control.setErrors(null); // Limpa erros customizados
     } catch (error) {
       cepError = 'Erro ao buscar o CEP. Tente novamente.';
+      this.ngModel.control.setErrors({ cepInvalid: true });
     }
 
     this.cepErrorChange.emit(cepError);

@@ -27,6 +27,7 @@ import { ConfimationModalComponent } from './pages/confimation-modal/confimation
 import { CheckInComponent } from './pages/check-in/check-in.component';
 import { ExtractComponent } from './pages/extract/extract.component';
 import { PhoneMaskPipe } from './shared/pipes/phone-mask.pipe';
+import { provideHttpClient } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -62,7 +63,7 @@ import { PhoneMaskPipe } from './shared/pipes/phone-mask.pipe';
     FormsModule,
     NgxMaskDirective,
   ],
-  providers: [provideNgxMask()],
+  providers: [provideNgxMask(), provideHttpClient()],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -11,11 +11,13 @@ const helmet = require('helmet');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 // Inicialização do app Express
 const app = express();
 
 // Middlewares globais
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false })); // Parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // Parse application/json
 app.use(logger('dev')); // Logger de requisições
@@ -24,7 +26,7 @@ app.use(cookieParser()); // Parse de cookies
 
 // Base URLs para os serviços (atualize os endereços se necessário)
 const BASE_URL_AUTH = 'http://localhost:5000';
-const BASE_URL_CLIENTS = 'http://localhost:5000';
+const BASE_URL_CLIENTS = 'http://localhost:5001';
 const BASE_URL_EMPLOYEES = 'http://localhost:5000';
 const BASE_URL_FLIGHTS = 'http://localhost:5000';
 const BASE_URL_RESERVATIONS = 'http://localhost:5000';
