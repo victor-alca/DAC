@@ -1,14 +1,10 @@
+--Voo --------------------------------
+
 CREATE SCHEMA "Flight";
-
-CREATE SCHEMA "Client";
-
-CREATE SCHEMA "Employee";
-
-CREATE SCHEMA "Booking";
 
 CREATE TABLE "Flight"."Flight" (
   "code" varchar PRIMARY KEY,
-  "date" datetime,
+  "date" time,
   "origin_airport" varchar NOT NULL,
   "destination_airport" varchar NOT NULL,
   "total_seats" integer,
@@ -28,6 +24,16 @@ CREATE TABLE "Flight"."FlightStatus" (
   "code" varchar,
   "description" varchar
 );
+
+ALTER TABLE "Flight"."Flight" ADD FOREIGN KEY ("origin_airport") REFERENCES "Flight"."Airport" ("code");
+
+ALTER TABLE "Flight"."Flight" ADD FOREIGN KEY ("destination_airport") REFERENCES "Flight"."Airport" ("code");
+
+ALTER TABLE "Flight"."Flight" ADD FOREIGN KEY ("status") REFERENCES "Flight"."FlightStatus" ("id");
+
+-- Cliente -------------------------------------------
+
+CREATE SCHEMA "Client";
 
 CREATE TABLE "Client"."Client" (
   "cpf" varchar PRIMARY KEY,
@@ -56,6 +62,12 @@ CREATE TABLE "Client"."MilesRecord" (
   PRIMARY KEY ("client_cpf", "transaction_date")
 );
 
+ALTER TABLE "Client"."MilesRecord" ADD FOREIGN KEY ("client_cpf") REFERENCES "Client"."Client" ("cpf");
+
+-- Funcionario ---------------------------------------------------------
+
+CREATE SCHEMA "Employee";
+
 CREATE TABLE "Employee"."Employee" (
   "cpf" varchar PRIMARY KEY,
   "name" varchar,
@@ -63,22 +75,26 @@ CREATE TABLE "Employee"."Employee" (
   "phone" varchar
 );
 
-CREATE TABLE "Booking"."Booking" (
+-- Reserva CUD -------------------------------------------------------------------
+
+CREATE SCHEMA "BookingCommand";
+
+CREATE TABLE "BookingCommand"."Booking" (
   "code" varchar PRIMARY KEY,
   "flight_code" varchar NOT NULL,
-  "date" datetime,
+  "date" date,
   "status" integer NOT NULL,
   "money_spent" integer,
   "miles_spent" integer
 );
 
-CREATE TABLE "Booking"."BookingStatus" (
+CREATE TABLE "BookingCommand"."BookingStatus" (
   "id" integer PRIMARY KEY,
   "code" varchar,
   "description" varchar
 );
 
-CREATE TABLE "Booking"."BookingStatusAlterationRecord" (
+CREATE TABLE "BookingCommand"."BookingStatusAlterationRecord" (
   "booking_code" varchar,
   "alteration_date" timestamp,
   "previous_status" integer NOT NULL,
@@ -86,18 +102,28 @@ CREATE TABLE "Booking"."BookingStatusAlterationRecord" (
   PRIMARY KEY ("booking_code", "alteration_date")
 );
 
-ALTER TABLE "Flight"."Flight" ADD FOREIGN KEY ("origin_airport") REFERENCES "Flight"."Airport" ("code");
+ALTER TABLE "BookingCommand"."Booking" ADD FOREIGN KEY ("status") REFERENCES "BookingCommand"."BookingStatus" ("id");
 
-ALTER TABLE "Flight"."Flight" ADD FOREIGN KEY ("destination_airport") REFERENCES "Flight"."Airport" ("code");
+ALTER TABLE "BookingCommand"."BookingStatusAlterationRecord" ADD FOREIGN KEY ("previous_status") REFERENCES "BookingCommand"."BookingStatus" ("id");
 
-ALTER TABLE "Flight"."Flight" ADD FOREIGN KEY ("status") REFERENCES "Flight"."FlightStatus" ("id");
+ALTER TABLE "BookingCommand"."BookingStatusAlterationRecord" ADD FOREIGN KEY ("post_status") REFERENCES "BookingCommand"."BookingStatus" ("id");
 
-ALTER TABLE "Client"."MilesRecord" ADD FOREIGN KEY ("client_cpf") REFERENCES "Client"."Client" ("cpf");
+ALTER TABLE "BookingCommand"."Booking" ADD FOREIGN KEY ("flight_code") REFERENCES "Flight"."Flight" ("code");
 
-ALTER TABLE "Booking"."Booking" ADD FOREIGN KEY ("status") REFERENCES "Booking"."BookingStatus" ("id");
+-- RESERVA READ --------------------------------------------
 
-ALTER TABLE "Booking"."BookingStatusAlterationRecord" ADD FOREIGN KEY ("previous_status") REFERENCES "Booking"."BookingStatus" ("id");
+CREATE SCHEMA "BookingQuery"
 
-ALTER TABLE "Booking"."BookingStatusAlterationRecord" ADD FOREIGN KEY ("post_status") REFERENCES "Booking"."BookingStatus" ("id");
+CREATE TABLE "BookingQuery"."Booking" (
+  "code" varchar PRIMARY KEY,
+  "date" date,
+  "origin_airport" varchar NOT NULL,
+  "destination_airport" varchar NOT NULL,
+  "total_seats" integer NOT NULL,
+  "occupated_seats" integer NOT NULL,
+  "statusFlight" varchar NOT NULL,
+  "statusBooking" varchar NOT NULL,
+  "money_spent" integer,
+  "miles_spent" integer
+);
 
-ALTER TABLE "Booking"."Booking" ADD FOREIGN KEY ("flight_code") REFERENCES "Flight"."Flight" ("code");
