@@ -1,0 +1,32 @@
+# Ignore node_modules to speed up Docker build
+node_modules
+bower_components
+
+# Ignore Angular build outputs
+dist
+out-tsc
+
+# Ignore environment files (optional — if you provide them via Docker or CI/CD)
+# src/environments/environment*.ts
+
+# Ignore test coverage output
+coverage
+
+# Ignore IDE and OS-specific files
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
+
+# Ignore git files
+.git
+.gitignore
+
+# Ignore Docker-specific files that shouldn't be copied
+Dockerfile
+.dockerignore
+
+backend
