@@ -1,0 +1,7 @@
+{
+  "/login": "/usuarios",
+  "/clientes/:codigoCliente/milhas": "/clientes/:codigoCliente",
+  "/clientes/:codigoCliente/reservas": "/reservas?codigo_cliente=:codigoCliente",
+  "/reservas/:codigoReserva/estado": "/reservas/:codigoReserva",  
+  "/voos/:codigoVoo/estado": "/voos/:codigoVoo"               
+}

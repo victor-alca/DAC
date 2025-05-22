@@ -1,0 +1,310 @@
+{
+  "usuarios": [
+    {
+      "id": 1,
+      "login": "cliente@example.com",
+      "senha": "password123",
+      "tipo": "CLIENTE",
+      "codigo": 101,
+      "access_token": "mock_client_token",
+      "token_type": "bearer"
+    },
+    {
+      "id": 2,
+      "login": "funcionario@example.com",
+      "senha": "admin123",
+      "tipo": "FUNCIONARIO",
+      "codigo": 201,
+      "access_token": "mock_funcionario_token",
+      "token_type": "bearer"
+    }
+  ],
+  "clientes": [
+    {
+      "quantidade": 10,
+      "codigo": 101
+    },
+    {
+      "cpf": "12345678901",
+      "email": "novo.cliente@example.com",
+      "nome": "Novo Cliente",
+      "saldo_milhas": 0,
+      "endereco": {
+        "cep": "80111000",
+        "uf": "PR",
+        "cidade": "Curitiba",
+        "bairro": "Centro",
+        "rua": "Rua",
+        "numero": "1",
+        "complemento": ""
+      },
+      "codigo": 102
+    },
+    {
+      "cpf": "12345678901",
+      "email": "novo.cliente@example.com",
+      "nome": "Novo Cliente",
+      "saldo_milhas": 0,
+      "endereco": {
+        "cep": "80111000",
+        "uf": "PR",
+        "cidade": "Curitiba",
+        "bairro": "Centro",
+        "rua": "Rua",
+        "numero": "1",
+        "complemento": ""
+      },
+      "codigo": 103
+    },
+    {
+      "cpf": "12345678901",
+      "email": "novo.cliente@example.com",
+      "nome": "Novo Cliente",
+      "saldo_milhas": 0,
+      "endereco": {
+        "cep": "80111000",
+        "uf": "PR",
+        "cidade": "Curitiba",
+        "bairro": "Centro",
+        "rua": "Rua",
+        "numero": "1",
+        "complemento": ""
+      },
+      "codigo": 104
+    },
+    {
+      "cpf": "12345678901",
+      "email": "novo.cliente@example.com",
+      "nome": "Novo Cliente",
+      "saldo_milhas": 0,
+      "endereco": {
+        "cep": "80111000",
+        "uf": "PR",
+        "cidade": "Curitiba",
+        "bairro": "Centro",
+        "rua": "Rua",
+        "numero": "1",
+        "complemento": ""
+      },
+      "codigo": 105
+    },
+    {
+      "cpf": "12345678901",
+      "email": "novo.cliente@example.com",
+      "nome": "Novo Cliente",
+      "saldo_milhas": 0,
+      "endereco": {
+        "cep": "80111000",
+        "uf": "PR",
+        "cidade": "Curitiba",
+        "bairro": "Centro",
+        "rua": "Rua",
+        "numero": "1",
+        "complemento": ""
+      },
+      "codigo": 106
+    }
+  ],
+  "transacoes_milhas": [
+    {
+      "id": 1,
+      "codigo_cliente": 101,
+      "data_hora_transacao": "2024-10-13T16:00:00-03:00",
+      "quantidade_milhas": 100,
+      "entrada_saida": "ENTRADA",
+      "descricao": "COMPRA DE MILHAS"
+    },
+    {
+      "id": 2,
+      "codigo_cliente": 101,
+      "data_hora_transacao": "2024-10-13T20:00:00-03:00",
+      "quantidade_milhas": 50,
+      "entrada_saida": "SAIDA",
+      "descricao": "GRU->GIG",
+      "codigo_reserva": "XPT789"
+    }
+  ],
+  "aeroportos": [
+    {
+      "codigo": "GRU",
+      "nome": "Aeroporto Internacional de São Paulo/Guarulhos",
+      "cidade": "Guarulhos",
+      "uf": "SP"
+    },
+    {
+      "codigo": "GIG",
+      "nome": "Aeroporto Internacional do Rio de Janeiro/Galeão",
+      "cidade": "Rio de Janeiro",
+      "uf": "RJ"
+    },
+    {
+      "codigo": "CWB",
+      "nome": "Aeroporto Internacional de Curitiba",
+      "cidade": "Curitiba",
+      "uf": "PR"
+    },
+    {
+      "codigo": "POA",
+      "nome": "Aeroporto Internacional de POA",
+      "cidade": "Porto Alegre",
+      "uf": "RS"
+    }
+  ],
+  "voos": [
+    {
+      "codigo": "TADS0001",
+      "data_hora": "2024-10-15T14:30:00-03:00",
+      "aeroporto_origem": "GRU",
+      "aeroporto_destino": "GIG",
+      "valor_passagem": 500,
+      "quantidade_poltronas_total": 100,
+      "quantidade_poltronas_ocupadas": 90,
+      "estado": "CANCELADO"
+    },
+    {
+      "codigo": "TADS0002",
+      "data_hora": "2024-10-20T17:00:00Z",
+      "aeroporto_origem": "GRU",
+      "aeroporto_destino": "GIG",
+      "valor_passagem": 700,
+      "quantidade_poltronas_total": 100,
+      "quantidade_poltronas_ocupadas": 80,
+      "estado": "CONFIRMADO"
+    },
+    {
+      "codigo": "VOO0001",
+      "data_hora": "2025-08-10T10:30:00-03:00",
+      "aeroporto_origem": "POA",
+      "aeroporto_destino": "CWB",
+      "valor_passagem": 100,
+      "quantidade_poltronas_total": 100,
+      "quantidade_poltronas_ocupadas": 10,
+      "estado": "CONFIRMADO"
+    },
+    {
+      "data_hora": "2025-11-20T10:00:00-03:00",
+      "valor_passagem": 600,
+      "quantidade_poltronas_total": 150,
+      "quantidade_poltronas_ocupadas": 50,
+      "aeroporto_origem": "CWB",
+      "aeroporto_destino": "GRU",
+      "estado": "CONFIRMADO",
+      "codigo": "aPebolW"
+    }
+  ],
+  "estado_voo": [
+    {
+      "codigo": 1,
+      "sigla": "CONFIRMADO",
+      "descricao": "Voo confirmado"
+    },
+    {
+      "codigo": 2,
+      "sigla": "CANCELADO",
+      "descricao": "Voo cancelado"
+    },
+    {
+      "codigo": 3,
+      "sigla": "REALIZADO",
+      "descricao": "Voo realizado"
+    }
+  ],
+  "reservas": [
+    {
+      "codigo": "XPT789",
+      "codigo_voo": "TADS0001",
+      "data_hora_reserva": "2024-10-10T14:30:00-03:00",
+      "estado": "CHECK-IN",
+      "valor": 250,
+      "milhas_utilizadas": 50,
+      "quantidade_poltronas": 1,
+      "codigo_cliente": 101,
+      "codigo_aeroporto_origem": "GRU",
+      "codigo_aeroporto_destino": "GIG"
+    },
+    {
+      "codigo_cliente": 101,
+      "valor": 250,
+      "milhas_utilizadas": 50,
+      "quantidade_poltronas": 1,
+      "codigo_voo": "TADS0001",
+      "codigo_aeroporto_origem": "GRU",
+      "codigo_aeroporto_destino": "GIG",
+      "codigo": "Xn3OUtK"
+    },
+    {
+      "codigo_cliente": 101,
+      "valor": 250,
+      "milhas_utilizadas": 50,
+      "quantidade_poltronas": 1,
+      "codigo_voo": "TADS0001",
+      "codigo_aeroporto_origem": "GRU",
+      "codigo_aeroporto_destino": "GIG",
+      "codigo": "E6doorK"
+    }
+  ],
+  "historico_alteracao_estado_reserva": [
+    {
+      "id": 1,
+      "codigo_reserva": "XPT789",
+      "data_hora_alteracao": "2024-10-10T14:30:00-03:00",
+      "estado_origem": "CRIADA",
+      "estado_destino": "CONFIRMADO"
+    }
+  ],
+  "estado_reserva": [
+    {
+      "codigo": 1,
+      "sigla": "CRIADA",
+      "descricao": "Reserva criada"
+    },
+    {
+      "codigo": 2,
+      "sigla": "CHECK-IN",
+      "descricao": "Check-in realizado"
+    },
+    {
+      "codigo": 3,
+      "sigla": "CANCELADA",
+      "descricao": "Reserva cancelada pelo cliente"
+    },
+    {
+      "codigo": 4,
+      "sigla": "CANCELADA VOO",
+      "descricao": "Reserva cancelada devido ao cancelamento do voo"
+    },
+    {
+      "codigo": 5,
+      "sigla": "EMBARCADA",
+      "descricao": "Cliente embarcado"
+    },
+    {
+      "codigo": 6,
+      "sigla": "REALIZADA",
+      "descricao": "Voo realizado"
+    },
+    {
+      "codigo": 7,
+      "sigla": "NÃO REALIZADA",
+      "descricao": "Reserva não realizada (cliente não compareceu)"
+    }
+  ],
+  "funcionarios": [
+    {
+      "codigo": 201,
+      "cpf": "99988877766",
+      "email": "funcionario.atualizado@example.com",
+      "nome": "Funcionário Atualizado",
+      "telefone": "41999999999"
+    },
+    {
+      "cpf": "98765432109",
+      "email": "novo.func@example.com",
+      "nome": "Novo Funcionário",
+      "telefone": "11987654321",
+      "senha": "senhafunc",
+      "codigo": 202
+    }
+  ],
+  "saga_orchestrator": {}
+}
