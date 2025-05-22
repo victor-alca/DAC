@@ -6,7 +6,7 @@ import java.util.Date;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "BOOKING_COMMAND")
+@Table(name = "BOOKING_QUERY")
 
 public class Booking implements Serializable {
     @Id

@@ -6,6 +6,6 @@ import com.booking.command.bookingcommand.entity.Booking;
 
 public interface BookingRepository extends JpaRepository<Booking,String> {
 
-    Object findByCode(String code);
+    Booking findByCode(String code);
 
 }

@@ -86,4 +86,8 @@ public class Booking implements Serializable {
 
     public Booking() {
     }
+
+    public Booking get() {
+        return this;
+    }
 }

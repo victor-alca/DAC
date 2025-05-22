@@ -1,10 +1,15 @@
-package main.java.com.booking.command.bookingcommand.controller;
+package com.booking.command.bookingcommand.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import main.java.com.booking.command.bookingcommand.entity.Booking;
-import main.java.com.booking.command.bookingcommand.service.BookingCommandService;
+import com.booking.command.bookingcommand.entity.Booking;
+import com.booking.command.bookingcommand.service.BookingCommandService;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
