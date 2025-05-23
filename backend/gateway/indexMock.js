@@ -11,13 +11,11 @@ const helmet = require('helmet');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const cors = require('cors');
 
 // Inicialização do app Express
 const app = express();
 
 // Middlewares globais
-app.use(cors()); // Permite requisições de outros domínios
 app.use(bodyParser.urlencoded({ extended: false })); // Parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // Parse application/json
 app.use(logger('dev')); // Logger de requisições
@@ -26,11 +24,11 @@ app.use(cookieParser()); // Parse de cookies
 
 // Base URLs para os serviços (atualize os endereços se necessário)
 const BASE_URL_AUTH = 'http://localhost:5000';
-const BASE_URL_CLIENTS = 'http://localhost:5001';
-const BASE_URL_EMPLOYEES = 'http://localhost:5002';
-const BASE_URL_FLIGHTS = 'http://localhost:5003';
-const BASE_URL_RESERVATIONS = 'http://localhost:5004';
-const BASE_URL_SAGA_ORCHESTRATOR = 'http://localhost:5005';
+const BASE_URL_CLIENTS = 'http://localhost:5000';
+const BASE_URL_EMPLOYEES = 'http://localhost:5000';
+const BASE_URL_FLIGHTS = 'http://localhost:5000';
+const BASE_URL_RESERVATIONS = 'http://localhost:5000';
+const BASE_URL_SAGA_ORCHESTRATOR = 'http://localhost:5000';
 
 // Serviços
 const authServiceProxy = httpProxy(BASE_URL_AUTH);
@@ -44,6 +42,9 @@ function verifyJWT(req, res, next) {
     if (!token)
         return res.status(401).json({ auth: false, message: 'Token não fornecido.' });
 
+    // >>> TEMPORARIO PARA MOCK
+    return next();
+
     jwt.verify(token, process.env.SECRET, function (err, decoded) {
         if (err)
             return res.status(500).json({ auth: false, message: 'Falha ao autenticar o token.' });
@@ -52,64 +53,33 @@ function verifyJWT(req, res, next) {
     });
 }
 
-// Middleware para checar permissão por tipo de usuário
-function authorizeRoles(...allowedRoles) {
-    return (req, res, next) => {
-        const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
-        if (!token) return res.status(401).json({ message: 'Token não fornecido.' });
-
-        jwt.verify(token, process.env.SECRET, function (err, decoded) {
-            if (err) return res.status(401).json({ message: 'Token inválido.' });
-            // O endpoint de login gera o token com { sub: usuarioAuth.email, role: usuarioAuth.tipo || 'CLIENTE' }
-            const userRole = decoded.role;
-            if (!allowedRoles.includes(userRole)) {
-                return res.status(403).json({ message: 'Acesso negado.' });
-            }
-            req.user = decoded;
-            next();
-        });
-    };
-}
-
 app.post('/login', async (req, res) => {
+    // >>> INICIO: Lógica Original para Produção (Comentada) <<<
+    /*
     try {
-        // Adapta o corpo para o serviço de autenticação
-        const authBody = {
-            email: req.body.login,
-            password: req.body.senha
-        };
-
         // Chamada para o serviço de autenticação
-        const authResponse = await axios.post(`${BASE_URL_AUTH}/login`, authBody);
-
-        const usuarioAuth = authResponse.data;
-
-        // Se não veio id, login inválido
-        if (!usuarioAuth.id) {
-            return res.status(401).json({ message: 'Login inválido!' });
-        }
-
-        // Gera token JWT
-        const access_token = jwt.sign({ sub: usuarioAuth.email, role: usuarioAuth.tipo || 'CLIENTE' }, process.env.SECRET, {
-            expiresIn: 3600, // 1h
+        const authResponse = await axios.post(`${BASE_URL_AUTH}/login`, {
+            login: req.body.login,
+            senha: req.body.senha
         });
+        
+        const { access_token, token_type, tipo, codigo } = authResponse.data;
 
-        const token_type = 'bearer';
-
-        // Descobre tipo e busca dados completos
+        // Determina o serviço correto com base no tipo
         let usuarioResponse;
-        let tipo = usuarioAuth.tipo || 'CLIENTE';
-        let codigo = usuarioAuth.codigo || usuarioAuth.id;
-
         if (tipo === 'CLIENTE') {
-            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/${codigo}`);
+            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/${codigo}`, {
+                headers: { Authorization: `${token_type} ${access_token}` }
+            });
         } else if (tipo === 'FUNCIONARIO') {
-            usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`);
+            usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`, {
+                headers: { Authorization: `${token_type} ${access_token}` }
+            });
         } else {
             return res.status(500).json({ message: 'Tipo de usuário desconhecido.' });
         }
 
-        // Monta resposta final
+        // Resposta final combinada
         return res.status(200).json({
             access_token,
             token_type,
@@ -123,6 +93,61 @@ app.post('/login', async (req, res) => {
         }
         return res.status(500).json({ message: 'Erro ao efetuar login.', error: error.message });
     }
+    */
+    // >>> FIM: Lógica Original para Produção (Comentada) <<<
+
+
+    // >>> INICIO: Lógica de Mock para Desenvolvimento (Ativa) <<<
+    const { login, senha } = req.body;
+
+    try {
+        // >>> INÍCIO: Lógica de Mock para Desenvolvimento (Ativa) <<<
+
+        const authServiceResponse = await axios.get(`${BASE_URL_AUTH}/usuarios`);
+        const mockUsers = authServiceResponse.data;
+
+        const usuarioEncontrado = mockUsers.find(user => user.login === login && user.senha === senha);
+
+        if (!usuarioEncontrado) {
+            console.warn('Login mock falhou: Credenciais inválidas do JSON-Server.');
+            return res.status(401).json({ auth: false, message: 'Login ou senha inválidos (mock com json-server).' });
+        }
+
+        const { tipo, codigo } = usuarioEncontrado; 
+
+        const token = jwt.sign({ tipo: tipo, codigo: codigo }, process.env.SECRET, {
+            expiresIn: '1h' 
+        });
+
+        let usuarioResponseData = usuarioEncontrado; // Começa com os dados básicos do usuário mockado
+
+        try {
+            if (tipo === 'CLIENTE') {
+                const clientDetailsResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/${codigo}`);
+                usuarioResponseData = clientDetailsResponse.data;
+            } else if (tipo === 'FUNCIONARIO') {
+                const employeeDetailsResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`);
+                usuarioResponseData = employeeDetailsResponse.data;
+            }
+        } catch (detailError) {
+            console.warn(`Não foi possível buscar detalhes completos para ${tipo} ${codigo} do mock (json-server GET falhou?):`, detailError.message);
+        }
+
+        return res.status(200).json({
+            access_token: token, // Retorne o JWT gerado
+            token_type: "bearer",
+            tipo: tipo,
+            usuario: usuarioResponseData // Retorna dados detalhados (do json-server) ou básicos
+        });
+
+    } catch (error) {
+        console.error('API Gateway: Erro na lógica de login mockada com JSON-Server:', error.message);
+        if (error.response) {
+            return res.status(error.response.status).json(error.response.data);
+        }
+        res.status(500).json({ message: 'Erro interno no API Gateway ao simular login com JSON-Server.', error: error.message });
+    }
+    // >>> FIM: Lógica de Mock para Desenvolvimento (Ativa) <<<
 });
 
 // Rotas para o serviço de Clientes
@@ -130,22 +155,22 @@ app.post('/clientes', (req, res, next) => {
     clientsServiceProxy(req, res, next);
 });
 
-app.get('/clientes/:codigoCliente', verifyJWT, authorizeRoles('CLIENTE'), (req, res, next) => {
+app.get('/clientes/:codigoCliente', verifyJWT, (req, res, next) => {
     clientsServiceProxy(req, res, next);
 });
 
-app.put('/clientes/:codigoCliente/milhas', verifyJWT, authorizeRoles('CLIENTE'), (req, res, next) => {
+app.put('/clientes/:codigoCliente/milhas', verifyJWT, (req, res, next) => {
     clientsServiceProxy(req, res, next);
 });
 
-app.get('/clientes/:codigoCliente/milhas', verifyJWT, authorizeRoles('CLIENTE'), (req, res, next) => {
+app.get('/clientes/:codigoCliente/milhas', verifyJWT, (req, res, next) => {
     clientsServiceProxy(req, res, next);
 });
 
 // Rotas para o serviço de Reservas
 
 // (via Orquestrador Saga)
-app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
+app.post('/reservas', verifyJWT, async (req, res) => {
     try {
         const sagaPayload = req.body;
 
@@ -178,7 +203,7 @@ app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => 
 });
 
 // (via Orquestrador Saga)
-app.delete('/reservas/:codigoReserva', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
+app.delete('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
     try {
         const codigoReserva = req.params.codigoReserva;
 
@@ -244,7 +269,7 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
     }
 });
 
-app.get('/clientes/:codigoCliente/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
+app.get('/clientes/:codigoCliente/reservas', verifyJWT, async (req, res) => {
     try {
         // Busca todas as reservas do cliente
         const reservasResponse = await axios.get(`${BASE_URL_RESERVATIONS}/clientes/${req.params.codigoCliente}/reservas`, {
@@ -318,7 +343,7 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
     }
 });
 
-app.patch('/reservas/:codigoReserva/estado', verifyJWT, authorizeRoles('CLIENTE', 'FUNCIONARIO'), (req, res, next) => {
+app.patch('/reservas/:codigoReserva/estado', verifyJWT, (req, res, next) => {
     reservationsServiceProxy(req, res, next);
 });
 
@@ -331,12 +356,12 @@ app.get('/voos/:codigoVoo', (req, res, next) => {
     flightsServiceProxy(req, res, next);    
 });
 
-app.post('/voos', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
+app.post('/voos', verifyJWT, (req, res, next) => {
     flightsServiceProxy(req, res, next);
 });
 
 // (via Orquestrador Saga)
-app.patch('/voos/:codigoVoo/estado', verifyJWT, authorizeRoles('FUNCIONARIO'), async (req, res) => {
+app.patch('/voos/:codigoVoo/estado', verifyJWT, async (req, res) => {
     try {
         const codigoVoo = req.params.codigoVoo;
         const { estado } = req.body; 
@@ -369,24 +394,24 @@ app.patch('/voos/:codigoVoo/estado', verifyJWT, authorizeRoles('FUNCIONARIO'), a
     }
 });
 
-app.get('/aeroportos', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
+app.get('/aeroportos', (req, res, next) => {
     flightsServiceProxy(req, res, next);
 });
 
 // Rotas para o serviço de Funcionários
-app.get('/funcionarios', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
+app.get('/funcionarios', verifyJWT, (req, res, next) => {
     employeesServiceProxy(req, res, next);
 });
 
-app.post('/funcionarios', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
+app.post('/funcionarios', verifyJWT, (req, res, next) => {
     employeesServiceProxy(req, res, next);
 });
 
-app.put('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
+app.put('/funcionarios/:codigoFuncionario', verifyJWT, (req, res, next) => {
     employeesServiceProxy(req, res, next);
 });
 
-app.delete('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
+app.delete('/funcionarios/:codigoFuncionario', verifyJWT, (req, res, next) => {
     employeesServiceProxy(req, res, next);
 });
 
