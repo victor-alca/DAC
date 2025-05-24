@@ -29,7 +29,6 @@ public class ConsumerUpdateUser {
                 User existingUser = user.get();
 
                 existingUser.setEmail(updatedUser.getEmail());
-                existingUser.setPassword(updatedUser.getPassword());
                 existingUser.setType(updatedUser.getType());
 
                 userRepository.save(existingUser);

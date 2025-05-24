@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.booking.auth.auth.DTO.AuthDTO;
 import com.booking.auth.auth.model.User;
 import com.booking.auth.auth.repository.UserRepository;
+import com.booking.auth.auth.utils.HashUtil;
 
 @CrossOrigin
 @RestController
@@ -18,6 +19,7 @@ import com.booking.auth.auth.repository.UserRepository;
 public class AuthRest {
     @Autowired
     private UserRepository userRepository;
+
 
     @PostMapping("")
     ResponseEntity<User> login(@RequestBody AuthDTO login) {
@@ -27,11 +29,18 @@ public class AuthRest {
 
         User user = userRepository.findByEmail(login.getEmail());
 
-        if (login.getPassword().equals(user.getPassword())) {
-            return ResponseEntity.ok().body(user);
-        }
+        try {
+            String hashedInputPassword = HashUtil.hashPassword(login.getPassword(), user.getSalt());
 
-        return ResponseEntity.status(401).body(new User());
+            if (hashedInputPassword.equals(user.getPassword())) {
+                return ResponseEntity.ok(user);
+            } else {
+                return ResponseEntity.status(401).body(new User());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(new User());
+        }
     }
 
 }
