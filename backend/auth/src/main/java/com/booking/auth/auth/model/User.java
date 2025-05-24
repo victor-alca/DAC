@@ -8,31 +8,36 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "users")
 public class User {
-  @Id
-  private String id;
+	@Id
+	private String id;
 
-  @NotBlank
-  @Size(max = 120)
-  private String email;
+	@NotBlank
+	@Size(max = 120)
+	private String email;
 
-  @NotBlank
-  @Size(max = 120)
-  private String password;
+	@NotBlank
+	@Size(max = 120)
+	private String password;
 
-  @NotBlank
-  @Size(max = 120)
-  private String type;
+	@NotBlank
+	@Size(max = 120)
+	private String salt;
 
-  public User() {
-    super();
-  }
+	@NotBlank
+	@Size(max = 120)
+	private String type;
 
-	public User(String id, String email, String password, String type) {
+	public User() {
+		super();
+	}
+
+	public User(String id, String email, String password, String type, String salt) {
 		super();
 		this.id = id;
 		this.email = email;
 		this.password = password;
 		this.type = type;
+		this.salt = salt;
 	}
 
 	public String getId() {
@@ -57,6 +62,14 @@ public class User {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getSalt() {
+		return salt;
+	}
+
+	public void setSalt(String salt) {
+		this.salt = salt;
 	}
 
 	public String getType() {
