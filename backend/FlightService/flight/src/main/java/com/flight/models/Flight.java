@@ -1,14 +1,18 @@
+package com.flight.models;
 
 
 import java.io.Serializable;
+import java.util.Date;
 
 import jakarta.persistence.*;
 
+
+
+@Table(name = "Flight", schema = "Flight")
 @Entity
-@Table(name = "Flight")
 public class Flight implements Serializable {
     @Id
-    private Integer ID;
+    private String code;
 
     @Column(nullable = false)
     private Date date;
@@ -28,12 +32,12 @@ public class Flight implements Serializable {
     @Column(nullable = false)
     private Double status;
 
-    public Integer getID() {
-        return ID;
+    public String getCode() {
+        return this.code;
     }
 
-    public void setID(Integer iD) {
-        ID = iD;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public Date getDate() {
@@ -84,8 +88,8 @@ public class Flight implements Serializable {
         this.status = status;
     }
 
-    public Flight(Integer ID, Date date, String originAirport, String destinationAirport, Double totalSeats, Double occupatedSeats, Double status) {
-        this.ID = ID;
+    public Flight(String code, Date date, String originAirport, String destinationAirport, Double totalSeats, Double occupatedSeats, Double status) {
+        this.code = code;
         this.date = date;
         this.originAirport = originAirport;
         this.destinationAirport = destinationAirport;
