@@ -8,7 +8,7 @@ import { Employee } from '../../shared/models/employee/employee';
 })
 export class EmployeeService {
 
-  private apiUrl = 'http://localhost:3000/funcionarios';
+  private apiUrl = 'http://localhost:5000/funcionarios';
 
   constructor(private http: HttpClient) {}
 
