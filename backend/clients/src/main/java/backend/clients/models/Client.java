@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 
 
 @Entity
-@Table(name = "Client")
+@Table(name = "Client", schema = "Client")
 public class Client implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

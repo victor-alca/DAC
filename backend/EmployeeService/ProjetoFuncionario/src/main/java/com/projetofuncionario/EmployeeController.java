@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/employees")
+@RequestMapping("/funcionarios")
 @CrossOrigin(origins = "*") // permite acesso do Angular
 public class EmployeeController {
 
