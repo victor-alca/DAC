@@ -1,8 +1,8 @@
 --Voo --------------------------------
 
-CREATE SCHEMA "Flight";
+CREATE SCHEMA "flight";
 
-CREATE TABLE "Flight"."Flight" (
+CREATE TABLE "flight"."flight" (
   "code" varchar PRIMARY KEY,
   "date" time,
   "origin_airport" varchar NOT NULL,
@@ -12,30 +12,30 @@ CREATE TABLE "Flight"."Flight" (
   "status" integer NOT NULL
 );
 
-CREATE TABLE "Flight"."Airport" (
+CREATE TABLE "flight"."airport" (
   "code" varchar(3) PRIMARY KEY,
   "name" varchar,
   "city" varchar,
   "federative_unit" varchar
 );
 
-CREATE TABLE "Flight"."FlightStatus" (
+CREATE TABLE "flight"."flight_status" (
   "id" integer PRIMARY KEY,
   "code" varchar,
   "description" varchar
 );
 
-ALTER TABLE "Flight"."Flight" ADD FOREIGN KEY ("origin_airport") REFERENCES "Flight"."Airport" ("code");
+ALTER TABLE "flight"."flight" ADD FOREIGN KEY ("origin_airport") REFERENCES "flight"."airport" ("code");
 
-ALTER TABLE "Flight"."Flight" ADD FOREIGN KEY ("destination_airport") REFERENCES "Flight"."Airport" ("code");
+ALTER TABLE "flight"."flight" ADD FOREIGN KEY ("destination_airport") REFERENCES "flight"."airport" ("code");
 
-ALTER TABLE "Flight"."Flight" ADD FOREIGN KEY ("status") REFERENCES "Flight"."FlightStatus" ("id");
+ALTER TABLE "flight"."flight" ADD FOREIGN KEY ("status") REFERENCES "flight"."flight_status" ("id");
 
 -- Cliente -------------------------------------------
 
-CREATE SCHEMA "Client";
+CREATE SCHEMA "client";
 
-CREATE TABLE "Client"."Client" (
+CREATE TABLE "client"."client" (
   "cpf" varchar PRIMARY KEY,
   "name" varchar,
   "miles" integer,
@@ -51,7 +51,7 @@ CREATE TABLE "Client"."Client" (
   "federative_unit" varchar
 );
 
-CREATE TABLE "Client"."MilesRecord" (
+CREATE TABLE "client"."miles_record" (
   "client_cpf" varchar not NULL,
   "transaction_date" timestamp not NULL,
   "value" integer,
@@ -62,13 +62,13 @@ CREATE TABLE "Client"."MilesRecord" (
   PRIMARY KEY ("client_cpf", "transaction_date")
 );
 
-ALTER TABLE "Client"."MilesRecord" ADD FOREIGN KEY ("client_cpf") REFERENCES "Client"."Client" ("cpf");
+ALTER TABLE "client"."miles_record" ADD FOREIGN KEY ("client_cpf") REFERENCES "client"."client" ("cpf");
 
 -- Funcionario ---------------------------------------------------------
 
-CREATE SCHEMA "Employee";
+CREATE SCHEMA "employee";
 
-CREATE TABLE "Employee"."Employee" (
+CREATE TABLE "employee"."employee" (
   "cpf" varchar PRIMARY KEY,
   "name" varchar,
   "email" varchar,
@@ -77,9 +77,9 @@ CREATE TABLE "Employee"."Employee" (
 
 -- Reserva CUD -------------------------------------------------------------------
 
-CREATE SCHEMA "BookingCommand";
+CREATE SCHEMA "booking_command";
 
-CREATE TABLE "BookingCommand"."Booking" (
+CREATE TABLE "booking_command"."booking" (
   "code" varchar PRIMARY KEY,
   "flight_code" varchar NOT NULL,
   "date" date,
@@ -88,13 +88,13 @@ CREATE TABLE "BookingCommand"."Booking" (
   "miles_spent" integer
 );
 
-CREATE TABLE "BookingCommand"."BookingStatus" (
+CREATE TABLE "booking_command"."booking_status" (
   "id" integer PRIMARY KEY,
   "code" varchar,
   "description" varchar
 );
 
-CREATE TABLE "BookingCommand"."BookingStatusAlterationRecord" (
+CREATE TABLE "booking_command"."booking_status_alteration_record" (
   "booking_code" varchar,
   "alteration_date" timestamp,
   "previous_status" integer NOT NULL,
@@ -102,19 +102,19 @@ CREATE TABLE "BookingCommand"."BookingStatusAlterationRecord" (
   PRIMARY KEY ("booking_code", "alteration_date")
 );
 
-ALTER TABLE "BookingCommand"."Booking" ADD FOREIGN KEY ("status") REFERENCES "BookingCommand"."BookingStatus" ("id");
+ALTER TABLE "booking_command"."booking" ADD FOREIGN KEY ("status") REFERENCES "booking_command"."booking_status" ("id");
 
-ALTER TABLE "BookingCommand"."BookingStatusAlterationRecord" ADD FOREIGN KEY ("previous_status") REFERENCES "BookingCommand"."BookingStatus" ("id");
+ALTER TABLE "booking_command"."booking_status_alteration_record" ADD FOREIGN KEY ("previous_status") REFERENCES "booking_command"."booking_status" ("id");
 
-ALTER TABLE "BookingCommand"."BookingStatusAlterationRecord" ADD FOREIGN KEY ("post_status") REFERENCES "BookingCommand"."BookingStatus" ("id");
+ALTER TABLE "booking_command"."booking_status_alteration_record" ADD FOREIGN KEY ("post_status") REFERENCES "booking_command"."booking_status" ("id");
 
-ALTER TABLE "BookingCommand"."Booking" ADD FOREIGN KEY ("flight_code") REFERENCES "Flight"."Flight" ("code");
+ALTER TABLE "booking_command"."booking" ADD FOREIGN KEY ("flight_code") REFERENCES "flight"."flight" ("code");
 
 -- RESERVA READ --------------------------------------------
 
-CREATE SCHEMA "BookingQuery"
+CREATE SCHEMA "booking_query"
 
-CREATE TABLE "BookingQuery"."Booking" (
+CREATE TABLE "booking_query"."booking" (
   "code" varchar PRIMARY KEY,
   "date" date,
   "origin_airport" varchar NOT NULL,
