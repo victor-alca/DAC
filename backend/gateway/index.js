@@ -11,11 +11,13 @@ const helmet = require('helmet');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 // Inicialização do app Express
 const app = express();
 
 // Middlewares globais
+app.use(cors()); // Permite requisições de outros domínios
 app.use(bodyParser.urlencoded({ extended: false })); // Parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // Parse application/json
 app.use(logger('dev')); // Logger de requisições
@@ -41,6 +43,7 @@ function verifyJWT(req, res, next) {
     const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
     if (!token)
         return res.status(401).json({ auth: false, message: 'Token não fornecido.' });
+
     jwt.verify(token, process.env.SECRET, function (err, decoded) {
         if (err)
             return res.status(500).json({ auth: false, message: 'Falha ao autenticar o token.' });
@@ -49,31 +52,64 @@ function verifyJWT(req, res, next) {
     });
 }
 
+// Middleware para checar permissão por tipo de usuário
+function authorizeRoles(...allowedRoles) {
+    return (req, res, next) => {
+        const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
+        if (!token) return res.status(401).json({ message: 'Token não fornecido.' });
+
+        jwt.verify(token, process.env.SECRET, function (err, decoded) {
+            if (err) return res.status(401).json({ message: 'Token inválido.' });
+            // O endpoint de login gera o token com { sub: usuarioAuth.email, role: usuarioAuth.tipo || 'CLIENTE' }
+            const userRole = decoded.role;
+            if (!allowedRoles.includes(userRole)) {
+                return res.status(403).json({ message: 'Acesso negado.' });
+            }
+            req.user = decoded;
+            next();
+        });
+    };
+}
+
 app.post('/login', async (req, res) => {
     try {
+        // Adapta o corpo para o serviço de autenticação
+        const authBody = {
+            email: req.body.login,
+            password: req.body.senha
+        };
+
         // Chamada para o serviço de autenticação
-        const authResponse = await axios.post(`${BASE_URL_AUTH}/login`, {
-            login: req.body.login,
-            senha: req.body.senha
+        const authResponse = await axios.post(`${BASE_URL_AUTH}/login`, authBody);
+
+        const usuarioAuth = authResponse.data;
+
+        // Se não veio id, login inválido
+        if (!usuarioAuth.id) {
+            return res.status(401).json({ message: 'Login inválido!' });
+        }
+
+        // Gera token JWT
+        const access_token = jwt.sign({ sub: usuarioAuth.email, role: usuarioAuth.tipo || 'CLIENTE' }, process.env.SECRET, {
+            expiresIn: 3600, // 1h
         });
 
-        const { access_token, token_type, tipo, codigo } = authResponse.data;
+        const token_type = 'bearer';
 
-        // Determina o serviço correto com base no tipo
+        // Descobre tipo e busca dados completos
         let usuarioResponse;
+        let tipo = usuarioAuth.tipo || 'CLIENTE';
+        let codigo = usuarioAuth.codigo || usuarioAuth.id;
+
         if (tipo === 'CLIENTE') {
-            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/${codigo}`, {
-                headers: { Authorization: `${token_type} ${access_token}` }
-            });
+            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/${codigo}`);
         } else if (tipo === 'FUNCIONARIO') {
-            usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`, {
-                headers: { Authorization: `${token_type} ${access_token}` }
-            });
+            usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`);
         } else {
             return res.status(500).json({ message: 'Tipo de usuário desconhecido.' });
         }
 
-        // Resposta final combinada
+        // Monta resposta final
         return res.status(200).json({
             access_token,
             token_type,
@@ -94,22 +130,22 @@ app.post('/clientes', (req, res, next) => {
     clientsServiceProxy(req, res, next);
 });
 
-app.get('/clientes/:codigoCliente', verifyJWT, (req, res, next) => {
+app.get('/clientes/:codigoCliente', verifyJWT, authorizeRoles('CLIENTE'), (req, res, next) => {
     clientsServiceProxy(req, res, next);
 });
 
-app.put('/clientes/:codigoCliente/milhas', verifyJWT, (req, res, next) => {
+app.put('/clientes/:codigoCliente/milhas', verifyJWT, authorizeRoles('CLIENTE'), (req, res, next) => {
     clientsServiceProxy(req, res, next);
 });
 
-app.get('/clientes/:codigoCliente/milhas', verifyJWT, (req, res, next) => {
+app.get('/clientes/:codigoCliente/milhas', verifyJWT, authorizeRoles('CLIENTE'), (req, res, next) => {
     clientsServiceProxy(req, res, next);
 });
 
 // Rotas para o serviço de Reservas
 
 // (via Orquestrador Saga)
-app.post('/reservas', verifyJWT, async (req, res) => {
+app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
     try {
         const sagaPayload = req.body;
 
@@ -142,7 +178,7 @@ app.post('/reservas', verifyJWT, async (req, res) => {
 });
 
 // (via Orquestrador Saga)
-app.delete('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
+app.delete('/reservas/:codigoReserva', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
     try {
         const codigoReserva = req.params.codigoReserva;
 
@@ -208,7 +244,7 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
     }
 });
 
-app.get('/clientes/:codigoCliente/reservas', verifyJWT, async (req, res) => {
+app.get('/clientes/:codigoCliente/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
     try {
         // Busca todas as reservas do cliente
         const reservasResponse = await axios.get(`${BASE_URL_RESERVATIONS}/clientes/${req.params.codigoCliente}/reservas`, {
@@ -282,7 +318,7 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
     }
 });
 
-app.patch('/reservas/:codigoReserva/estado', verifyJWT, (req, res, next) => {
+app.patch('/reservas/:codigoReserva/estado', verifyJWT, authorizeRoles('CLIENTE', 'FUNCIONARIO'), (req, res, next) => {
     reservationsServiceProxy(req, res, next);
 });
 
@@ -295,12 +331,12 @@ app.get('/voos/:codigoVoo', (req, res, next) => {
     flightsServiceProxy(req, res, next);    
 });
 
-app.post('/voos', verifyJWT, (req, res, next) => {
+app.post('/voos', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
     flightsServiceProxy(req, res, next);
 });
 
 // (via Orquestrador Saga)
-app.patch('/voos/:codigoVoo/estado', verifyJWT, async (req, res) => {
+app.patch('/voos/:codigoVoo/estado', verifyJWT, authorizeRoles('FUNCIONARIO'), async (req, res) => {
     try {
         const codigoVoo = req.params.codigoVoo;
         const { estado } = req.body; 
@@ -333,24 +369,24 @@ app.patch('/voos/:codigoVoo/estado', verifyJWT, async (req, res) => {
     }
 });
 
-app.get('/aeroportos', (req, res, next) => {
+app.get('/aeroportos', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
     flightsServiceProxy(req, res, next);
 });
 
 // Rotas para o serviço de Funcionários
-app.get('/funcionarios', verifyJWT, (req, res, next) => {
+app.get('/funcionarios', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
     employeesServiceProxy(req, res, next);
 });
 
-app.post('/funcionarios', verifyJWT, (req, res, next) => {
+app.post('/funcionarios', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
     employeesServiceProxy(req, res, next);
 });
 
-app.put('/funcionarios/:codigoFuncionario', verifyJWT, (req, res, next) => {
+app.put('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
     employeesServiceProxy(req, res, next);
 });
 
-app.delete('/funcionarios/:codigoFuncionario', verifyJWT, (req, res, next) => {
+app.delete('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
     employeesServiceProxy(req, res, next);
 });
 

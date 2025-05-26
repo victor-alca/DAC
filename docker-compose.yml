@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  auth-api:
+    container_name: auth-api
+    build:
+      context: ./backend/auth
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://auth-db:27017/auth
+    depends_on: 
+      - auth-db
+  
+  auth-db:
+    container_name: auth-db
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./backend/auth/docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    
+  front-end:
+    container_name: front-end
+    build:
+      context: ./
+    ports:
+      - "4200:80"
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"     # AMQP protocol
+      - "15672:15672"   # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_management load_definitions \"/etc/rabbitmq/definitions.json\""
+    volumes:
+      - ./rabbitmq-definitions.json:/etc/rabbitmq/definitions.json:ro
+
+volumes:
+  mongo-data: 
+
