@@ -18,8 +18,7 @@ import com.booking.auth.auth.utils.HashUtil;
 @RequestMapping("login")
 public class AuthRest {
     @Autowired
-    private UserRepository userRepository;
-
+    private UserRepository userRepository;    
 
     @PostMapping("")
     ResponseEntity<User> login(@RequestBody AuthDTO login) {

@@ -26,6 +26,7 @@ public class ConsumerInsertUser {
 
     @RabbitListener(queues = "create-auth-user")
     public void receiveRead(@Payload String json) {
+        System.out.println(json);
         try {
             User user = objectMapper.readValue(json, User.class);
             String generatedPassword = String.format("%04d", new Random().nextInt(10000));

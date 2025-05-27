@@ -2,6 +2,7 @@
 require("dotenv-safe").config();
 
 // Importações de bibliotecas
+const RABBITMQ_URL = process.env.RABBITMQ_URL;
 const express = require('express');
 const http = require('http');
 const httpProxy = require('express-http-proxy');
@@ -12,7 +13,19 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const cors = require('cors');
+const amqp = require('amqplib');
+
+let channel;
+
+(async () => {
+    try {
+        const connection = await amqp.connect(RABBITMQ_URL);
+        channel = await connection.createChannel();
+        console.log('Conectado ao RabbitMQ');
+    } catch (error) {
+        console.error('Erro ao conectar ao RabbitMQ:', error);
+    }
+})();
 
 // Inicialização do app Express
 const app = express();
@@ -127,8 +140,41 @@ app.post('/login', async (req, res) => {
 });
 
 // Rotas para o serviço de Clientes
-app.post('/clientes', (req, res, next) => {
-    clientsServiceProxy(req, res, next);
+app.post('/clientes', async (req, res, next) => {
+    try {
+        // Envia a requisição para o serviço de clientes
+        const response = await axios.post(`${BASE_URL_CLIENTS}/clientes`, req.body);
+
+        // Verifica se o cliente foi criado com sucesso
+        if (response.status == 201) {
+            // Publica os dados do cliente na fila "create-auth-user"
+            if (channel) {
+                const userPayload = {
+                    id: response.data.id, // Inclui o ID do cliente
+                    email: req.body.email,
+                    nome: req.body.nome,
+                    ...response.data // Inclui outros dados retornados pelo serviço de clientes
+                };
+                channel.assertQueue('create-auth-user', { durable: true})
+                channel.sendToQueue('create-auth-user', Buffer.from(JSON.stringify(userPayload)));
+                console.log('Mensagem enviada para a fila create-auth-user:', userPayload);
+            } else {
+                console.error('Canal RabbitMQ não está configurado.');
+                return res.status(500).json({ message: 'Erro interno: Canal RabbitMQ não configurado.' });
+            }
+
+            // Retorna a resposta para o cliente
+            res.status(response.status).json(response.data);
+        } else {
+            console.error('Erro ao criar cliente no serviço de clientes:', response.data);
+            res.status(400).json({ message: 'Erro ao criar cliente.', details: response.data });
+        }
+    } catch (error) {
+        console.error('Erro ao processar /clientes:', error.message);
+        if (!error.response) {
+            res.status(500).json({ message: 'Erro interno ao processar a requisição.' });
+        }
+    }
 });
 
 app.get('/clientes/:codigoCliente', verifyJWT, authorizeRoles('CLIENTE'), (req, res, next) => {

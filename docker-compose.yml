@@ -10,7 +10,10 @@ services:
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://auth-db:27017/auth
     depends_on: 
-      - auth-db
+      auth-db:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
   
   auth-db:
     container_name: auth-db
@@ -20,7 +23,7 @@ services:
     volumes:
       - mongo-data:/data/db
       - ./backend/auth/docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    
+  
   front-end:
     container_name: front-end
     build:
@@ -40,7 +43,26 @@ services:
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_management load_definitions \"/etc/rabbitmq/definitions.json\""
     volumes:
       - ./rabbitmq-definitions.json:/etc/rabbitmq/definitions.json:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  gateway:
+    container_name: gateway
+    build:
+      context: ./backend/gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - default
 
 volumes:
-  mongo-data: 
+  mongo-data:
 
