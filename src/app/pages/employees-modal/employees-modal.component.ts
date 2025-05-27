@@ -39,13 +39,13 @@ export class EmployeesModalComponent {
   editEmployee(Employee: Employee){
     Employee.ID = this.employee.ID;
     Employee.active = this.employee.active;
-    this.employeeService.update(Employee);
+    //this.employeeService.update(Employee);
     this.activeModal.close();
   }
 
   createEmployee(Employee: Employee){
     Employee.active = true;
-    this.employeeService.create(Employee);
+    //this.employeeService.create(Employee);
     this.activeModal.close();
     alert("Senha enviada para o email do novo funcionário")
   }
