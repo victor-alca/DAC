@@ -9,9 +9,10 @@ services:
       - "8080:8080"
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://auth-db:27017/auth
-    depends_on: 
+      JWT_SECRET: FzQ7U1aZ+zU5rLJ9cW4qEKe45Ihv8+6BqZVh4TcI1xQ=
+    depends_on:
       - auth-db
-  
+
   auth-db:
     container_name: auth-db
     image: mongo:6
@@ -20,7 +21,7 @@ services:
     volumes:
       - mongo-data:/data/db
       - ./backend/auth/docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    
+
   front-end:
     container_name: front-end
     build:
@@ -42,5 +43,5 @@ services:
       - ./rabbitmq-definitions.json:/etc/rabbitmq/definitions.json:ro
 
 volumes:
-  mongo-data: 
+  mongo-data:
 
