@@ -6,12 +6,16 @@ services:
     build:
       context: ./backend/auth
     ports:
-      - "8080:8080"
+      - "5000:5000"
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://auth-db:27017/auth
       JWT_SECRET: FzQ7U1aZ+zU5rLJ9cW4qEKe45Ihv8+6BqZVh4TcI1xQ=
-    depends_on:
-      - auth-db
+    depends_on: 
+      auth-db:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+  
 
   auth-db:
     container_name: auth-db
@@ -41,7 +45,59 @@ services:
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_management load_definitions \"/etc/rabbitmq/definitions.json\""
     volumes:
       - ./rabbitmq-definitions.json:/etc/rabbitmq/definitions.json:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  gateway:
+    container_name: gateway
+    build:
+      context: ./backend/gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - SECRET=mysecret
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - default
 
+  clients-db:
+    container_name: clients-db
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: clients
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - clients-data:/var/lib/postgresql/data
+    networks:
+      - default
+
+  clients:
+    container_name: clients
+    build:
+      context: ./backend/clients
+    ports:
+      - "5001:5001"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://clients-db:5432/clients
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    depends_on:
+      - clients-db
+      - gateway
+    networks:
+      - default
+  
 volumes:
   mongo-data:
+  clients-data:
+
 

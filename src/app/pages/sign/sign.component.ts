@@ -43,20 +43,25 @@ export class SignComponent {
 
   submit(): void {
     if (this.formPerson.form.valid) { 
-      this.client.CEP = this.cep;
+      this.client.cep = this.cep;
       this.client.street = this.address;
       this.client.neighborhood = this.neighborhood;
       this.client.city = this.city;
-      this.client.state = this.state;
+      this.client.federativeUnit = this.state;
       this.client.number = this.number;
-
-      this.ClientService.create(this.client)
-
-      // Exibe o popup de confirmação
-      alert('Cadastro realizado com sucesso! Sua senha foi enviada para o seu email.');
-
-      // Redireciona para a página de login
-      this.router.navigate(['/login']);
+      this.ClientService.create(this.client).subscribe({
+        next: () => {
+          alert('Cadastro realizado com sucesso! Sua senha foi enviada para o seu email.');
+          this.router.navigate(['/login']);
+        },
+        error: (err) => {
+          if(err.status == 409){
+            alert(`Erro ao cadastrar cliente! O cliente ja existe.`);
+          }
+          alert("Ocorreu um erro ao cadastrar o cliente.")
+          console.error(err);
+        }
+      });
     }
   }
 }
