@@ -9,12 +9,14 @@ services:
       - "5000:5000"
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://auth-db:27017/auth
+      JWT_SECRET: FzQ7U1aZ+zU5rLJ9cW4qEKe45Ihv8+6BqZVh4TcI1xQ=
     depends_on: 
       auth-db:
         condition: service_started
       rabbitmq:
         condition: service_started
   
+
   auth-db:
     container_name: auth-db
     image: mongo:6
@@ -23,7 +25,7 @@ services:
     volumes:
       - mongo-data:/data/db
       - ./backend/auth/docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-  
+
   front-end:
     container_name: front-end
     build:
@@ -97,4 +99,5 @@ services:
 volumes:
   mongo-data:
   clients-data:
+
 

@@ -200,7 +200,7 @@ app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => 
 
         // Chamada para o Serviço Saga (Spring Boot) - Endpoint de criação de reserva
         const sagaServiceResponse = await axios.post(
-            `${BASE_URL_SAGA_ORCHESTRATOR}/reservas`,
+            `${BASE_URL_SAGA_ORCHESTRATOR}/api/orchestrator/reservation/start-saga`,
             sagaPayload,
             {
                 headers: {
