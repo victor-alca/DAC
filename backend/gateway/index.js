@@ -39,8 +39,8 @@ app.use(helmet()); // Segurança HTTP
 app.use(cookieParser()); // Parse de cookies
 
 // Base URLs para os serviços (atualize os endereços se necessário)
-const BASE_URL_AUTH = 'http://localhost:5000';
-const BASE_URL_CLIENTS = 'http://localhost:5001';
+const BASE_URL_AUTH = 'http://auth-api:5000';
+const BASE_URL_CLIENTS = 'http://clients:5001';
 const BASE_URL_EMPLOYEES = 'http://localhost:5002';
 const BASE_URL_FLIGHTS = 'http://localhost:5003';
 const BASE_URL_RESERVATIONS = 'http://localhost:5004';
