@@ -41,10 +41,10 @@ app.use(cookieParser()); // Parse de cookies
 // Base URLs para os serviços (atualize os endereços se necessário)
 const BASE_URL_AUTH = 'http://auth-api:5000';
 const BASE_URL_CLIENTS = 'http://clients:5001';
-const BASE_URL_EMPLOYEES = 'http://localhost:5002';
-const BASE_URL_FLIGHTS = 'http://localhost:5003';
+const BASE_URL_EMPLOYEES = 'http://employee-service:5002';
+const BASE_URL_FLIGHTS = 'http://flight-service:5003';
 const BASE_URL_RESERVATIONS = 'http://localhost:5004';
-const BASE_URL_SAGA_ORCHESTRATOR = 'http://localhost:5005';
+const BASE_URL_SAGA_ORCHESTRATOR = 'http://orchestrator:5005';
 
 // Serviços
 const authServiceProxy = httpProxy(BASE_URL_AUTH);
