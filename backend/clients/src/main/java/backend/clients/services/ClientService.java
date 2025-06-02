@@ -30,7 +30,7 @@ public class ClientService {
     public Client addClient(Client newClient) {
 
         if(clientRepository.findByCpf(newClient.getCpf()) != null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Client already exists");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
         }
         clientRepository.save(newClient);
         return newClient;

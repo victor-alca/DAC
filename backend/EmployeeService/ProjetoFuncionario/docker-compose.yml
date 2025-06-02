@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    container_name: employee_postgres
+    environment:
+      POSTGRES_DB: employeedb
+      POSTGRES_USER: employeeuser
+      POSTGRES_PASSWORD: employeepass
+    ports:
+      - "5435:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - employee-net
+
+  employee-service:
+    build: .
+    container_name: employee_service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/employeedb
+      SPRING_DATASOURCE_USERNAME: employeeuser
+      SPRING_DATASOURCE_PASSWORD: employeepass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SERVER_PORT: 5002
+    ports:
+      - "5002:5002"
+    depends_on:
+      - db
+    networks:
+      - employee-net
+
+networks:
+  employee-net:
+    driver: bridge

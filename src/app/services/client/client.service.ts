@@ -1,55 +1,100 @@
 import { Injectable } from '@angular/core';
 import { Client } from '../../shared/models/client/client';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { catchError, map, Observable, throwError } from 'rxjs';
+import { Employee } from '../../shared/models/employee/employee';
 
 const LS_KEY = "client";
+const BASE_URL = "http://localhost:3000/clientes"
 
 @Injectable({
   providedIn: 'root'
 })
+
 export class ClientService {
 
-  constructor() { }
-
-  getAll(): Client[] {
-    const clients = localStorage[LS_KEY];
-
-    return clients ? JSON.parse(clients) : [];
+  httpOptions = {
+    observe: "response" as "response",
+    headers: new HttpHeaders({
+      'Content-Type': 'application/json'
+    }),
   }
 
-  getById(id: number) : Client | undefined{
-    const clients = this.getAll();
+  constructor(private http: HttpClient) { }
 
-    return clients.find(c => c.ID === id);
+  getById(id: number) : Observable<Client | null>{
+    return this.http.get<Client>(
+      BASE_URL + "/" + id,
+      this.httpOptions).pipe(
+        map((resp: HttpResponse<Client>) => {
+          if(resp.status==200){
+            return resp.body
+          }else{
+            return null
+          }
+        }),
+        catchError((err) => {
+          return throwError(() => err)
+        })
+      )
   }
 
-  create(client: Client){
-    const clients = this.getAll();
+  create(client: Client): Observable<Client | null>{
+    return this.http.post<Client>(BASE_URL,
+      JSON.stringify(client),
+      this.httpOptions).pipe(
+        map((resp: HttpResponse<Client> ) => {
+        if (resp != null){
+          return resp.body;
+        }else{
+          return null;
+        }
+      }),
+      catchError((err) => {
+        return throwError(() => err);
+      }))
+  };
 
-    client.ID = (clients.length > 0 ? Math.max(...clients.map(c => c.ID)) : 0) + 1;
-    client.password = "1234";
-
-    clients.push(client);
-
-    localStorage[LS_KEY] = JSON.stringify(clients);
+  addClientMiles(client: Client, miles: number): Observable<Client | null> {
+    return this.http.put<any>(
+      `${BASE_URL}/${client.code}/milhas`, 
+      { miles }, 
+      this.httpOptions
+    ).pipe(
+      map((resp: HttpResponse<any>) => {
+        if (resp.status === 200) {
+          return resp.body; 
+        } else {
+          return null;
+        }
+      }),
+      catchError((err) => {
+        console.error('Erro ao adicionar milhas:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  update(client : Client){
-    const clients = this.getAll();
-
-    clients.forEach( (cli, ind, objs) => {
-      if (client.ID === cli.ID) {
-        objs[ind] = client
-      }
-    })
-
-    localStorage[LS_KEY] = JSON.stringify(client)
+  getMilesTransactions(client: Client): Observable<any> {
+    return this.http.get<any>(
+      `${BASE_URL}/${client.code}/milhas`,
+      this.httpOptions
+    ).pipe(
+      map((resp: HttpResponse<any>) => {
+        if (resp.status === 200) {
+          return resp.body; 
+        } else {
+          return null;
+        }
+      }),
+      catchError((err) => {
+        console.error('Erro ao buscar histórico de transações:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
-  delete(id: number){
-    var clients = this.getAll();
-
-    clients = clients.filter(c => c.ID !== id);
-
-    localStorage[LS_KEY] = JSON.stringify(clients);
+  getClientBookings(client: Client){ //Confirmar implementação
   }
 }
+  
