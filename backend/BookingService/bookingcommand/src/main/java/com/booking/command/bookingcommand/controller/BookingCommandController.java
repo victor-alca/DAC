@@ -1,16 +1,13 @@
 package com.booking.command.bookingcommand.controller;
 
-import org.springframework.web.bind.annotation.RestController;
-
-import com.booking.command.bookingcommand.entity.Booking;
+import com.booking.command.bookingcommand.dtos.BookingRequestDTO;
+import com.booking.command.bookingcommand.dtos.BookingResponseDTO;
+import com.booking.command.bookingcommand.dtos.BookingStatusUpdateDTO;
 import com.booking.command.bookingcommand.service.BookingCommandService;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/reservas")
@@ -19,13 +16,42 @@ public class BookingCommandController {
     @Autowired
     private BookingCommandService commandService;
 
+    // Criar reserva
     @PostMapping
-    public Booking createBooking(@RequestBody Booking booking) {
-        return commandService.createBooking(booking);
+    public ResponseEntity<BookingResponseDTO> createBooking(@RequestBody BookingRequestDTO dto) {
+        try {
+            BookingResponseDTO response = commandService.createBooking(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
-    @PutMapping("/{code}")
-    public Booking updateBooking(@PathVariable String code, @RequestBody Booking booking) {
-        return commandService.updateBooking(code, booking);
+    // Atualizar status da reserva (PATCH)
+    @PatchMapping("/{codigoReserva}/estado")
+    public ResponseEntity<BookingResponseDTO> updateBookingStatus(@PathVariable String codigoReserva, @RequestBody BookingStatusUpdateDTO dto) {
+        try {
+            BookingResponseDTO response = commandService.updateBookingStatus(codigoReserva, dto);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException ex) {
+            if (ex.getMessage().toLowerCase().contains("não encontrada")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
+    // Cancelar reserva (DELETE)
+    @DeleteMapping("/{codigoReserva}")
+    public ResponseEntity<BookingResponseDTO> cancelBooking(@PathVariable String codigoReserva) {
+        try {
+            BookingResponseDTO response = commandService.cancelBooking(codigoReserva);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException ex) {
+            if (ex.getMessage().toLowerCase().contains("não encontrada")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 }

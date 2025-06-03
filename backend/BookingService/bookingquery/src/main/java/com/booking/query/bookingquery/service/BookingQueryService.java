@@ -14,7 +14,15 @@ public class BookingQueryService {
     @Autowired
     private BookingRepository repository;
 
-    public List<Booking> getBookings(){
-        return repository.findAll();
+    public List<Booking> getBookingsByCodes(List<String> codes){
+        return repository.findAllById(codes);
     }
+
+    public Booking getBookingByCode(String code) {
+        return repository.findByCode(code);
+    }
+
+    public List<Booking> getBookingsByClientId(Integer clientId) {
+    return repository.findAllByClientId(clientId);
+}
 }

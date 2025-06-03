@@ -38,12 +38,12 @@ app.use(logger('dev')); // Logger de requisições
 app.use(helmet()); // Segurança HTTP    
 app.use(cookieParser()); // Parse de cookies
 
-// Base URLs para os serviços (atualize os endereços se necessário)
 const BASE_URL_AUTH = 'http://auth-api:5000';
 const BASE_URL_CLIENTS = 'http://clients:5001';
 const BASE_URL_EMPLOYEES = 'http://employee-service:5002';
 const BASE_URL_FLIGHTS = 'http://flight-service:5003';
-const BASE_URL_RESERVATIONS = 'http://localhost:5004';
+const BASE_URL_RESERVATIONS_COMMAND = 'http://booking_command_service:5004';
+const BASE_URL_RESERVATIONS_QUERY = 'http://booking_query_service:5006';
 const BASE_URL_SAGA_ORCHESTRATOR = 'http://orchestrator:5005';
 
 // Serviços
@@ -51,7 +51,8 @@ const authServiceProxy = httpProxy(BASE_URL_AUTH);
 const clientsServiceProxy = httpProxy(BASE_URL_CLIENTS);
 const employeesServiceProxy = httpProxy(BASE_URL_EMPLOYEES);
 const flightsServiceProxy = httpProxy(BASE_URL_FLIGHTS);
-const reservationsServiceProxy = httpProxy(BASE_URL_RESERVATIONS);
+const reservationsServiceProxy = httpProxy(BASE_URL_RESERVATIONS_COMMAND);
+const reservationsQueryServiceProxy = httpProxy(BASE_URL_RESERVATIONS_QUERY);
 
 function verifyJWT(req, res, next) {
     const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
@@ -260,7 +261,7 @@ app.delete('/reservas/:codigoReserva', verifyJWT, authorizeRoles('CLIENTE'), asy
 app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
     try {
         // Busca os detalhes da reserva
-        const reservaResponse = await axios.get(`${BASE_URL_RESERVATIONS}/reservas/${req.params.codigoReserva}`, {
+        const reservaResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/reservas/${req.params.codigoReserva}`, {
             headers: { Authorization: req.headers['authorization'] }
         });
 
@@ -294,7 +295,7 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
 app.get('/clientes/:codigoCliente/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
     try {
         // Busca todas as reservas do cliente
-        const reservasResponse = await axios.get(`${BASE_URL_RESERVATIONS}/clientes/${req.params.codigoCliente}/reservas`, {
+        const reservasResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/clientes/${req.params.codigoCliente}/reservas`, {
             headers: { Authorization: req.headers['authorization'] }
         });
 
@@ -331,7 +332,7 @@ app.get('/clientes/:codigoCliente/reservas', verifyJWT, authorizeRoles('CLIENTE'
 app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
     try {
         // Busca os detalhes da reserva no serviço de Reservas
-        const reservaResponse = await axios.get(`${BASE_URL_RESERVATIONS}/reservas/${req.params.codigoReserva}`, {
+        const reservaResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/reservas/${req.params.codigoReserva}`, {
             headers: { Authorization: req.headers['authorization'] }
         });
 
