@@ -2,8 +2,12 @@ package backend.clients.models;
 
 import java.io.Serializable;
 
-import jakarta.persistence.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "Client")
@@ -43,8 +47,8 @@ public class Client implements Serializable{
     @Column(nullable = false)
     private String street;
 
-    @Column(nullable = false, name="federative_unit")
-    private String federativeUnit;
+    @Column(nullable = false)
+    private String state;
 
     @Column()
     private String number;
@@ -53,7 +57,7 @@ public class Client implements Serializable{
     private String complement;
 
     public Client(String cpf, String name, String email, String phone, Double miles, boolean active, String cep,
-            String city, String neighborhood, String street, String federativeUnit, String number, String complement) {
+            String city, String neighborhood, String street, String state, String number, String complement) {
         this.cpf = cpf;
         this.name = name;
         this.email = email;
@@ -64,7 +68,7 @@ public class Client implements Serializable{
         this.city = city;
         this.neighborhood = neighborhood;
         this.street = street;
-        this.federativeUnit = federativeUnit;
+        this.state = state;
         this.number = number;
         this.complement = complement;
     }
@@ -152,12 +156,12 @@ public class Client implements Serializable{
         this.street = street;
     }
 
-    public String getFederativeUnit() {
-        return federativeUnit;
+    public String getState() {
+        return state;
     }
 
-    public void setFederativeUnit(String federativeUnit) {
-        this.federativeUnit = federativeUnit;
+    public void setState(String state) {
+        this.state = state;
     }
 
     public String getNumber() {
@@ -175,5 +179,5 @@ public class Client implements Serializable{
     public void setComplement(String complement) {
         this.complement = complement;
     }
-    
+
 }
