@@ -30,28 +30,14 @@ public class BookingCommandController {
     // Atualizar status da reserva (PATCH)
     @PatchMapping("/{codigoReserva}/estado")
     public ResponseEntity<BookingResponseDTO> updateBookingStatus(@PathVariable String codigoReserva, @RequestBody BookingStatusUpdateDTO dto) {
-        try {
-            BookingResponseDTO response = commandService.updateBookingStatus(codigoReserva, dto);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException ex) {
-            if (ex.getMessage().toLowerCase().contains("não encontrada")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
+        BookingResponseDTO response = commandService.updateBookingStatus(codigoReserva, dto);
+        return ResponseEntity.ok(response);
     }
 
     // Cancelar reserva (DELETE)
     @DeleteMapping("/{codigoReserva}")
     public ResponseEntity<BookingResponseDTO> cancelBooking(@PathVariable String codigoReserva) {
-        try {
-            BookingResponseDTO response = commandService.cancelBooking(codigoReserva);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException ex) {
-            if (ex.getMessage().toLowerCase().contains("não encontrada")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
+        BookingResponseDTO response = commandService.cancelBooking(codigoReserva);
+        return ResponseEntity.ok(response);
     }
 }
