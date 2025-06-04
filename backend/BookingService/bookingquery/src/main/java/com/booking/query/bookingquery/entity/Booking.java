@@ -2,30 +2,42 @@ package com.booking.query.bookingquery.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "BOOKING_QUERY")
-
+@Table(name = "booking", schema = "bookingquery")
 public class Booking implements Serializable {
     @Id
     private String code;
 
-    @Column(nullable = false)
-    private String flightCode;
-
-    @Column(nullable = false)
+    @Column(name = "date")
     private Date date;
 
-    @Column(nullable = false)
-    private Integer status;
+    @Column(name = "origin_airport")
+    private String originAirport;
 
-    @Column(nullable = false)
-    private Double moneySpent;
+    @Column(name = "destination_airport")
+    private String destinationAirport;
 
-    @Column(nullable = false)
-    private Double milesSpent;
+    @Column(name = "total_seats")
+    private Integer totalSeats;
+
+    @Column(name = "statusbooking")
+    private String statusBooking;
+
+    @Column(name = "money_spent")
+    private Integer moneySpent;
+
+    @Column(name = "miles_spent")
+    private Integer milesSpent;
+    
+    @Column(name = "client_id")
+    private Integer clientId;
+
+    @Column(name = "flight_code")
+    private String flightCode;
+
+    // getters e setters
 
     public String getCode() {
         return code;
@@ -33,14 +45,6 @@ public class Booking implements Serializable {
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public String getFlightCode() {
-        return flightCode;
-    }
-
-    public void setFlightCode(String flightCode) {
-        this.flightCode = flightCode;
     }
 
     public Date getDate() {
@@ -51,39 +55,68 @@ public class Booking implements Serializable {
         this.date = date;
     }
 
-    public Double getMoneySpent() {
+    public String getOriginAirport() {
+        return originAirport;
+    }
+
+    public void setOriginAirport(String originAirport) {
+        this.originAirport = originAirport;
+    }
+
+    public String getDestinationAirport() {
+        return destinationAirport;
+    }
+
+    public void setDestinationAirport(String destinationAirport) {
+        this.destinationAirport = destinationAirport;
+    }
+
+    public Integer getTotalSeats() {
+        return totalSeats;
+    }
+
+    public void setTotalSeats(Integer totalSeats) {
+        this.totalSeats = totalSeats;
+    }
+
+    public String getStatusBooking() {
+        return statusBooking;
+    }
+
+    public void setStatusBooking(String statusBooking) {
+        this.statusBooking = statusBooking;
+    }
+
+    public Integer getMoneySpent() {
         return moneySpent;
     }
 
-    public void setMoneySpent(Double moneySpent) {
+    public void setMoneySpent(Integer moneySpent) {
         this.moneySpent = moneySpent;
     }
 
-    public Double getMilesSpent() {
+    public Integer getMilesSpent() {
         return milesSpent;
     }
 
-    public void setMilesSpent(Double milesSpent) {
+    public void setMilesSpent(Integer milesSpent) {
         this.milesSpent = milesSpent;
     }
 
-    public Integer getStatus() {
-        return status;
+    public Integer getClientId() {
+        return clientId;
     }
 
-    public void setStatus(Integer status) {
-        this.status = status;
+    public void setClientId(Integer clientId) {
+        this.clientId = clientId;
     }
 
-    public Booking(String code, Date date, String flightCode, Double moneySpent, Double milesSpent, Integer status) {
-        this.code = code;
-        this.date = date;
+    public String getFlightCode() {
+        return flightCode;
+    }
+
+    public void setFlightCode(String flightCode) {
         this.flightCode = flightCode;
-        this.moneySpent = moneySpent;
-        this.milesSpent = milesSpent;
-        this.status = status;
     }
-
-    public Booking() {
-    }
+    
 }

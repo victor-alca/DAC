@@ -1,4 +1,5 @@
 {
+  "rabbit_version": "3.12.0",
   "users": [
     {
       "name": "guest",
@@ -6,7 +7,11 @@
       "tags": "administrator"
     }
   ],
-  "vhosts": [{ "name": "/" }],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
   "permissions": [
     {
       "user": "guest",
@@ -17,22 +22,70 @@
     }
   ],
   "queues": [
+    { "name": "cliente.cadastro.iniciado.auth", "vhost": "/", "durable": true },
     {
-      "name": "create-auth-user",
+      "name": "cliente.cadastro.iniciado.cliente",
       "vhost": "/",
       "durable": true
     },
+    { "name": "cliente.cadastro.sucesso", "vhost": "/", "durable": true },
+    { "name": "cliente.cadastro.falhou", "vhost": "/", "durable": true },
+    { "name": "cliente.auth.compensar", "vhost": "/", "durable": true },
+    { "name": "cliente.client.compensar", "vhost": "/", "durable": true }
+  ],
+  "exchanges": [
     {
-      "name": "update-auth-user",
+      "name": "saga.exchange",
       "vhost": "/",
-      "durable": true
-    },
-    {
-      "name": "delete-auth-user",
-      "vhost": "/",
-      "durable": true
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
     }
   ],
-  "exchanges": [],
-  "bindings": []
+  "bindings": [
+    {
+      "source": "saga.exchange",
+      "destination": "cliente.cadastro.iniciado.auth",
+      "destination_type": "queue",
+      "routing_key": "cliente.cadastro.iniciado",
+      "vhost": "/"
+    },
+    {
+      "source": "saga.exchange",
+      "destination": "cliente.cadastro.iniciado.cliente",
+      "destination_type": "queue",
+      "routing_key": "cliente.cadastro.iniciado",
+      "vhost": "/"
+    },
+    {
+      "source": "saga.exchange",
+      "destination": "cliente.cadastro.sucesso",
+      "destination_type": "queue",
+      "routing_key": "cliente.cadastro.sucesso",
+      "vhost": "/"
+    },
+    {
+      "source": "saga.exchange",
+      "destination": "cliente.cadastro.falhou",
+      "destination_type": "queue",
+      "routing_key": "cliente.cadastro.falhou",
+      "vhost": "/"
+    },
+    {
+      "source": "saga.exchange",
+      "destination": "cliente.auth.compensar",
+      "destination_type": "queue",
+      "routing_key": "cliente.auth.compensar",
+      "vhost": "/"
+    },
+        {
+      "source": "saga.exchange",
+      "destination": "cliente.client.compensar",
+      "destination_type": "queue",
+      "routing_key": "cliente.client.compensar",
+      "vhost": "/"
+    }
+  ]
 }
