@@ -33,9 +33,9 @@ ALTER TABLE bookingcommand.bookingstatusalterationrecord ADD FOREIGN KEY (post_s
 
 INSERT INTO bookingcommand.bookingstatus (id, code, description) VALUES
     (1, 'CRIADA', 'CRIADA'),
-    (2, 'NAO_REALIZADA', 'NÃO REALIZADA'),
+    (2, 'NÃO REALIZADA', 'NÃO REALIZADA'),
     (3, 'CANCELADA', 'CANCELADA'),
-    (4, 'CHECKIN', 'CHECK-IN'),
-    (5, 'CANCELADA_VOO', 'CANCELADA VOO'),
+    (4, 'CHECK-IN', 'CHECK-IN'),
+    (5, 'CANCELADA VOO', 'CANCELADA VOO'),
     (6, 'EMBARCADA', 'EMBARCADA'),
     (7, 'REALIZADA', 'REALIZADA');

@@ -1,5 +1,7 @@
 package com.booking.command.bookingcommand.service;
 
+import com.booking.command.bookingcommand.config.RabbitConfig;
+import com.booking.command.bookingcommand.dtos.BookingEventDTO;
 import com.booking.command.bookingcommand.dtos.BookingRequestDTO;
 import com.booking.command.bookingcommand.dtos.BookingResponseDTO;
 import com.booking.command.bookingcommand.dtos.BookingStatusUpdateDTO;
@@ -7,10 +9,17 @@ import com.booking.command.bookingcommand.entity.Booking;
 import com.booking.command.bookingcommand.entity.BookingStatus;
 import com.booking.command.bookingcommand.repository.BookingRepository;
 import com.booking.command.bookingcommand.repository.BookingStatusRepository;
+
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -22,6 +31,31 @@ public class BookingCommandService {
     @Autowired
     private BookingStatusRepository bookingStatusRepository;
 
+    @Autowired
+    private AmqpTemplate amqpTemplate;
+
+    private BookingEventDTO toEventDTO(Booking booking) {
+        BookingEventDTO dto = new BookingEventDTO();
+        dto.code = booking.getCode();
+        dto.date = booking.getDate();
+        dto.originAirport = booking.getOriginAirport();
+        dto.destinationAirport = booking.getDestinationAirport();
+        dto.totalSeats = booking.getTotalSeats();
+        dto.statusBooking = booking.getStatus() != null ? booking.getStatus().getCode() : null;
+        dto.moneySpent = booking.getMoneySpent();
+        dto.milesSpent = booking.getMilesSpent();
+        dto.clientId = booking.getClientId();
+        dto.flightCode = booking.getFlightCode();
+        return dto;
+    }
+
+    public void publishBookingEvent(String eventType, Booking booking) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("type", eventType);
+        event.put("booking", toEventDTO(booking));
+        amqpTemplate.convertAndSend(RabbitConfig.BOOKING_EXCHANGE, "booking." + eventType.toLowerCase(), event);
+    }
+
     public BookingResponseDTO createBooking(BookingRequestDTO dto) {
         Booking booking = new Booking();
         booking.setCode(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
@@ -30,27 +64,33 @@ public class BookingCommandService {
         booking.setMoneySpent(dto.valor != null ? dto.valor.intValue() : null);
         booking.setMilesSpent(dto.milhas_utilizadas);
         booking.setClientId(dto.codigo_cliente);
-        // Status inicial: CONFIRMADA
-        BookingStatus status = bookingStatusRepository.findByCode("CONFIRMADA");
+        booking.setOriginAirport(dto.codigo_aeroporto_origem);
+        booking.setDestinationAirport(dto.codigo_aeroporto_destino);
+        booking.setTotalSeats(dto.quantidade_poltronas);
+        // Status inicial: CRIADA
+        BookingStatus status = bookingStatusRepository.findByCode("CRIADA");
         if (status == null) {
-            throw new RuntimeException("Status CONFIRMADA não encontrado");
+            throw new RuntimeException("Status CRIADA não encontrado");
         }
         booking.setStatus(status);
 
         bookingRepository.save(booking);
+        publishBookingEvent("CREATED", booking);
 
         return toResponseDTO(booking, dto);
     }
 
     public BookingResponseDTO updateBookingStatus(String codigoReserva, BookingStatusUpdateDTO dto) {
+        System.out.println("Recebido estado: " + dto.estado);
         Booking booking = bookingRepository.findById(codigoReserva)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada"));
-        BookingStatus status = bookingStatusRepository.findByCode(dto.estado);
+        BookingStatus status = bookingStatusRepository.findByCodeIgnoreCase(dto.estado);
         if (status == null) {
             throw new RuntimeException("Status não encontrado: " + dto.estado);
         }
         booking.setStatus(status);
         bookingRepository.save(booking);
+        publishBookingEvent("UPDATED", booking);
 
         return toResponseDTO(booking, null);
     }
@@ -64,6 +104,7 @@ public class BookingCommandService {
         }
         booking.setStatus(status);
         bookingRepository.save(booking);
+        publishBookingEvent("CANCELLED", booking);
 
         return toResponseDTO(booking, null);
     }
@@ -71,8 +112,16 @@ public class BookingCommandService {
     private BookingResponseDTO toResponseDTO(Booking booking, BookingRequestDTO dto) {
         BookingResponseDTO response = new BookingResponseDTO();
         response.codigo = booking.getCode();
-        response.data = booking.getDate() != null ? booking.getDate().toString() : null;
-        response.valor = booking.getMoneySpent() != null ? booking.getMoneySpent().doubleValue() : null;
+
+        // Formatar data para ISO 8601 com timezone -03:00
+        if (booking.getDate() != null) {
+            ZonedDateTime zdt = booking.getDate().toInstant()
+                .atZone(ZoneId.of("America/Sao_Paulo")); // Ajuste para seu timezone
+            response.data = zdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        } else {
+            response.data = null;
+        }        
+            response.valor = booking.getMoneySpent() != null ? booking.getMoneySpent().doubleValue() : null;
         response.milhas_utilizadas = booking.getMilesSpent();
         response.quantidade_poltronas = booking.getTotalSeats();
         response.codigo_cliente = booking.getClientId(); 
