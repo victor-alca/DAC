@@ -18,13 +18,17 @@ const amqp = require('amqplib');
 let channel;
 
 (async () => {
-    try {
+    for(let i = 0; i < 5; i++){
+        try {
         const connection = await amqp.connect(RABBITMQ_URL);
         channel = await connection.createChannel();
         console.log('Conectado ao RabbitMQ');
     } catch (error) {
         console.error('Erro ao conectar ao RabbitMQ:', error);
+        await new Promise(res => setTimeout(res, 3000));
     }
+    }
+    
 })();
 
 // Inicialização do app Express
@@ -89,18 +93,19 @@ function authorizeRoles(...allowedRoles) {
 app.post('/login', async (req, res) => {
     try {
         // Adapta o corpo para o serviço de autenticação
+        console.log(req.body)
         const authBody = {
-            email: req.body.login,
-            password: req.body.senha
+            email: req.body.email,
+            password: req.body.password
         };
-
+        console.log(authBody)
         // Chamada para o serviço de autenticação
         const authResponse = await axios.post(`${BASE_URL_AUTH}/login`, authBody);
-
+        console.log(authResponse)
         const usuarioAuth = authResponse.data;
 
         // Se não veio id, login inválido
-        if (!usuarioAuth.id) {
+        if (!usuarioAuth.usuario.id) {
             return res.status(401).json({ message: 'Login inválido!' });
         }
 
@@ -114,10 +119,11 @@ app.post('/login', async (req, res) => {
         // Descobre tipo e busca dados completos
         let usuarioResponse;
         let tipo = usuarioAuth.tipo || 'CLIENTE';
+        let email = usuarioAuth.usuario.email
         let codigo = usuarioAuth.codigo || usuarioAuth.id;
 
         if (tipo === 'CLIENTE') {
-            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/${codigo}`);
+            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${email}`);
         } else if (tipo === 'FUNCIONARIO') {
             usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`);
         } else {
