@@ -95,6 +95,7 @@ services:
     depends_on:
       - clients-db
       - gateway
+      - rabbitmq
     networks:
       - default
   

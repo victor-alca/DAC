@@ -7,4 +7,6 @@ import com.booking.command.bookingcommand.entity.BookingStatus;
 public interface BookingStatusRepository extends JpaRepository<BookingStatus, Integer> {
 	
     BookingStatus findByCode(String code);
+    BookingStatus findByCodeIgnoreCase(String code);
+
 }

@@ -22,10 +22,7 @@ public class Booking implements Serializable {
     @Column(name = "total_seats")
     private Integer totalSeats;
 
-    @Column(name = "statusFlight")
-    private String statusFlight;
-
-    @Column(name = "statusBooking")
+    @Column(name = "statusbooking")
     private String statusBooking;
 
     @Column(name = "money_spent")
@@ -80,14 +77,6 @@ public class Booking implements Serializable {
 
     public void setTotalSeats(Integer totalSeats) {
         this.totalSeats = totalSeats;
-    }
-
-    public String getStatusFlight() {
-        return statusFlight;
-    }
-
-    public void setStatusFlight(String statusFlight) {
-        this.statusFlight = statusFlight;
     }
 
     public String getStatusBooking() {
