@@ -32,10 +32,8 @@ public class UserSagaListener {
     }
 
     @RabbitListener(queues = "cliente.cadastro.sucesso")
-    public void onUsuarioCriado(@Payload String json) {
+    public void onUsuarioCriado(@Payload SagaMessage<ClientDTO> message) {
         try {
-            SagaMessage<ClientDTO> message = objectMapper.readValue(json, new TypeReference<SagaMessage<ClientDTO>>() {
-            });
             String correlationId = message.getCorrelationId();
             String origin = message.getOrigin();
 
@@ -60,10 +58,8 @@ public class UserSagaListener {
     }
 
     @RabbitListener(queues = "cliente.cadastro.falhou")
-    public void onUsuarioErro(@Payload String json) {
+    public void onUsuarioErro(@Payload SagaMessage<ClientDTO> message) {
         try {
-            SagaMessage<ClientDTO> message = objectMapper.readValue(json, new TypeReference<SagaMessage<ClientDTO>>() {
-            });
             String correlationId = message.getCorrelationId();
             String origin = message.getOrigin();
 

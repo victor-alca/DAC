@@ -2,9 +2,7 @@ import { Injectable } from '@angular/core';
 import { Client } from '../../shared/models/client/client';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
-import { Employee } from '../../shared/models/employee/employee';
 
-const LS_KEY = "client";
 const BASE_URL = "http://localhost:3000/clientes"
 
 @Injectable({
@@ -45,6 +43,7 @@ export class ClientService {
       this.httpOptions).pipe(
         map((resp: HttpResponse<Client> ) => {
         if (resp != null){
+          console.log(resp.body)
           return resp.body;
         }else{
           return null;

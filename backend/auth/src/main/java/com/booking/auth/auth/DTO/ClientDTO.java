@@ -8,7 +8,7 @@ public class ClientDTO {
   public String phone;
   public String password;
   public String cep;
-  public String state;
+  public String federativeUnit;
   public String city;
   public String neighborhood;
   public String street;
