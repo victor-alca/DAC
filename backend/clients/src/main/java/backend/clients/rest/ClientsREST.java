@@ -39,6 +39,12 @@ public class ClientsREST {
         return ResponseEntity.status(HttpStatus.OK).body(client);
     }
 
+    @GetMapping("clientes/email/{email}")
+    public ResponseEntity<Client> getClientByEmail(@PathVariable("email") String email) {
+        Client client = clientService.getClientByEmail(email);
+        return ResponseEntity.status(HttpStatus.OK).body(client);
+    }
+
     //Retorna uma lista de códigos de reservas do histórico do cliente
     @GetMapping("clientes/{code}/reservas")
     public ResponseEntity<ClientBookingsDTO> getClientBookings(@PathVariable("code") int code) {

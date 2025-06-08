@@ -44,6 +44,14 @@ public class ClientService {
         return client;
     }
 
+    public Client getClientByEmail (String email) {
+        Client client = clientRepository.findByEmail(email);
+        if(client == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+        }
+        return client;
+    }
+
     public Client updateClient (Client client){
         Client findClient = clientRepository.findByCpf(client.getCpf());
         if(findClient == null) {

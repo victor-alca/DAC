@@ -6,16 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import backend.clients.message.SagaMessage;
 import backend.clients.models.Client;
 
 @Component
 public class ConsumerInsertClient {
-  @Autowired
-  private ObjectMapper objectMapper;
-
   @Autowired
   private ClientService clientService;
 
@@ -23,26 +18,21 @@ public class ConsumerInsertClient {
   private RabbitTemplate rabbitTemplate;
 
   @RabbitListener(queues = "cliente.cadastro.iniciado.cliente")
-  public void receiveRead(@Payload String json) {
+  public void receiveRead(@Payload SagaMessage message) {
     try {
-      SagaMessage message = objectMapper.readValue(json, SagaMessage.class);
       Client client = message.getPayload();
 
       clientService.addClient(client);
 
       message.setOrigin("CLIENT");
-      rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.sucesso",
-          objectMapper.writeValueAsString(message));
+      rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.sucesso", message);
 
       System.out.println("[CLIENT] Cliente criado com sucesso: " + client.getEmail());
     } catch (Exception e) {
       e.printStackTrace();
-
       try {
-        SagaMessage message = objectMapper.readValue(json, SagaMessage.class);
         message.setOrigin("CLIENT");
-        rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.falhou",
-            objectMapper.writeValueAsString(message));
+        rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.falhou", message);
       } catch (Exception ex) {
         ex.printStackTrace();
       }

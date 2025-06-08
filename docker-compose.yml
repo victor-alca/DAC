@@ -26,12 +26,12 @@ services:
       - mongo-data:/data/db
       - ./backend/auth/docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
-  front-end:
-    container_name: front-end
-    build:
-      context: ./
-    ports:
-      - "4200:80"
+  #front-end:
+    #container_name: front-end
+    #build:
+    #  context: ./
+    #ports:
+    #  - "4200:80"
 
   rabbitmq:
     container_name: rabbitmq
@@ -61,7 +61,10 @@ services:
       - SECRET=mysecret
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      auth-api:
+        condition: service_started
     networks:
       - default
 

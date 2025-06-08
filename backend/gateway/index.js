@@ -18,13 +18,17 @@ const amqp = require('amqplib');
 let channel;
 
 (async () => {
-    try {
+    for(let i = 0; i < 5; i++){
+        try {
         const connection = await amqp.connect(RABBITMQ_URL);
         channel = await connection.createChannel();
         console.log('Conectado ao RabbitMQ');
     } catch (error) {
         console.error('Erro ao conectar ao RabbitMQ:', error);
+        await new Promise(res => setTimeout(res, 3000));
     }
+    }
+    
 })();
 
 // Inicialização do app Express
@@ -89,35 +93,32 @@ function authorizeRoles(...allowedRoles) {
 app.post('/login', async (req, res) => {
     try {
         // Adapta o corpo para o serviço de autenticação
+        console.log(req.body)
         const authBody = {
-            email: req.body.login,
-            password: req.body.senha
+            email: req.body.email,
+            password: req.body.password
         };
-
+        console.log(authBody)
         // Chamada para o serviço de autenticação
         const authResponse = await axios.post(`${BASE_URL_AUTH}/login`, authBody);
-
-        const usuarioAuth = authResponse.data;
+        console.log(authResponse)
+        const authData = authResponse.data;
 
         // Se não veio id, login inválido
-        if (!usuarioAuth.id) {
+        if (!authData.usuario.id) {
             return res.status(401).json({ message: 'Login inválido!' });
         }
 
-        // Gera token JWT
-        const access_token = jwt.sign({ sub: usuarioAuth.email, role: usuarioAuth.tipo || 'CLIENTE' }, process.env.SECRET, {
-            expiresIn: 3600, // 1h
-        });
-
-        const token_type = 'bearer';
-
         // Descobre tipo e busca dados completos
         let usuarioResponse;
-        let tipo = usuarioAuth.tipo || 'CLIENTE';
-        let codigo = usuarioAuth.codigo || usuarioAuth.id;
+        let tipo = authData.tipo;
+        let email = authData.usuario.email
+        let codigo = authData.codigo || authData.id;
+        let access_token = authData.access_token
+        let token_type = authData.token_type
 
         if (tipo === 'CLIENTE') {
-            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/${codigo}`);
+            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${email}`);
         } else if (tipo === 'FUNCIONARIO') {
             usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`);
         } else {
@@ -143,36 +144,23 @@ app.post('/login', async (req, res) => {
 // Rotas para o serviço de Clientes
 app.post('/clientes', async (req, res, next) => {
     try {
-        // Envia a requisição para o serviço de clientes
-        const response = await axios.post(`${BASE_URL_CLIENTS}/clientes`, req.body);
+        console.log(req.body);
 
-        // Verifica se o cliente foi criado com sucesso
-        if (response.status == 201) {
-            // Publica os dados do cliente na fila "create-auth-user"
-            if (channel) {
-                const userPayload = {
-                    id: response.data.id, // Inclui o ID do cliente
-                    email: req.body.email,
-                    nome: req.body.nome,
-                    ...response.data // Inclui outros dados retornados pelo serviço de clientes
-                };
-                channel.assertQueue('create-auth-user', { durable: true})
-                channel.sendToQueue('create-auth-user', Buffer.from(JSON.stringify(userPayload)));
-                console.log('Mensagem enviada para a fila create-auth-user:', userPayload);
-            } else {
-                console.error('Canal RabbitMQ não está configurado.');
-                return res.status(500).json({ message: 'Erro interno: Canal RabbitMQ não configurado.' });
-            }
+        // Chama o Orchestrator para iniciar a saga de criação de usuário
+        const response = await axios.post(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/saga/usuarios`,
+            req.body,
+            { headers: { 'Content-Type': 'application/json' } }
+        );
 
-            // Retorna a resposta para o cliente
-            res.status(response.status).json(response.data);
-        } else {
-            console.error('Erro ao criar cliente no serviço de clientes:', response.data);
-            res.status(400).json({ message: 'Erro ao criar cliente.', details: response.data });
-        }
+        // Retorna a resposta do Orchestrator diretamente para o cliente
+        res.status(response.status).json(response.data);
+        console.log(res.status)
     } catch (error) {
         console.error('Erro ao processar /clientes:', error.message);
-        if (!error.response) {
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
             res.status(500).json({ message: 'Erro interno ao processar a requisição.' });
         }
     }
