@@ -75,7 +75,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - clients-data:/var/lib/postgresql/data
+      - clients-data:/var/lib/postgresql/data 
     networks:
       - default
 

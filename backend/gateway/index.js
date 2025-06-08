@@ -193,16 +193,13 @@ app.get('/clientes/:codigoCliente/milhas', verifyJWT, authorizeRoles('CLIENTE'),
 // Rotas para o serviço de Reservas
 
 // (via Orquestrador Saga)
-app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
+// app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
+app.post('/reservas', async (req, res) => {
     try {
-        const sagaPayload = req.body;
-
-        console.log('API Gateway: Recebido POST /reservas. Payload:', sagaPayload);
-
-        // Chamada para o Serviço Saga (Spring Boot) - Endpoint de criação de reserva
-        const sagaServiceResponse = await axios.post(
+        // 1. Inicia a SAGA
+        const sagaResponse = await axios.post(
             `${BASE_URL_SAGA_ORCHESTRATOR}/api/orchestrator/reservation/start-saga`,
-            sagaPayload,
+            req.body,
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -210,10 +207,38 @@ app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => 
             }
         );
 
-        console.log('API Gateway: Resposta do Serviço Saga (criar reserva):', sagaServiceResponse.data);
+        const { correlationId } = sagaResponse.data;
+        if (!correlationId) {
+            return res.status(500).json({ message: 'Saga não retornou correlationId.' });
+        }
 
-        // Retorna a resposta do Serviço Saga para o cliente.
-        res.status(sagaServiceResponse.status).json(sagaServiceResponse.data);
+        // 2. Polling até finalizar
+        const maxAttempts = 20;
+        const intervalMs = 1500;
+        let attempts = 0;
+
+        async function pollSagaStatus() {
+            try {
+                const statusResponse = await axios.get(
+                    `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                const { status } = statusResponse.data;
+
+                if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    return res.status(200).json(statusResponse.data);
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(pollSagaStatus, intervalMs);
+                } else {
+                    return res.status(202).json({ message: 'Saga ainda em andamento.', status });
+                }
+            } catch (err) {
+                return res.status(500).json({ message: 'Erro ao consultar status da SAGA.', error: err.message });
+            }
+        }
+
+        pollSagaStatus();
 
     } catch (error) {
         console.error('API Gateway: Erro ao processar POST /reservas via Serviço Saga:', error.message);
