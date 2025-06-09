@@ -7,6 +7,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import com.orchestrator.orchestrator.dto.ClientDTO;
+import com.orchestrator.orchestrator.dto.EmployeeDTO;
 import com.orchestrator.orchestrator.message.SagaMessage;
 import com.orchestrator.orchestrator.saga.SagaStateManager;
 
@@ -20,7 +21,7 @@ public class SagaUserService {
     this.sagaStateManager = sagaStateManager;
   }
 
-  public String startUserRegistrationSaga(ClientDTO clientDTO) {
+  public String startUserRegistrationSagaClient(ClientDTO clientDTO) {
     SagaMessage<ClientDTO> sagaMessage = new SagaMessage<ClientDTO>(clientDTO);
     String correlationId = sagaMessage.getCorrelationId();
 
@@ -42,6 +43,35 @@ public class SagaUserService {
       compensacaoMessage.setOperation("DELETE");
 
       String routingKey = "cliente." + service.toLowerCase() + ".compensar";
+      rabbitTemplate.convertAndSend("saga.exchange", routingKey, compensacaoMessage);
+
+      System.out.println("[ORQUESTRADOR] Enviando COMPENSATE para serviço " + service);
+    }
+  }
+  
+  // -- funcionario --
+  public String startUserRegistrationSagaEmployee(EmployeeDTO employeeDTO) {
+    SagaMessage<EmployeeDTO> sagaMessage = new SagaMessage<EmployeeDTO>(employeeDTO);
+    String correlationId = sagaMessage.getCorrelationId();
+
+    sagaStateManager.createSaga(correlationId, Set.of("EMPLOYEE", "AUTH"));
+    rabbitTemplate.convertAndSend("saga.exchange", "funcionario.cadastro.iniciado", sagaMessage);
+
+    System.out.println("[SAGA] Iniciando cadastro de funcionario com correlationId: " + sagaMessage.getCorrelationId());
+
+    return correlationId;
+  }
+
+    public void compensateSuccessfulServices(String correlationId, EmployeeDTO payload) {
+    Set<String> servicosComSucesso = sagaStateManager.get(correlationId).getSuccessfulServices();
+
+    for (String service : servicosComSucesso) {
+      SagaMessage<EmployeeDTO> compensacaoMessage = new SagaMessage<>(payload);
+      compensacaoMessage.setCorrelationId(correlationId);
+      compensacaoMessage.setOrigin("ORCHESTRATOR");
+      compensacaoMessage.setOperation("DELETE");
+
+      String routingKey = "funcionario." + service.toLowerCase() + ".compensar";
       rabbitTemplate.convertAndSend("saga.exchange", routingKey, compensacaoMessage);
 
       System.out.println("[ORQUESTRADOR] Enviando COMPENSATE para serviço " + service);
