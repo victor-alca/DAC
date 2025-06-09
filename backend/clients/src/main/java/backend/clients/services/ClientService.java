@@ -75,16 +75,16 @@ public class ClientService {
     public boolean debitarMilhas(int codigoCliente, double milhasParaDebitar) {
         Client client = clientRepository.findById(codigoCliente).orElse(null);
         if (client == null) {
-            return false;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado");
         }
         if (client.getMiles() == null || client.getMiles() < milhasParaDebitar) {
-            return false;
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Milhas insuficientes para a operação");
         }
         client.setMiles(client.getMiles() - milhasParaDebitar);
         clientRepository.save(client);
         return true;
     }
-    
+        
     public MilesTransactionDTO getMilesTransactions(int code) {
         Client client = clientRepository.findById(code).orElse(null);
         
