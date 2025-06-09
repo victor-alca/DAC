@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import backend.clients.message.SagaMessage;
@@ -22,7 +23,7 @@ public class ConsumerCompensateClient {
     @RabbitListener(queues = "cliente.client.compensar")
     public void receiveRead(@Payload String json) {
         try {
-            SagaMessage message = objectMapper.readValue(json, SagaMessage.class);
+            SagaMessage<Client> message = objectMapper.readValue(json, new TypeReference<SagaMessage<Client>>() {});
             Client client = message.getPayload();
             String operation = message.getOperation();
 

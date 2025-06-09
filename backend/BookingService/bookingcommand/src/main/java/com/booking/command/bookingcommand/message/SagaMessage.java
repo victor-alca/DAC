@@ -1,4 +1,4 @@
-package backend.clients.message;
+package com.booking.command.bookingcommand.message;
 
 public class SagaMessage<T> {
     private String correlationId;

@@ -1,4 +1,4 @@
-package backend.clients.message;
+package EmployeeService.ProjetoFuncionario.src.main.message;
 
 public class SagaMessage<T> {
     private String correlationId;

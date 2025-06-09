@@ -42,6 +42,6 @@ on conflict do nothing;
 
 -- Voos
 insert into flight.flight (code, date, origin_airport, destination_airport, total_seats, occupated_seats, status, valor_passagem) values
-('FL001', '2025-08-10T10:30:00-03:00', 'POA', 'CWB', 180, 50, 1, 450.00),
-('FL002', '2025-09-11T09:30:00-03:00', 'CWB', 'GIG', 180, 60, 1, 500.00),
-('FL003', '2025-10-12T08:30:00-03:00', 'CWB', 'POA', 180, 70, 1, 420.00);
+('TADS0002', '2025-08-10T10:30:00-03:00', 'POA', 'CWB', 180, 50, 1, 450.00),
+('TADS0003', '2025-09-11T09:30:00-03:00', 'CWB', 'GIG', 180, 60, 1, 500.00),
+('TADS0004', '2025-10-12T08:30:00-03:00', 'CWB', 'POA', 180, 70, 1, 420.00);

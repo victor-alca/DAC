@@ -44,6 +44,14 @@ public class ClientService {
         return client;
     }
 
+    public Client getClientByEmail (String email) {
+        Client client = clientRepository.findByEmail(email);
+        if(client == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+        }
+        return client;
+    }
+
     public Client updateClient (Client client){
         Client findClient = clientRepository.findByCpf(client.getCpf());
         if(findClient == null) {
@@ -63,7 +71,20 @@ public class ClientService {
         MilesBalanceDTO milesBalanceDTO = new MilesBalanceDTO(1, client.getMiles());
         return milesBalanceDTO;
     }
-    
+
+    public boolean debitarMilhas(int codigoCliente, double milhasParaDebitar) {
+        Client client = clientRepository.findById(codigoCliente).orElse(null);
+        if (client == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado");
+        }
+        if (client.getMiles() == null || client.getMiles() < milhasParaDebitar) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Milhas insuficientes para a operação");
+        }
+        client.setMiles(client.getMiles() - milhasParaDebitar);
+        clientRepository.save(client);
+        return true;
+    }
+        
     public MilesTransactionDTO getMilesTransactions(int code) {
         Client client = clientRepository.findById(code).orElse(null);
         
