@@ -46,8 +46,8 @@ const BASE_URL_AUTH = 'http://auth-api:5000';
 const BASE_URL_CLIENTS = 'http://clients:5001';
 const BASE_URL_EMPLOYEES = 'http://employee-service:5002';
 const BASE_URL_FLIGHTS = 'http://flight-service:5003';
-const BASE_URL_RESERVATIONS_COMMAND = 'http://booking_command_service:5004';
-const BASE_URL_RESERVATIONS_QUERY = 'http://booking_query_service:5006';
+const BASE_URL_RESERVATIONS_COMMAND = 'http://booking-command-service:5004';
+const BASE_URL_RESERVATIONS_QUERY = 'http://booking-query-service:5006';
 const BASE_URL_SAGA_ORCHESTRATOR = 'http://orchestrator:5005';
 
 // Serviços
@@ -180,13 +180,13 @@ app.get('/clientes/:codigoCliente/milhas', verifyJWT, authorizeRoles('CLIENTE'),
 
 // Rotas para o serviço de Reservas
 
-// (via Orquestrador Saga)
+// (via Orquestrador Saga) FUNCIONAL
 // app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
 app.post('/reservas', async (req, res) => {
     try {
         // 1. Inicia a SAGA
         const sagaResponse = await axios.post(
-            `${BASE_URL_SAGA_ORCHESTRATOR}/api/orchestrator/reservation/start-saga`,
+            `${BASE_URL_SAGA_ORCHESTRATOR}/api/orchestrator/reservation`,
             req.body,
             {
                 headers: {
@@ -214,15 +214,94 @@ app.post('/reservas', async (req, res) => {
                 const { status } = statusResponse.data;
 
                 if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    // TRATAMENTO DE ERRO (CONFLICT e outros)
+                    if (status === 'COMPLETED_ERROR') {
+                        const errorResponse = {
+                            status: 'COMPLETED_ERROR',
+                            message: 'Falha ao processar a reserva',
+                            failedServices: statusResponse.data.failedServices || [],
+                        };
+                        
+                        // Verifica se foi erro de MILHAS (milhas insuficientes)
+                        if (statusResponse.data.failedServices && 
+                            statusResponse.data.failedServices.includes('MILHAS')) {
+                            errorResponse.message = 'Milhas insuficientes para realizar a reserva';
+                            return res.status(409).json(errorResponse); // 409 = CONFLICT
+                        }
+                        
+                        // Verifica se foi erro de VOO (poltronas insuficientes)
+                        if (statusResponse.data.failedServices && 
+                            statusResponse.data.failedServices.includes('VOO')) {
+                            errorResponse.message = 'Poltronas insuficientes no voo selecionado';
+                            return res.status(409).json(errorResponse); // 409 = CONFLICT
+                        }
+                        
+                        // Outros erros genéricos
+                        return res.status(400).json(errorResponse);
+                    }
+                    
+                    // TRATAMENTO DE SUCESSO (API Composition)
+                    if (status === 'COMPLETED_SUCCESS' && statusResponse.data.result) {
+                        const result = statusResponse.data.result;
+                        
+                        // Se for uma reserva, faz API Composition
+                        if (result.type === 'reservation' && result.codigoReserva) {
+                            try {
+                                // Aguarda alguns segundos para o CQRS propagar os dados
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                                // Busca detalhes da reserva criada
+                                const reservaResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/reservas/${result.codigoReserva}`);
+                                const reserva = reservaResponse.data;
+
+                                // Busca detalhes do voo
+                                const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${reserva.codigo_voo}`);
+                                const voo = vooResponse.data;
+
+                                // Monta resposta final
+                                const resposta = {
+                                    codigo: reserva.codigo,
+                                    data: new Date(reserva.data).toISOString().replace('Z', '-03:00'),
+                                    valor: reserva.valor,
+                                    milhas_utilizadas: reserva.milhas_utilizadas,
+                                    quantidade_poltronas: reserva.quantidade_poltronas,
+                                    codigo_cliente: reserva.codigo_cliente,
+                                    estado: reserva.estado,
+                                    codigo_voo: reserva.codigo_voo,
+                                    aeroporto_origem: voo.aeroporto_origem,
+                                    aeroporto_destino: voo.aeroporto_destino
+                                };
+
+                                return res.status(201).json(resposta);
+                            } catch (error) {
+                                console.error('Erro no API Composition:', error);
+                                // Se API Composition falhar, retorna só o código da reserva
+                                return res.status(201).json({
+                                    codigo_reserva: result.codigoReserva,
+                                    message: 'Reserva criada com sucesso, mas falha ao buscar detalhes completos'
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Fallback para outros casos de sucesso
                     return res.status(200).json(statusResponse.data);
+                    
                 } else if (attempts < maxAttempts) {
                     attempts++;
                     setTimeout(pollSagaStatus, intervalMs);
                 } else {
-                    return res.status(202).json({ message: 'Saga ainda em andamento.', status });
+                    return res.status(202).json({ 
+                        message: 'Saga ainda em andamento.', 
+                        status,
+                        correlationId 
+                    });
                 }
             } catch (err) {
-                return res.status(500).json({ message: 'Erro ao consultar status da SAGA.', error: err.message });
+                return res.status(500).json({ 
+                    message: 'Erro ao consultar status da SAGA.', 
+                    error: err.message 
+                });
             }
         }
 
@@ -233,7 +312,9 @@ app.post('/reservas', async (req, res) => {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
-            res.status(500).json({ message: 'Erro interno no API Gateway ao processar a reserva.' });
+            res.status(500).json({ 
+                message: 'Erro interno no API Gateway ao processar a reserva.' 
+            });
         }
     }
 });

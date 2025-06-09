@@ -1,4 +1,4 @@
-package com.orchestrator.orchestrator.dto;
+package com.flight.dto;
 
 public class ReservationDTO {
     private Integer codigo_cliente;

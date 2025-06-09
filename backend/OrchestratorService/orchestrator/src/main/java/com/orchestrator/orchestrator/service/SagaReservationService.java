@@ -6,6 +6,8 @@ import com.orchestrator.orchestrator.saga.SagaStateManager;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -58,6 +60,16 @@ public class SagaReservationService {
     public void onBookingSuccess(String correlationId, ReservationDTO payload) {
         sagaStateManager.markSuccess(correlationId, "RESERVA");
         System.out.println("[SAGA] Reserva criada com sucesso. Saga COMPLETED_SUCCESS. correlationId: " + correlationId);
+        
+        // Armazena o código da reserva como resultado
+        if (payload.getCodigo_reserva() != null) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("codigoReserva", payload.getCodigo_reserva());
+            result.put("type", "reservation");
+            
+            sagaStateManager.setResult(correlationId, result);
+            System.out.println("[SAGA] Código da reserva armazenado: " + payload.getCodigo_reserva());
+        }
     }
 
     // Chame este método quando receber falha de qualquer serviço

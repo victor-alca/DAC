@@ -1,10 +1,10 @@
-package backend.clients.listener;
+package com.flight.listener;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import backend.clients.message.SagaMessage;
-import backend.clients.services.ClientService;
-import backend.clients.dto.ReservationDTO;
+import com.flight.dto.ReservationDTO;
+import com.flight.message.SagaMessage;
+import com.flight.service.FlightService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 @Component
-public class MilhasSagaListener {
+public class CreateReservaSagaListener {
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -26,30 +26,17 @@ public class MilhasSagaListener {
     private RabbitTemplate rabbitTemplate;
 
     @Autowired
-    private ClientService clientService;
+    private FlightService flightService;
 
-    private boolean debitarMilhas(ReservationDTO dto) {
+    @RabbitListener(queues = "reserva.criacao.iniciada.voo")
+    public void onReservaSaga(@Payload String json) {
         try {
-            int codigoCliente = dto.getCodigo_cliente();
-            Double milhasParaDebitar = dto.getMilhas_utilizadas() != null ? dto.getMilhas_utilizadas().doubleValue() : 0.0;
-            return clientService.debitarMilhas(codigoCliente, milhasParaDebitar);
-        } catch (ResponseStatusException e) {
-            // Log do erro específico
-            System.err.println("[MILHAS] Erro ao debitar milhas: " + e.getReason());
-            throw e; // Re-lança para ser capturada no listener
-        }
-    }
+            SagaMessage<ReservationDTO> message = objectMapper.readValue(json, new TypeReference<SagaMessage<ReservationDTO>>() {});
+            ReservationDTO dto = message.getPayload();
 
-    @RabbitListener(queues = "reserva.criacao.iniciada.milhas")
-    public void onMilhasSaga(@Payload String json) {
-        try {
-            SagaMessage<ReservationDTO> message = objectMapper.readValue(
-                json, new TypeReference<SagaMessage<ReservationDTO>>() {}
-            );
-            
-            // Tenta debitar milhas - pode lançar ResponseStatusException
-            boolean ok = debitarMilhas(message.getPayload());
-            message.setOrigin("MILHAS");
+            // Tenta reservar poltronas - pode lançar ResponseStatusException
+            boolean ok = flightService.reservarPoltronas(dto.getCodigo_voo(), dto.getQuantidade_poltronas());
+            message.setOrigin("VOO");
 
             if (ok) {
                 rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.sucesso", objectMapper.writeValueAsString(message));
@@ -58,19 +45,16 @@ public class MilhasSagaListener {
             }
         } catch (ResponseStatusException e) {
             // Captura exceções específicas (CONFLICT, NOT_FOUND, etc.)
-            System.err.println("[MILHAS] Falha na SAGA - " + e.getStatusCode() + ": " + e.getReason());
+            System.err.println("[VOO] Falha na SAGA - " + e.getStatusCode() + ": " + e.getReason());
             
             try {
-                SagaMessage<ReservationDTO> message = objectMapper.readValue(
-                    json, new TypeReference<SagaMessage<ReservationDTO>>() {}
-                );
-                message.setOrigin("MILHAS");
+                SagaMessage<ReservationDTO> message = objectMapper.readValue(json, new TypeReference<SagaMessage<ReservationDTO>>() {});
+                message.setOrigin("VOO");
                 
                 // Adiciona informações do erro na mensagem
                 Map<String, Object> errorInfo = new HashMap<>();
                 errorInfo.put("errorCode", e.getStatusCode().value());
                 errorInfo.put("errorMessage", e.getReason());
-                // Se você quiser passar o erro específico, pode adicionar no payload ou criar um campo específico
                 
                 rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.falhou", objectMapper.writeValueAsString(message));
             } catch (Exception ex) {
@@ -80,10 +64,8 @@ public class MilhasSagaListener {
             // Outros erros inesperados
             e.printStackTrace();
             try {
-                SagaMessage<ReservationDTO> message = objectMapper.readValue(
-                    json, new TypeReference<SagaMessage<ReservationDTO>>() {}
-                );
-                message.setOrigin("MILHAS");
+                SagaMessage<ReservationDTO> message = objectMapper.readValue(json, new TypeReference<SagaMessage<ReservationDTO>>() {});
+                message.setOrigin("VOO");
                 rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.falhou", objectMapper.writeValueAsString(message));
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -91,15 +73,16 @@ public class MilhasSagaListener {
         }
     }
 
-    @RabbitListener(queues = "reserva.milhas.compensar")
+    @RabbitListener(queues = "reserva.voo.compensar")
     public void onCompensate(@Payload SagaMessage<ReservationDTO> message) {
         try {
             ReservationDTO dto = message.getPayload();
-            // Rollback: devolve as milhas debitadas
-            clientService.addMiles(dto.getCodigo_cliente(), dto.getMilhas_utilizadas().doubleValue());
-            System.out.println("[CLIENTES] Rollback de milhas realizado para cliente " + dto.getCodigo_cliente());
+            // Rollback: libera as poltronas reservadas
+            flightService.liberarPoltronas(dto.getCodigo_voo(), dto.getQuantidade_poltronas());
+            System.out.println("[VOO] Rollback de poltronas realizado para voo " + dto.getCodigo_voo());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+    
 }
