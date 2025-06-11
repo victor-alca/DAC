@@ -34,16 +34,8 @@ public class MilhasSagaListener {
             int codigoCliente = dto.getCodigo_cliente();
             Double milhasParaDebitar = dto.getMilhas_utilizadas() != null ? dto.getMilhas_utilizadas().doubleValue() : 0.0;
             
-            // 1. Debita as milhas do saldo do cliente
+            // Debita as milhas do saldo do cliente
             MilesBalanceDTO result = clientService.debitMiles(codigoCliente, milhasParaDebitar);
-            
-            // 2. Registra a operação de débito no extrato
-            clientService.recordMilesDebit(
-                codigoCliente,
-                milhasParaDebitar,
-                "Débito para reserva", // descrição será atualizada depois
-                "" // bookingCode será preenchido depois
-            );
             
             return result != null; // Se retornou o DTO, a operação foi bem-sucedida
         } catch (ResponseStatusException e) {
@@ -83,8 +75,8 @@ public class MilhasSagaListener {
                 Map<String, Object> errorInfo = new HashMap<>();
                 errorInfo.put("errorCode", e.getStatusCode().value());
                 errorInfo.put("errorMessage", e.getReason());
-                // Se você quiser passar o erro específico, pode adicionar no payload ou criar um campo específico
-                
+                message.setErrorInfo(errorInfo);
+                                
                 rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.falhou", objectMapper.writeValueAsString(message));
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -140,10 +132,10 @@ public class MilhasSagaListener {
             ReservationDTO dto = message.getPayload();
             
             // Atualiza o registro de milhas com informações da reserva
-            clientService.updateMilesRecordWithFlightInfo(
+            clientService.recordMilesDebit(
                 dto.getCodigo_cliente(),
-                dto.getCodigo_aeroporto_origem(),
-                dto.getCodigo_aeroporto_destino(),
+                dto.getMilhas_utilizadas().doubleValue(),
+                dto.getCodigo_aeroporto_origem() + "→" + dto.getCodigo_aeroporto_destino(),
                 dto.getCodigo_reserva()
             );
             

@@ -71,6 +71,11 @@ public class ReservationSagaListener {
             System.out.println("[ORCHESTRATOR] Serviço " + origin + " FALHOU (correlationId: " + correlationId + ")");
 
             sagaStateManager.get(correlationId).markFailure(origin);
+            
+            // Captura informações detalhadas do erro se disponíveis
+            if (message.getErrorInfo() != null) {
+                sagaStateManager.setErrorInfo(correlationId, message.getErrorInfo());
+            }
 
             orchestratorService.onSagaFailure(correlationId, message.getPayload());
         } catch (Exception e) {

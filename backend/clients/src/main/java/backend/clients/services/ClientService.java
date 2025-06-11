@@ -93,38 +93,6 @@ public class ClientService {
         return milesBalanceDTO;
     }
 
-    // Método para atualizar a descrição com informações da rota
-    public void updateMilesRecordWithFlightInfo(int clientCode, String origem, String destino, String bookingCode) {
-        try {
-            // Busca todos os registros do cliente ordenados por data (mais recente primeiro)
-            List<MilesRecord> records = milesRecordRepository.findByClientCode(clientCode);
-            
-            // Encontra o registro de débito mais recente sem booking code ou com booking code vazio
-            MilesRecord recordToUpdate = records.stream()
-                .filter(record -> "SAIDA".equals(record.getType()) && 
-                                (record.getBookingCode() == null || record.getBookingCode().isEmpty()))
-                .max((r1, r2) -> r1.getTransactionDate().compareTo(r2.getTransactionDate()))
-                .orElse(null);
-            
-            if (recordToUpdate != null) {
-                // Atualiza com informações da reserva
-                recordToUpdate.setDescription(origem + " → " + destino);
-                recordToUpdate.setBookingCode(bookingCode);
-                
-                milesRecordRepository.save(recordToUpdate);
-                
-                System.out.println("[CLIENTES] Registro de milhas atualizado: Cliente " + clientCode + 
-                    ", Rota: " + origem + " → " + destino + ", Reserva: " + bookingCode);
-            } else {
-                System.out.println("[CLIENTES] Nenhum registro de débito de milhas encontrado para cliente " + clientCode);
-            }
-        } catch (Exception e) {
-            System.err.println("[CLIENTES] Erro ao atualizar registro de milhas: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    // Métodos que apenas registram no miles_record
     public void recordMilesTransaction(int clientCode, Double miles, String type, String description, String bookingCode) {
         Client client = clientRepository.findById(clientCode).orElse(null);
         if(client == null) {
