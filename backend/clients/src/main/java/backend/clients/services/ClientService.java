@@ -33,6 +33,9 @@ public class ClientService {
         if(clientRepository.findByCpf(newClient.getCpf()) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
         }
+        if(clientRepository.findByEmail(newClient.getEmail()) != null){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
+        }
         clientRepository.save(newClient);
         return newClient;
     }

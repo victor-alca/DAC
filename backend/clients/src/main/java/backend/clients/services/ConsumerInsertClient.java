@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import backend.clients.message.SagaMessage;
@@ -24,9 +26,9 @@ public class ConsumerInsertClient {
   private ObjectMapper objectMapper;
 
   @RabbitListener(queues = "cliente.cadastro.iniciado.cliente")
-  public void receiveRead(@Payload String json) {
+  public void receiveRead(@Payload String json) throws JsonMappingException, JsonProcessingException {
+    SagaMessage<Client> message = objectMapper.readValue(json, new TypeReference<SagaMessage<Client>>() {});
     try {
-      SagaMessage<Client> message = objectMapper.readValue(json, new TypeReference<SagaMessage<Client>>() {});
       Client client = message.getPayload();
 
       clientService.addClient(client);
@@ -41,6 +43,7 @@ public class ConsumerInsertClient {
         // Em caso de erro, tenta enviar a mensagem de falha
         SagaMessage<Client> failedMessage = new SagaMessage<>();
         failedMessage.setOrigin("CLIENT");
+        failedMessage.setCorrelationId(message.getCorrelationId());
         rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.falhou", failedMessage);
       } catch (Exception ex) {
         ex.printStackTrace();

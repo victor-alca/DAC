@@ -5,8 +5,10 @@ import java.util.Random;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.booking.auth.auth.DTO.ClientDTO;
 import com.booking.auth.auth.email.EmailService;
@@ -45,6 +47,10 @@ public class ConsumerInsertUser {
       user.setSalt(salt);
       System.out.println(user);
       
+      if(userRepository.findByEmail(user.getEmail()) != null){
+        throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
+      }
+
       userRepository.save(user);
 
       emailService.sendPasswordEmail(user.getEmail(), generatedPassword);
