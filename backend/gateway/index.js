@@ -144,18 +144,74 @@ app.post('/login', async (req, res) => {
 // Rotas para o serviço de Clientes
 app.post('/clientes', async (req, res, next) => {
     try {
-        console.log(req.body);
-
-        // Chama o Orchestrator para iniciar a saga de criação de usuário
-        const response = await axios.post(
-            `${BASE_URL_SAGA_ORCHESTRATOR}/saga/usuarios`,
+        // 1. Inicia a SAGA de criação de cliente
+        const sagaResponse = await axios.post(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/saga/usuarios/cliente`,
             req.body,
-            { headers: { 'Content-Type': 'application/json' } }
+            { 
+                headers: {
+                        'Content-Type': 'application/json' 
+                    } 
+                }
         );
 
-        // Retorna a resposta do Orchestrator diretamente para o cliente
-        res.status(response.status).json(response.data);
-        console.log(res.status)
+        const { correlationId } = sagaResponse.data;
+        if (!correlationId) {
+            return res.status(500).json({ message: 'Saga não retornou correlationId.' });
+        }
+
+        // 3. Polling até finalizar a saga
+        const maxAttempts = 20;
+        const intervalMs = 1500;
+        let attempts = 0;
+
+        async function pollSagaStatus() {
+            try {
+                const statusResponse = await axios.get(
+                    `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                const { status } = statusResponse.data;
+
+                if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    if (status === 'COMPLETED_ERROR') {
+                        const errorResponse = {
+                            status: 'COMPLETED_ERROR',
+                            message: 'Falha ao processar o cadastro do cliente',
+                            failedServices: statusResponse.data.failedServices || [],
+                        };
+                        console.log(statusResponse.data)
+                        // 409 para conflito, 400 para outros erros
+                        if (statusResponse.data.failedServices && statusResponse.data.failedServices.includes('CLIENT')) {
+                            errorResponse.message = 'Cliente já existente.';
+                            return res.status(409).json(errorResponse);
+                        }
+                        return res.status(400).json(errorResponse);
+                    }
+                    // Sucesso
+                    if (status === 'COMPLETED_SUCCESS' && statusResponse.data.result) {
+                        return res.status(201).json(statusResponse.data.result);
+                    }
+                    // Fallback
+                    return res.status(200).json(statusResponse.data);
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(pollSagaStatus, intervalMs);
+                } else {
+                    return res.status(202).json({
+                        message: 'Saga ainda em andamento.',
+                        status,
+                        correlationId
+                    });
+                }
+            } catch (err) {
+                return res.status(500).json({
+                    message: 'Erro ao consultar status da SAGA.',
+                    error: err.message
+                });
+            }
+        }
+        pollSagaStatus();
     } catch (error) {
         console.error('Erro ao processar /clientes:', error.message);
         if (error.response) {

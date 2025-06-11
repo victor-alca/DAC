@@ -57,8 +57,9 @@ export class SignComponent {
         error: (err) => {
           if(err.status == 409){
             alert(`Erro ao cadastrar cliente! O cliente ja existe.`);
+          }else{
+            alert("Ocorreu um erro ao cadastrar o cliente.")
           }
-          alert("Ocorreu um erro ao cadastrar o cliente.")
           console.error(err);
         }
       });
