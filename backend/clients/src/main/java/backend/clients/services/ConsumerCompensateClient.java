@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import backend.clients.dto.ClientDTO;
 import backend.clients.message.SagaMessage;
 import backend.clients.models.Client;
 import backend.clients.repository.ClientRepository;
@@ -23,20 +24,20 @@ public class ConsumerCompensateClient {
     @RabbitListener(queues = "cliente.client.compensar")
     public void receiveRead(@Payload String json) {
         try {
-            SagaMessage<Client> message = objectMapper.readValue(json, new TypeReference<SagaMessage<Client>>() {});
-            Client client = message.getPayload();
+            SagaMessage<ClientDTO> message = objectMapper.readValue(json, new TypeReference<SagaMessage<ClientDTO>>() {});
+            ClientDTO client = message.getPayload();
             String operation = message.getOperation();
 
             if ("DELETE".equalsIgnoreCase(operation)) {
                 String correlationId = message.getCorrelationId();
                 System.out.println("[AUTH] Executando rollback para SAGA " + correlationId);
 
-                Client clientToDelete = clientRepository.findByCpf(client.getCpf());
+                Client clientToDelete = clientRepository.findByCpf(client.cpf);
                 if (clientToDelete != null) {
                     clientRepository.delete(clientToDelete);
-                    System.out.println("[CLIENT] Cliente com CPF " + client.getCpf() + " deletado com sucesso.");
+                    System.out.println("[CLIENT] Cliente com CPF " + client.cpf + " deletado com sucesso.");
                 } else {
-                    System.out.println("[CLIENT] Nenhum cliente encontrado com CPF " + client.getCpf());
+                    System.out.println("[CLIENT] Nenhum cliente encontrado com CPF " + client.cpf);
                 }
             }
         } catch (Exception e) {

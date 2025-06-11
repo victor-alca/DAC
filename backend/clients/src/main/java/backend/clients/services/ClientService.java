@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import backend.clients.dto.ClientBookingsDTO;
+import backend.clients.dto.ClientDTO;
 import backend.clients.dto.MilesBalanceDTO;
 import backend.clients.dto.MilesTransactionDTO;
 import backend.clients.dto.MilesTransactionDTO.Transaction;
@@ -28,16 +29,31 @@ public class ClientService {
     @Autowired
     private MilesRecordRepository milesRecordRepository;
 
-    public Client addClient(Client newClient) {
+    public Client addClient(ClientDTO newClient) {
 
-        if(clientRepository.findByCpf(newClient.getCpf()) != null) {
+        if(clientRepository.findByCpf(newClient.cpf) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
         }
-        if(clientRepository.findByEmail(newClient.getEmail()) != null){
+        if(clientRepository.findByEmail(newClient.email) != null){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
         }
-        clientRepository.save(newClient);
-        return newClient;
+
+        Client clientToSave = new Client();
+        clientToSave.setCpf(newClient.cpf);
+        clientToSave.setEmail(newClient.email);
+        clientToSave.setName(newClient.nome);
+        clientToSave.setMiles((double) newClient.saldo_milhas);
+        clientToSave.setCep(newClient.endereco.cep);
+        clientToSave.setFederativeUnit(newClient.endereco.uf);
+        clientToSave.setCity(newClient.endereco.cidade);
+        clientToSave.setNeighborhood(newClient.endereco.bairro);
+        clientToSave.setStreet(newClient.endereco.rua);
+        clientToSave.setNumber(newClient.endereco.numero);
+        clientToSave.setComplement(newClient.endereco.complemento);
+        
+        clientRepository.save(clientToSave);
+
+        return clientToSave;
     }
 
     public Client getClient (int code) {

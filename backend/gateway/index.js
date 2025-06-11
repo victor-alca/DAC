@@ -144,6 +144,7 @@ app.post('/login', async (req, res) => {
 // Rotas para o serviço de Clientes
 app.post('/clientes', async (req, res, next) => {
     try {
+        console.log(req.body)
         // 1. Inicia a SAGA de criação de cliente
         const sagaResponse = await axios.post(
             `${BASE_URL_SAGA_ORCHESTRATOR}/saga/usuarios/cliente`,

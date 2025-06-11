@@ -35,14 +35,14 @@ public class ConsumerInsertUser {
       ClientDTO client = message.getPayload();
 
       String generatedPassword = String.format("%04d", new Random().nextInt(10000));
-      System.out.println("Generated password for user " + client.getEmail() + ": " + generatedPassword);
+      System.out.println("Generated password for user " + client.email + ": " + generatedPassword);
 
       String salt = HashUtil.generateSalt();
       String hashedPassword = HashUtil.hashPassword(generatedPassword, salt);
 
       User user = new User();
       user.setType("CLIENTE");
-      user.setEmail(client.getEmail());
+      user.setEmail(client.email);
       user.setPassword(hashedPassword);
       user.setSalt(salt);
       System.out.println(user);
