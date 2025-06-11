@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -57,9 +58,25 @@ public class BookingCommandService {
         amqpTemplate.convertAndSend(RabbitConfig.BOOKING_EXCHANGE, "booking." + eventType.toLowerCase(), event);
     }
 
+    private String generateUniqueBookingCode() {
+        Random random = new Random();
+        
+        // Gera 3 letras maiúsculas
+        StringBuilder letters = new StringBuilder();
+        for (int i = 0; i < 3; i++) {
+            char letter = (char) ('A' + random.nextInt(26));
+            letters.append(letter);
+        }
+        
+        // Gera 3 números
+        String numbers = String.format("%03d", random.nextInt(1000));
+        
+        return letters.toString() + numbers;
+    }
+
     public BookingResponseDTO createBooking(BookingRequestDTO dto) {
         Booking booking = new Booking();
-        booking.setCode(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        booking.setCode(generateUniqueBookingCode()); // de acordo com o requisito
         booking.setDate(new Date());
         booking.setFlightCode(dto.codigo_voo);
         booking.setMoneySpent(dto.valor != null ? dto.valor.intValue() : null);

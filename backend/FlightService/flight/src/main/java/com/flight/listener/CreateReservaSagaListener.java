@@ -74,8 +74,11 @@ public class CreateReservaSagaListener {
     }
 
     @RabbitListener(queues = "reserva.voo.compensar")
-    public void onCompensate(@Payload SagaMessage<ReservationDTO> message) {
+    public void onCompensate(@Payload String json) {
         try {
+            SagaMessage<ReservationDTO> message = objectMapper.readValue(
+                json, new TypeReference<SagaMessage<ReservationDTO>>() {}
+            );
             ReservationDTO dto = message.getPayload();
             // Rollback: libera as poltronas reservadas
             flightService.liberarPoltronas(dto.getCodigo_voo(), dto.getQuantidade_poltronas());

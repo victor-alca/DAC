@@ -25,8 +25,8 @@ public class SagaReservationService {
         SagaMessage<ReservationDTO> sagaMessage = new SagaMessage<>(reservationDTO);
         String correlationId = sagaMessage.getCorrelationId();
 
-        // Espera sucesso de: MILHAS, VOO, RESERVA (ordem controlada pelo orchestrator)
-        sagaStateManager.createSaga(correlationId, Set.of("MILHAS", "VOO", "RESERVA"));
+        // Espera sucesso de: MILHAS, VOO, RESERVA, ATUALIZAR_MILHAS (ordem controlada pelo orchestrator)
+        sagaStateManager.createSaga(correlationId, Set.of("MILHAS", "VOO", "RESERVA", "ATUALIZAR_MILHAS"));
 
         // Primeiro passo: só milhas consome
         rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.iniciada", sagaMessage);
@@ -59,7 +59,17 @@ public class SagaReservationService {
     // Chame este método quando receber sucesso da reserva
     public void onBookingSuccess(String correlationId, ReservationDTO payload) {
         sagaStateManager.markSuccess(correlationId, "RESERVA");
-        System.out.println("[SAGA] Reserva criada com sucesso. Saga COMPLETED_SUCCESS. correlationId: " + correlationId);
+        // Próximo passo: atualizar milhas
+        SagaMessage<ReservationDTO> sagaMessage = new SagaMessage<>(payload);
+        sagaMessage.setCorrelationId(correlationId);
+        rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.iniciada.atualizar.milhas", sagaMessage);
+        System.out.println("[SAGA] Reserva OK, enviando para ATUALIZAR_MILHAS. correlationId: " + correlationId);
+    }
+
+    // Chame este método quando receber o update de milhas for bem-sucedido
+    public void onUpdateMilesSuccess(String correlationId, ReservationDTO payload) {
+        sagaStateManager.markSuccess(correlationId, "ATUALIZAR_MILHAS");
+        System.out.println("[SAGA] Atualização de milhas concluída. Saga COMPLETED_SUCCESS. correlationId: " + correlationId);
         
         // Armazena o código da reserva como resultado
         if (payload.getCodigo_reserva() != null) {

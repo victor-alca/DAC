@@ -37,13 +37,15 @@ public class ReservationSagaListener {
 
             sagaStateManager.markSuccess(correlationId, origin);
 
-            // Controle de fluxo da saga (milhas -> voo -> reserva)
+            // Controle de fluxo da saga (milhas -> voo -> reserva -> atualizar_milhas)
             if ("MILHAS".equals(origin)) {
                 orchestratorService.onMilesSuccess(correlationId, message.getPayload());
             } else if ("VOO".equals(origin)) {
                 orchestratorService.onFlightSuccess(correlationId, message.getPayload());
             } else if ("RESERVA".equals(origin)) {
                 orchestratorService.onBookingSuccess(correlationId, message.getPayload());
+            } else if ("ATUALIZAR_MILHAS".equals(origin)) {
+                orchestratorService.onUpdateMilesSuccess(correlationId, message.getPayload());
             }
 
             if (sagaStateManager.isComplete(correlationId)) {
