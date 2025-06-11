@@ -36,6 +36,11 @@ public class SagaController {
             if (sagaStatus.hasFailure()) {
                 response.put("status", "COMPLETED_ERROR");
                 response.put("failedServices", sagaStatus.getFailedServices());
+                
+                Map<String, Object> errorInfo = sagaStateManager.getErrorInfo(correlationId);
+                if (errorInfo != null) {
+                    response.put("errorInfo", errorInfo);
+                }
             } else {
                 response.put("status", "COMPLETED_SUCCESS");
                 // Adiciona dados do resultado (ex: código da reserva)

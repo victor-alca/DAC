@@ -278,18 +278,48 @@ app.post('/reservas', async (req, res) => {
                             failedServices: statusResponse.data.failedServices || [],
                         };
                         
-                        // Verifica se foi erro de MILHAS (milhas insuficientes)
+                        // Verifica se foi erro de MILHAS com código específico
                         if (statusResponse.data.failedServices && 
                             statusResponse.data.failedServices.includes('MILHAS')) {
-                            errorResponse.message = 'Milhas insuficientes para realizar a reserva';
-                            return res.status(409).json(errorResponse); // 409 = CONFLICT
+                            
+                            if (statusResponse.data.errorInfo) {
+                                const errorCode = statusResponse.data.errorInfo.errorCode;
+                                if (errorCode === 404) {
+                                    errorResponse.message = 'Cliente não encontrado';
+                                    return res.status(404).json(errorResponse);
+                                } else if (errorCode === 409) {
+                                    errorResponse.message = 'Milhas insuficientes para realizar a reserva';
+                                    return res.status(409).json(errorResponse);
+                                } else {
+                                    errorResponse.message = statusResponse.data.errorInfo.errorMessage || 'Erro no serviço de milhas';
+                                    return res.status(errorCode || 400).json(errorResponse);
+                                }
+                            } else {
+                                errorResponse.message = 'Erro no serviço de milhas';
+                                return res.status(400).json(errorResponse);
+                            }
                         }
                         
-                        // Verifica se foi erro de VOO (poltronas insuficientes)
+                        // Verifica se foi erro de VOO com código específico
                         if (statusResponse.data.failedServices && 
                             statusResponse.data.failedServices.includes('VOO')) {
-                            errorResponse.message = 'Poltronas insuficientes no voo selecionado';
-                            return res.status(409).json(errorResponse); // 409 = CONFLICT
+                            
+                            if (statusResponse.data.errorInfo) {
+                                const errorCode = statusResponse.data.errorInfo.errorCode;
+                                if (errorCode === 404) {
+                                    errorResponse.message = 'Voo não encontrado';
+                                    return res.status(404).json(errorResponse);
+                                } else if (errorCode === 409) {
+                                    errorResponse.message = 'Poltronas insuficientes no voo selecionado';
+                                    return res.status(409).json(errorResponse);
+                                } else {
+                                    errorResponse.message = statusResponse.data.errorInfo.errorMessage || 'Erro no serviço de voo';
+                                    return res.status(errorCode || 400).json(errorResponse);
+                                }
+                            } else {
+                                errorResponse.message = 'Poltronas insuficientes no voo selecionado';
+                                return res.status(409).json(errorResponse);
+                            }
                         }
                         
                         // Outros erros genéricos

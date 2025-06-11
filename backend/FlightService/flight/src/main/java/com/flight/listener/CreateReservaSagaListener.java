@@ -55,6 +55,7 @@ public class CreateReservaSagaListener {
                 Map<String, Object> errorInfo = new HashMap<>();
                 errorInfo.put("errorCode", e.getStatusCode().value());
                 errorInfo.put("errorMessage", e.getReason());
+                message.setErrorInfo(errorInfo);
                 
                 rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.falhou", objectMapper.writeValueAsString(message));
             } catch (Exception ex) {
