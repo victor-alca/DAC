@@ -11,9 +11,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import backend.clients.dto.ClientDTO;
 import backend.clients.message.SagaMessage;
-import backend.clients.models.Client;
-
 @Component
 public class ConsumerInsertClient {
   @Autowired
@@ -27,21 +26,20 @@ public class ConsumerInsertClient {
 
   @RabbitListener(queues = "cliente.cadastro.iniciado.cliente")
   public void receiveRead(@Payload String json) throws JsonMappingException, JsonProcessingException {
-    SagaMessage<Client> message = objectMapper.readValue(json, new TypeReference<SagaMessage<Client>>() {});
+    SagaMessage<ClientDTO> message = objectMapper.readValue(json, new TypeReference<SagaMessage<ClientDTO>>() {});
     try {
-      Client client = message.getPayload();
+      ClientDTO client = message.getPayload();
 
       clientService.addClient(client);
 
       message.setOrigin("CLIENT");
       rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.sucesso", message);
 
-      System.out.println("[CLIENT] Cliente criado com sucesso: " + client.getEmail());
     } catch (Exception e) {
       e.printStackTrace();
       try {
         // Em caso de erro, tenta enviar a mensagem de falha
-        SagaMessage<Client> failedMessage = new SagaMessage<>();
+        SagaMessage<ClientDTO> failedMessage = new SagaMessage<>();
         failedMessage.setOrigin("CLIENT");
         failedMessage.setCorrelationId(message.getCorrelationId());
         rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.falhou", failedMessage);

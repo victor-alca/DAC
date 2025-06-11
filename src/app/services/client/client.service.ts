@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Client } from '../../shared/models/client/client';
+import { ClientDTO } from '../../shared/models/sing/clientDto';
+import { Client} from '../../shared/models/client/client'
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
@@ -37,7 +38,7 @@ export class ClientService {
       )
   }
 
-  create(client: Client): Observable<Client | null>{
+  create(client: ClientDTO): Observable<Client | null>{
     return this.http.post<Client>(BASE_URL,
       JSON.stringify(client),
       this.httpOptions).pipe(

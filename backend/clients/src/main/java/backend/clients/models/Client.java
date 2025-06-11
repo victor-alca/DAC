@@ -27,9 +27,6 @@ public class Client implements Serializable{
     private String email;
 
     @Column(nullable = false)
-    private String phone;
-
-    @Column(nullable = false)
     private Double miles;
 
     @Column(nullable = false)
@@ -61,7 +58,6 @@ public class Client implements Serializable{
         this.cpf = cpf;
         this.name = name;
         this.email = email;
-        this.phone = phone;
         this.miles = miles;
         this.active = active;
         this.cep = cep;
@@ -98,14 +94,6 @@ public class Client implements Serializable{
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
     }
 
     public Double getMiles() {

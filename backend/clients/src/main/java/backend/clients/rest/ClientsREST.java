@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import backend.clients.dto.ClientBookingsDTO;
+import backend.clients.dto.ClientDTO;
 import backend.clients.dto.MilesBalanceDTO;
 import backend.clients.dto.MilesTransactionDTO;
 import backend.clients.models.Client;
@@ -28,9 +29,9 @@ public class ClientsREST {
     @Autowired
     private ClientService clientService;
     @PostMapping("clientes")
-    public ResponseEntity<Client> createClient(@RequestBody Client client) {
-        clientService.addClient(client);
-        return ResponseEntity.status(HttpStatus.CREATED).body(client);
+    public ResponseEntity<Client> createClient(@RequestBody ClientDTO client) {
+        Client createdClient = clientService.addClient(client);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdClient);
     }
 
     @GetMapping("clientes/{code}")

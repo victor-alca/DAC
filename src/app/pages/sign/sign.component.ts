@@ -8,7 +8,7 @@ import { EmailValidatorDirective } from '../../shared/directives/email-validator
 import { PhoneValidatorDirective } from '../../shared/directives/phone-validator.directive';
 import { CepValidatorDirective } from '../../shared/directives/cep-validator.directive';
 import { Router } from '@angular/router';
-import { Client } from '../../shared/models/client/client';
+import { ClientDTO } from '../../shared/models/sing/clientDto';
 import { ClientService } from '../../services/client/client.service';
 
 
@@ -20,7 +20,6 @@ import { ClientService } from '../../services/client/client.service';
     FormsModule,
     CpfValidatorDirective,
     EmailValidatorDirective,
-    PhoneValidatorDirective,
     NgxMaskDirective,
     CepValidatorDirective,
   ],
@@ -29,7 +28,7 @@ import { ClientService } from '../../services/client/client.service';
 })
 export class SignComponent {
   @ViewChild('formPerson') formPerson!: NgForm;
-  client: Client = new Client();
+  clientDTO: ClientDTO = new ClientDTO();
 
   cep: string = '';
   address: string = '';
@@ -43,13 +42,13 @@ export class SignComponent {
 
   submit(): void {
     if (this.formPerson.form.valid) { 
-      this.client.cep = this.cep;
-      this.client.street = this.address;
-      this.client.neighborhood = this.neighborhood;
-      this.client.city = this.city;
-      this.client.federativeUnit = this.state;
-      this.client.number = this.number;
-      this.ClientService.create(this.client).subscribe({
+      this.clientDTO.endereco.cep = this.cep;
+      this.clientDTO.endereco.rua = this.address;
+      this.clientDTO.endereco.bairro = this.neighborhood;
+      this.clientDTO.endereco.cidade = this.city;
+      this.clientDTO.endereco.uf = this.state;
+      this.clientDTO.endereco.numero = this.number;
+      this.ClientService.create(this.clientDTO).subscribe({
         next: () => {
           alert('Cadastro realizado com sucesso! Sua senha foi enviada para o seu email.');
           this.router.navigate(['/login']);
