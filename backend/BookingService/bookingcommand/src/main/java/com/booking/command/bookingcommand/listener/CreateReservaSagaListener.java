@@ -24,29 +24,31 @@ public class CreateReservaSagaListener {
     private BookingCommandService bookingCommandService;
 
     @RabbitListener(queues = "reserva.criacao.iniciada.reserva")
-    public void onReservaSaga(SagaMessage<ReservationDTO> message) {
+    public void onReservaSaga(@Payload SagaMessage<ReservationDTO> message) {
         try {
             ReservationDTO dto = message.getPayload();
 
             // Cria a reserva e obtém o código
             String codigoReserva = bookingCommandService.createBookingBySaga(dto);
-            
+
             // Adiciona o código da reserva no DTO de resposta
             dto.setCodigo_reserva(codigoReserva);
             message.setPayload(dto);
             message.setOrigin("RESERVA");
 
-            String json = objectMapper.writeValueAsString(message);
-            rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.sucesso", json);
+            String json_response = objectMapper.writeValueAsString(message);
+            rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.sucesso", json_response);
         } catch (Exception e) {
-            message.setOrigin("RESERVA");
-            String json;
-            try {
-                json = objectMapper.writeValueAsString(message);
-            } catch (Exception ex) {
-                json = "{}";
+            if (message != null) {
+                message.setOrigin("RESERVA");
             }
-            rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.falhou", json);
+            String json_error;
+            try {
+                json_error = objectMapper.writeValueAsString(message);
+            } catch (Exception ex) {
+                json_error = "{}";
+            }
+            rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.falhou", json_error);
             e.printStackTrace();
         }
     }

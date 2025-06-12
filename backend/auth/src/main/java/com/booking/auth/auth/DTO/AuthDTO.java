@@ -3,32 +3,32 @@ package com.booking.auth.auth.DTO;
 import java.io.Serializable;
 
 public class AuthDTO implements Serializable {
-  private String email;
-  private String password;
+  private String login;
+  private String senha;
 
   public AuthDTO() {
     super();
   }
 
-  public AuthDTO(String email, String password) {
+  public AuthDTO(String login, String senha) {
     super();
-    this.email = email;
-    this.password = password;
+    this.login = login;
+    this.senha = senha;
   }
 
-  public String getEmail() {
-    return email;
+  public String getLogin() {
+    return login;
   }
 
-  public void setEmail(String email) {
-    this.email = email;
+  public void setLogin(String login) {
+    this.login = login;
   }
 
-  public String getPassword() {
-    return password;
+  public String getSenha() {
+    return senha;
   }
 
-  public void setPassword(String password) {
-    this.password = password;
+  public void setSenha(String senha) {
+    this.senha = senha;
   }
 }

@@ -23,17 +23,17 @@ public class AuthRest {
   @PostMapping("login")
   ResponseEntity<?> login(@RequestBody AuthDTO login) {
     System.out.println(login);
-    if (!userRepository.existsByEmail(login.getEmail())) {
+    if (!userRepository.existsByEmail(login.getLogin())) {
       return ResponseEntity.status(401).body("Invalid credentials");
     }
 
-    User user = userRepository.findByEmail(login.getEmail());
+    User user = userRepository.findByEmail(login.getLogin());
 
     try {
-      String hashedInputPassword = HashUtil.hashPassword(login.getPassword(), user.getSalt());
+      String hashedInputPassword = HashUtil.hashPassword(login.getSenha(), user.getSalt());
 
       if (hashedInputPassword.equals(user.getPassword())) {
-        String token = JwtUtil.generateToken(user.getEmail());
+        String token = JwtUtil.generateToken(user.getEmail(), user.getType());
 
         LoginResponseDTO response = new LoginResponseDTO(token, user.getType(), user);
         return ResponseEntity.ok(response);

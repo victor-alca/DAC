@@ -1,5 +1,6 @@
 package backend.clients.services;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import backend.clients.dto.ClientBookingsDTO;
+import backend.clients.dto.ClientDTO;
+import backend.clients.dto.ClientResponseDTO;
 import backend.clients.dto.MilesBalanceDTO;
 import backend.clients.dto.MilesTransactionDTO;
 import backend.clients.dto.MilesTransactionDTO.Transaction;
@@ -27,21 +30,39 @@ public class ClientService {
     @Autowired
     private MilesRecordRepository milesRecordRepository;
 
-    public Client addClient(Client newClient) {
+    public Client addClient(ClientDTO newClient) {
 
-        if(clientRepository.findByCpf(newClient.getCpf()) != null) {
+        if(clientRepository.findByCpf(newClient.cpf) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
         }
-        clientRepository.save(newClient);
-        return newClient;
+        if(clientRepository.findByEmail(newClient.email) != null){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
+        }
+
+        Client clientToSave = new Client();
+        clientToSave.setCpf(newClient.cpf);
+        clientToSave.setEmail(newClient.email);
+        clientToSave.setName(newClient.nome);
+        clientToSave.setMiles((double) newClient.saldo_milhas);
+        clientToSave.setCep(newClient.endereco.cep);
+        clientToSave.setFederativeUnit(newClient.endereco.uf);
+        clientToSave.setCity(newClient.endereco.cidade);
+        clientToSave.setNeighborhood(newClient.endereco.bairro);
+        clientToSave.setStreet(newClient.endereco.rua);
+        clientToSave.setNumber(newClient.endereco.numero);
+        clientToSave.setComplement(newClient.endereco.complemento);
+        
+        clientRepository.save(clientToSave);
+
+        return clientToSave;
     }
 
-    public Client getClient (int code) {
+    public ClientResponseDTO getClient(int code) {
         Client client = clientRepository.findById(code).orElse(null);
         if(client == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
         }
-        return client;
+        return mapToClientResponseDTO(client);
     }
 
     public Client getClientByEmail (String email) {
@@ -60,29 +81,80 @@ public class ClientService {
         clientRepository.save(client);
         return client;
     }
-    
-    public MilesBalanceDTO addMiles(int code, Double miles) {
-        Client client = clientRepository.findById(code).orElse(null);
+
+    public MilesBalanceDTO addMiles(int clientCode, Double miles) {
+        Client client = clientRepository.findById(clientCode).orElse(null);
         if(client == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
         }
         client.setMiles(client.getMiles() + miles);
         clientRepository.save(client);
-        MilesBalanceDTO milesBalanceDTO = new MilesBalanceDTO(1, client.getMiles());
+        
+        MilesBalanceDTO milesBalanceDTO = new MilesBalanceDTO(clientCode, client.getMiles());
         return milesBalanceDTO;
     }
 
-    public boolean debitarMilhas(int codigoCliente, double milhasParaDebitar) {
-        Client client = clientRepository.findById(codigoCliente).orElse(null);
+    public MilesBalanceDTO debitMiles(int clientCode, Double miles) {
+        Client client = clientRepository.findById(clientCode).orElse(null);
         if (client == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado");
         }
-        if (client.getMiles() == null || client.getMiles() < milhasParaDebitar) {
+        if (client.getMiles() == null || client.getMiles() < miles) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Milhas insuficientes para a operação");
         }
-        client.setMiles(client.getMiles() - milhasParaDebitar);
+        
+        client.setMiles(client.getMiles() - miles);
         clientRepository.save(client);
-        return true;
+        
+        MilesBalanceDTO milesBalanceDTO = new MilesBalanceDTO(clientCode, client.getMiles());
+        return milesBalanceDTO;
+    }
+
+    public void recordMilesTransaction(int clientCode, Double miles, String type, String description, String bookingCode) {
+        Client client = clientRepository.findById(clientCode).orElse(null);
+        if(client == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+        }
+        
+        MilesRecord milesRecord = new MilesRecord();
+        milesRecord.setClientCode(clientCode);
+        milesRecord.setTransactionDate(new Timestamp(System.currentTimeMillis()));
+        milesRecord.setClient(client);
+        milesRecord.setValue(miles.intValue() * 5);
+        milesRecord.setAmount(miles.intValue());
+        milesRecord.setType(type);
+        milesRecord.setDescription(description);
+        milesRecord.setBookingCode(bookingCode != null ? bookingCode : "");
+        
+        milesRecordRepository.save(milesRecord);
+    }
+
+    public void recordMilesDebit(int clientCode, Double miles, String description, String bookingCode) {
+        Client client = clientRepository.findById(clientCode).orElse(null);
+        if(client == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+        }
+        
+        MilesRecord milesRecord = new MilesRecord();
+        milesRecord.setClientCode(clientCode);
+        milesRecord.setTransactionDate(new Timestamp(System.currentTimeMillis()));
+        milesRecord.setClient(client);
+        milesRecord.setValue((int) (miles * 5));
+        milesRecord.setAmount((int) -miles);
+        milesRecord.setType("SAIDA");
+        milesRecord.setDescription(description != null ? description : "");
+        milesRecord.setBookingCode(bookingCode);
+        
+        milesRecordRepository.save(milesRecord);
+    }
+
+    public ClientResponseDTO getClientByEmailFormatted(String email) {
+        Client client = clientRepository.findByEmail(email);
+        if (client == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado");
+        }
+        
+        return mapToClientResponseDTO(client);
     }
         
     public MilesTransactionDTO getMilesTransactions(int code) {
@@ -97,6 +169,9 @@ public class ClientService {
         MilesTransactionDTO milesTransactionDTO = new MilesTransactionDTO();
 
         List<Transaction> transactions = new ArrayList<Transaction>();
+        
+        milesTransactionDTO.setCodigo(client.getCode());
+        milesTransactionDTO.setSaldoMilhas(client.getMiles() != null ? client.getMiles() : 0.0);
 
         for (MilesRecord milesRecord : milesRecords) {
             Transaction transaction = new Transaction(
@@ -133,5 +208,27 @@ public class ClientService {
 
         return new ClientBookingsDTO(bookingCodes);
 
+    }
+
+    private ClientResponseDTO mapToClientResponseDTO(Client client) {
+        ClientResponseDTO response = new ClientResponseDTO();
+        response.codigo = client.getCode();
+        response.cpf = client.getCpf();
+        response.email = client.getEmail();
+        response.nome = client.getName();
+        response.saldo_milhas = client.getMiles() != null ? client.getMiles() : 0.0;
+        
+        ClientResponseDTO.EnderecoDTO endereco = new ClientResponseDTO.EnderecoDTO();
+        endereco.cep = client.getCep();
+        endereco.uf = client.getFederativeUnit();
+        endereco.cidade = client.getCity();
+        endereco.bairro = client.getNeighborhood();
+        endereco.rua = client.getStreet();
+        endereco.numero = client.getNumber();
+        endereco.complemento = client.getComplement();
+        
+        response.endereco = endereco;
+        
+        return response;
     }
 }

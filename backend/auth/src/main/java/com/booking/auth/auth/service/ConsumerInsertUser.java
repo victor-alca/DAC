@@ -5,8 +5,10 @@ import java.util.Random;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.booking.auth.auth.DTO.ClientDTO;
 import com.booking.auth.auth.email.EmailService;
@@ -33,18 +35,22 @@ public class ConsumerInsertUser {
       ClientDTO client = message.getPayload();
 
       String generatedPassword = String.format("%04d", new Random().nextInt(10000));
-      System.out.println("Generated password for user " + client.getEmail() + ": " + generatedPassword);
+      System.out.println("Generated password for user " + client.email + ": " + generatedPassword);
 
       String salt = HashUtil.generateSalt();
       String hashedPassword = HashUtil.hashPassword(generatedPassword, salt);
 
       User user = new User();
       user.setType("CLIENTE");
-      user.setEmail(client.getEmail());
+      user.setEmail(client.email);
       user.setPassword(hashedPassword);
       user.setSalt(salt);
       System.out.println(user);
       
+      if(userRepository.findByEmail(user.getEmail()) != null){
+        throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
+      }
+
       userRepository.save(user);
 
       emailService.sendPasswordEmail(user.getEmail(), generatedPassword);

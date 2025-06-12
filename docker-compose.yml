@@ -58,8 +58,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - SECRET=mysecret
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      JWT_SECRET: FzQ7U1aZ+zU5rLJ9cW4qEKe45Ihv8+6BqZVh4TcI1xQ=
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
     depends_on:
       rabbitmq:
         condition: service_healthy

@@ -1,11 +1,11 @@
-package com.orchestrator.orchestrator.dto;
+package backend.clients.dto;
 
-public class ClientDTO {
+public class ClientResponseDTO {
+    public int codigo;
     public String cpf;
-    public String nome;
-    public int saldo_milhas;
     public String email;
-    public String senha;
+    public String nome;
+    public double saldo_milhas;
     public EnderecoDTO endereco;
 
     public static class EnderecoDTO {

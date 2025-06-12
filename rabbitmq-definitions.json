@@ -43,7 +43,8 @@
     { "name": "reserva.criacao.falhou", "vhost": "/", "durable": true },
     { "name": "reserva.milhas.compensar", "vhost": "/", "durable": true },
     { "name": "reserva.reserva.compensar", "vhost": "/", "durable": true },
-    { "name": "reserva.voo.compensar", "vhost": "/", "durable": true }
+    { "name": "reserva.voo.compensar", "vhost": "/", "durable": true },
+    { "name": "reserva.criacao.iniciada.atualizar.milhas", "vhost": "/", "durable": true }
   ],
   "exchanges": [
     {
@@ -206,6 +207,13 @@
       "destination": "reserva.voo.compensar",
       "destination_type": "queue",
       "routing_key": "reserva.voo.compensar",
+      "vhost": "/"
+    },
+    {
+      "source": "reserva.saga.exchange",
+      "destination": "reserva.criacao.iniciada.atualizar.milhas",
+      "destination_type": "queue",
+      "routing_key": "reserva.criacao.iniciada.atualizar.milhas",
       "vhost": "/"
     }
   ]

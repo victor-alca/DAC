@@ -1,10 +1,21 @@
 package com.flight.message;
 
+import java.util.Map;
+
 public class SagaMessage<T> {
     private String correlationId;
     private String origin;
     private T payload;
     private String operation;
+    private Map<String, Object> errorInfo;
+
+    public Map<String, Object> getErrorInfo() {
+        return errorInfo;
+    }
+    
+    public void setErrorInfo(Map<String, Object> errorInfo) {
+        this.errorInfo = errorInfo;
+    }
 
     public String getCorrelationId() {
         return correlationId;

@@ -27,9 +27,6 @@ public class Client implements Serializable{
     private String email;
 
     @Column(nullable = false)
-    private String phone;
-
-    @Column(nullable = false)
     private Double miles;
 
     @Column(nullable = false)
@@ -56,12 +53,11 @@ public class Client implements Serializable{
     @Column()
     private String complement;
 
-    public Client(String cpf, String name, String email, String phone, Double miles, boolean active, String cep,
+    public Client(String cpf, String name, String email, Double miles, boolean active, String cep,
             String city, String neighborhood, String street, String federativeUnit, String number, String complement) {
         this.cpf = cpf;
         this.name = name;
         this.email = email;
-        this.phone = phone;
         this.miles = miles;
         this.active = active;
         this.cep = cep;
@@ -98,14 +94,6 @@ public class Client implements Serializable{
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
     }
 
     public Double getMiles() {
@@ -179,5 +167,13 @@ public class Client implements Serializable{
     public void setComplement(String complement) {
         this.complement = complement;
     }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }    
 
 }
