@@ -58,15 +58,30 @@ const flightsServiceProxy = httpProxy(BASE_URL_FLIGHTS);
 const reservationsServiceProxy = httpProxy(BASE_URL_RESERVATIONS_COMMAND);
 const reservationsQueryServiceProxy = httpProxy(BASE_URL_RESERVATIONS_QUERY);
 
+// Set para armazenar tokens invalidados (blacklist)
+const blacklistedTokens = new Set();
+const JWT_SECRET = Buffer.from(process.env.JWT_SECRET, 'base64');
+
 function verifyJWT(req, res, next) {
     const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
     if (!token)
         return res.status(401).json({ auth: false, message: 'Token não fornecido.' });
 
-    jwt.verify(token, process.env.SECRET, function (err, decoded) {
-        if (err)
-            return res.status(500).json({ auth: false, message: 'Falha ao autenticar o token.' });
-        req.userId = decoded.id;
+    // Verifica se o token está na blacklist
+    if (blacklistedTokens.has(token)) {
+        return res.status(401).json({ auth: false, message: 'Token invalidado.' });
+    }
+
+    jwt.verify(token, JWT_SECRET, function (err, decoded) {
+        if (err) {
+            console.log('Erro na verificação do token:', err.message);
+            return res.status(401).json({ auth: false, message: 'Token inválido ou expirado.' });
+        }
+        
+        req.userId = decoded.sub; // Email do usuário (subject)
+        req.userRole = decoded.role; // Tipo de usuário (CLIENTE/FUNCIONARIO)
+        req.userEmail = decoded.sub; // Para compatibilidade
+        req.user = decoded; // Objeto completo decodificado
         next();
     });
 }
@@ -77,14 +92,32 @@ function authorizeRoles(...allowedRoles) {
         const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
         if (!token) return res.status(401).json({ message: 'Token não fornecido.' });
 
-        jwt.verify(token, process.env.SECRET, function (err, decoded) {
-            if (err) return res.status(401).json({ message: 'Token inválido.' });
-            // O endpoint de login gera o token com { sub: usuarioAuth.email, role: usuarioAuth.tipo || 'CLIENTE' }
-            const userRole = decoded.role;
-            if (!allowedRoles.includes(userRole)) {
-                return res.status(403).json({ message: 'Acesso negado.' });
+        jwt.verify(token, JWT_SECRET, function (err, decoded) {
+            if (err) {
+                console.log('Erro na verificação do token:', err.message);
+                return res.status(401).json({ message: 'Token inválido ou expirado.' });
             }
+            
+            // Pega o role do token decodificado
+            const userRole = decoded.role;
+            
+            // Verifica se o token tem o campo role
+            if (!userRole) {
+                return res.status(403).json({ message: 'Token não contém informações de permissão.' });
+            }
+            
+            // Verifica se o usuário tem permissão
+            if (!allowedRoles.includes(userRole)) {
+                return res.status(403).json({ 
+                    message: `Acesso negado. Requer: ${allowedRoles.join(' ou ')}. Você é: ${userRole}` 
+                });
+            }
+            
+            // Adiciona as informações do usuário na requisição
             req.user = decoded;
+            req.userId = decoded.sub;
+            req.userRole = decoded.role;
+            req.userEmail = decoded.sub;
             next();
         });
     };
@@ -95,8 +128,8 @@ app.post('/login', async (req, res) => {
         // Adapta o corpo para o serviço de autenticação
         console.log(req.body)
         const authBody = {
-            email: req.body.email,
-            password: req.body.password
+            login: req.body.login,
+            senha: req.body.senha
         };
         console.log(authBody)
         // Chamada para o serviço de autenticação
@@ -189,9 +222,28 @@ app.post('/clientes', async (req, res, next) => {
                         }
                         return res.status(400).json(errorResponse);
                     }
-                    // Sucesso
-                    if (status === 'COMPLETED_SUCCESS' && statusResponse.data.result) {
-                        return res.status(201).json(statusResponse.data.result);
+                    // SUCESSO - Busca o cliente criado pelo email
+                    if (status === 'COMPLETED_SUCCESS') {
+                        try {
+                            // Aguarda alguns segundos para garantir que os dados foram persistidos
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
+                            // Busca o cliente pelo email
+                            const clienteResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${req.body.email}/dto`);
+                            const clienteCriado = clienteResponse.data;
+
+                            return res.status(201).json({
+                                clienteCriado
+                            });
+                        } catch (clientError) {
+                            console.error('Erro ao buscar cliente criado:', clientError.message);
+                            // Se não conseguir buscar o cliente, retorna resposta básica da saga
+                            return res.status(201).json({
+                                message: 'Cliente criado com sucesso',
+                                correlationId,
+                                email: req.body.email
+                            });
+                        }
                     }
                     // Fallback
                     return res.status(200).json(statusResponse.data);
@@ -238,8 +290,7 @@ app.get('/clientes/:codigoCliente/milhas', verifyJWT, authorizeRoles('CLIENTE'),
 // Rotas para o serviço de Reservas
 
 // (via Orquestrador Saga) FUNCIONAL
-// app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
-app.post('/reservas', async (req, res) => {
+app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
     try {
         // 1. Inicia a SAGA
         const sagaResponse = await axios.post(
@@ -620,8 +671,23 @@ app.delete('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIO
 });
 
 // Logout
-app.post('/logout', function (req, res) {
-    res.json({ auth: false, token: null });
+app.post('/logout', verifyJWT, function (req, res) {
+    const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
+    
+    if (!token) {
+        return res.status(400).json({ message: 'Token não fornecido.' });
+    }
+    
+    // Adiciona o token à blacklist para invalidá-lo
+    blacklistedTokens.add(token);
+    
+    // Opcional: log para debug
+    console.log(`Token invalidado no logout: ${token.substring(0, 20)}...`);
+    
+    // Retorna confirmação do logout
+    res.status(200).json({ 
+        login: req.userEmail || req.userId 
+    });
 });
 
 // Cria o servidor na porta 3000

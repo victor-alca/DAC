@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import backend.clients.dto.ClientBookingsDTO;
 import backend.clients.dto.ClientDTO;
+import backend.clients.dto.ClientResponseDTO;
 import backend.clients.dto.MilesBalanceDTO;
+import backend.clients.dto.MilesRequestDTO;
 import backend.clients.dto.MilesTransactionDTO;
 import backend.clients.models.Client;
 import backend.clients.repository.ClientRepository;
@@ -35,8 +37,8 @@ public class ClientsREST {
     }
 
     @GetMapping("clientes/{code}")
-    public ResponseEntity<Client> getClient(@PathVariable("code") int code) {
-        Client client = clientService.getClient(code);
+    public ResponseEntity<ClientResponseDTO> getClient(@PathVariable("code") int code) {
+        ClientResponseDTO client = clientService.getClient(code);
         return ResponseEntity.status(HttpStatus.OK).body(client);
     }
 
@@ -44,6 +46,12 @@ public class ClientsREST {
     public ResponseEntity<Client> getClientByEmail(@PathVariable("email") String email) {
         Client client = clientService.getClientByEmail(email);
         return ResponseEntity.status(HttpStatus.OK).body(client);
+    }
+
+    @GetMapping("clientes/email/{email}/dto")
+    public ResponseEntity<ClientResponseDTO> getClientByEmailDTO(@PathVariable("email") String email) {
+        ClientResponseDTO clientResponse = clientService.getClientByEmailFormatted(email);
+        return ResponseEntity.status(HttpStatus.OK).body(clientResponse);
     }
 
     //Retorna uma lista de códigos de reservas do histórico do cliente
@@ -54,8 +62,8 @@ public class ClientsREST {
     }
 
     @PutMapping("clientes/{code}/milhas")
-    public ResponseEntity<MilesBalanceDTO> addClientMiles(@RequestBody Double miles, @PathVariable("code") int code) {
-        MilesBalanceDTO milesBalanceDTO = clientService.addMiles(code, miles);
+    public ResponseEntity<MilesBalanceDTO> addClientMiles(@RequestBody MilesRequestDTO milesRequest, @PathVariable("code") int code) {
+        MilesBalanceDTO milesBalanceDTO = clientService.addMiles(code, milesRequest.getQuantidade());
         return ResponseEntity.status(HttpStatus.OK).body(milesBalanceDTO);
     }
 
