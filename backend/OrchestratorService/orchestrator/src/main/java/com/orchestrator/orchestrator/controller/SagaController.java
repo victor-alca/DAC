@@ -1,5 +1,8 @@
 package com.orchestrator.orchestrator.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,28 +23,37 @@ public class SagaController {
     }
 
     @GetMapping("/{correlationId}")
-    public ResponseEntity<?> consultarStatus(@PathVariable String correlationId) {
+    public ResponseEntity<Map<String, Object>> getSagaStatus(@PathVariable String correlationId) {
         SagaStatus sagaStatus = sagaStateManager.get(correlationId);
-
+        
         if (sagaStatus == null) {
             return ResponseEntity.notFound().build();
         }
-
-        String status;
-        if (!sagaStatus.isComplete()) {
-            status = "IN_PROGRESS";
-        } else if (sagaStatus.hasFailure()) {
-            status = "COMPLETED_ERROR";
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        if (sagaStatus.isComplete()) {
+            if (sagaStatus.hasFailure()) {
+                response.put("status", "COMPLETED_ERROR");
+                response.put("failedServices", sagaStatus.getFailedServices());
+                
+                Map<String, Object> errorInfo = sagaStateManager.getErrorInfo(correlationId);
+                if (errorInfo != null) {
+                    response.put("errorInfo", errorInfo);
+                }
+            } else {
+                response.put("status", "COMPLETED_SUCCESS");
+                // Adiciona dados do resultado (ex: código da reserva)
+                Object result = sagaStateManager.getResult(correlationId);
+                if (result != null) {
+                    response.put("result", result);
+                }
+            }
         } else {
-            status = "COMPLETED_SUCCESS";
+            response.put("status", "IN_PROGRESS");
+            response.put("completedServices", sagaStatus.getSuccessfulServices());
         }
-
-        SagaStatusResponse response = new SagaStatusResponse(
-                status,
-                sagaStatus.getRespondedServices(),
-                sagaStatus.getFailedServices(),
-                sagaStatus.getPendingServices());
-
+        
         return ResponseEntity.ok(response);
     }
 }

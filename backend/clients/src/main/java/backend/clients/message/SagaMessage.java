@@ -1,53 +1,43 @@
 package backend.clients.message;
 
-import java.util.UUID;
+import java.util.Map;
 
-import backend.clients.models.Client;
-
-
-public class SagaMessage {
+public class SagaMessage<T> {
     private String correlationId;
     private String origin;
-    private Client payload;
+    private T payload;
     private String operation;
+    private Map<String, Object> errorInfo;
 
-    public SagaMessage() {
-        this.correlationId = UUID.randomUUID().toString();
+    public Map<String, Object> getErrorInfo() {
+        return errorInfo;
     }
-
-    public SagaMessage(Client payload) {
-        this();
-        this.payload = payload;
+    
+    public void setErrorInfo(Map<String, Object> errorInfo) {
+        this.errorInfo = errorInfo;
     }
 
     public String getCorrelationId() {
         return correlationId;
     }
-
     public void setCorrelationId(String correlationId) {
         this.correlationId = correlationId;
     }
-
     public String getOrigin() {
         return origin;
     }
-
     public void setOrigin(String origin) {
         this.origin = origin;
     }
-
-    public Client getPayload() {
+    public T getPayload() {
         return payload;
     }
-
-    public void setPayload(Client payload) {
+    public void setPayload(T payload) {
         this.payload = payload;
     }
-
     public String getOperation() {
         return operation;
     }
-
     public void setOperation(String operation) {
         this.operation = operation;
     }

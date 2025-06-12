@@ -23,7 +23,7 @@
                     id="typeName"
                     name="name"
                     class="form-control form-control-lg"
-                    [(ngModel)]="client.name"
+                    [(ngModel)]="clientDTO.nome"
                     #name="ngModel"
                     minlength="3"
                     required
@@ -54,7 +54,7 @@
                     id="typeEmail"
                     name="email"
                     class="form-control form-control-lg"
-                    [(ngModel)]="client.email"
+                    [(ngModel)]="clientDTO.email"
                     #email="ngModel"
                     required
                   />
@@ -85,7 +85,7 @@
                     id="typeCPF"
                     name="cpf"
                     class="form-control form-control-lg"
-                    [(ngModel)]="client.cpf"
+                    [(ngModel)]="clientDTO.cpf"
                     #cpf="ngModel"
                     cpf
                     required
@@ -99,36 +99,6 @@
                     </p>
                     <p class="text-danger" [hidden]="!cpf.errors['cpf']">
                       CPF inválido.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  data-mdb-input-init
-                  class="form-outline form-white mb-2 d-flex flex-column justify-content-start"
-                >
-                  <label class="form-label text-left" for="typePhone"
-                    >Telefone</label
-                  >
-                  <input phone
-                    mask="(00) 0000-0000 || (00) 0 0000-0000"
-                    type="text"
-                    id="typePhone"
-                    name="phone"
-                    class="form-control form-control-lg"
-                    [(ngModel)]="client.phone"
-                    #phone="ngModel"
-                    required
-                  />
-                  <div
-                    *ngIf="phone.errors && (phone.dirty || phone.touched)"
-                    class="mt-1"
-                  >
-                    <p class="text-danger" [hidden]="!phone.errors['required']">
-                      Digite seu telefone.
-                    </p>
-                    <p class="text-danger" [hidden]="!phone.errors['phone']">
-                      Telefone inválido.
                     </p>
                   </div>
                 </div>

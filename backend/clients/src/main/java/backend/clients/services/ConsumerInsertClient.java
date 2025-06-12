@@ -6,43 +6,43 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import backend.clients.dto.ClientDTO;
 import backend.clients.message.SagaMessage;
-import backend.clients.models.Client;
-
 @Component
 public class ConsumerInsertClient {
-  @Autowired
-  private ObjectMapper objectMapper;
-
   @Autowired
   private ClientService clientService;
 
   @Autowired
   private RabbitTemplate rabbitTemplate;
 
+  @Autowired
+  private ObjectMapper objectMapper;
+
   @RabbitListener(queues = "cliente.cadastro.iniciado.cliente")
-  public void receiveRead(@Payload String json) {
+  public void receiveRead(@Payload String json) throws JsonMappingException, JsonProcessingException {
+    SagaMessage<ClientDTO> message = objectMapper.readValue(json, new TypeReference<SagaMessage<ClientDTO>>() {});
     try {
-      SagaMessage message = objectMapper.readValue(json, SagaMessage.class);
-      Client client = message.getPayload();
+      ClientDTO client = message.getPayload();
 
       clientService.addClient(client);
 
       message.setOrigin("CLIENT");
-      rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.sucesso",
-          objectMapper.writeValueAsString(message));
+      rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.sucesso", message);
 
-      System.out.println("[CLIENT] Cliente criado com sucesso: " + client.getEmail());
     } catch (Exception e) {
       e.printStackTrace();
-
       try {
-        SagaMessage message = objectMapper.readValue(json, SagaMessage.class);
-        message.setOrigin("CLIENT");
-        rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.falhou",
-            objectMapper.writeValueAsString(message));
+        // Em caso de erro, tenta enviar a mensagem de falha
+        SagaMessage<ClientDTO> failedMessage = new SagaMessage<>();
+        failedMessage.setOrigin("CLIENT");
+        failedMessage.setCorrelationId(message.getCorrelationId());
+        rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.falhou", failedMessage);
       } catch (Exception ex) {
         ex.printStackTrace();
       }

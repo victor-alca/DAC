@@ -30,12 +30,12 @@ public class ConsumerCompensateUser {
                 String correlationId = message.getCorrelationId();
                 System.out.println("[AUTH] Executando rollback para SAGA " + correlationId);
 
-                User user = userRepository.findByEmail(client.getEmail());
+                User user = userRepository.findByEmail(client.email);
                 if (user != null) {
                     userRepository.deleteById(user.getId());
                     System.out.println("[AUTH] Usuário com email " + user.getEmail() + " removido.");
                 } else {
-                    System.out.println("[AUTH] Usuário com email " + client.getEmail() + " não encontrado.");
+                    System.out.println("[AUTH] Usuário com email " + client.email + " não encontrado.");
                 }
             }
         } catch (Exception e) {

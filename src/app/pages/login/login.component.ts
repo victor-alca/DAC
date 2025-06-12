@@ -4,7 +4,9 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { EmailValidatorDirective } from '../../shared/directives/email-validator.directive';
-import { Login } from '../../shared/models/login.model';
+import { Login } from '../../shared/models/login/login.model';
+import { LoginService } from '../../services/login/login.service';
+import { AuthService } from '../../services/auth/auth.service';
 // import { ParseSourceFile } from '@angular/compiler';
 // import { AuthService } from '../../services/autenticador/auth.service';
 
@@ -19,23 +21,19 @@ export class LoginComponent {
   @ViewChild('formLogin') formLogin!: NgForm;
   login: Login = new Login();
 
-  constructor(private router: Router) {}
+  constructor(private loginService: LoginService, private authService: AuthService) {}
 
   submit(): void {
-    if (this.formLogin.form.valid) console.log(this.login);
-
-    // Simulação de autenticação
-    if (this.login.email === 'funcionario@empresa.com') {
-      this.login.role = 'employee';
-    } else {
-      this.login.role = 'user';
-    }
-    localStorage.setItem('LOGGED_USER', JSON.stringify(this.login));
-    // Redireciona com base no tipo de usuário
-    if (this.login.role === 'employee') {
-      this.router.navigate(['/employee-dashboard']);
-    } else {
-      this.router.navigate(['/customer-home']);
+    if (this.formLogin.form.valid){
+      this.loginService.loginUser(this.login).subscribe({
+        next: (response) => {
+          console.log(response)
+          alert('logado')
+        },
+        error: (err) => {
+          alert("Email ou senha inválidos.")
+        }
+      })
     }
   }
 }

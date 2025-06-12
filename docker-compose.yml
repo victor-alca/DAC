@@ -26,12 +26,12 @@ services:
       - mongo-data:/data/db
       - ./backend/auth/docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
-  front-end:
-    container_name: front-end
-    build:
-      context: ./
-    ports:
-      - "4200:80"
+  #front-end:
+    #container_name: front-end
+    #build:
+    #  context: ./
+    #ports:
+    #  - "4200:80"
 
   rabbitmq:
     container_name: rabbitmq
@@ -58,10 +58,13 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - SECRET=mysecret
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      JWT_SECRET: FzQ7U1aZ+zU5rLJ9cW4qEKe45Ihv8+6BqZVh4TcI1xQ=
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      auth-api:
+        condition: service_started
     networks:
       - default
 
@@ -75,7 +78,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - clients-data:/var/lib/postgresql/data
+      - clients-data:/var/lib/postgresql/data 
     networks:
       - default
 

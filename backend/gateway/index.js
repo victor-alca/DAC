@@ -18,13 +18,17 @@ const amqp = require('amqplib');
 let channel;
 
 (async () => {
-    try {
+    for(let i = 0; i < 5; i++){
+        try {
         const connection = await amqp.connect(RABBITMQ_URL);
         channel = await connection.createChannel();
         console.log('Conectado ao RabbitMQ');
     } catch (error) {
         console.error('Erro ao conectar ao RabbitMQ:', error);
+        await new Promise(res => setTimeout(res, 3000));
     }
+    }
+    
 })();
 
 // Inicialização do app Express
@@ -42,8 +46,8 @@ const BASE_URL_AUTH = 'http://auth-api:5000';
 const BASE_URL_CLIENTS = 'http://clients:5001';
 const BASE_URL_EMPLOYEES = 'http://employee-service:5002';
 const BASE_URL_FLIGHTS = 'http://flight-service:5003';
-const BASE_URL_RESERVATIONS_COMMAND = 'http://booking_command_service:5004';
-const BASE_URL_RESERVATIONS_QUERY = 'http://booking_query_service:5006';
+const BASE_URL_RESERVATIONS_COMMAND = 'http://booking-command-service:5004';
+const BASE_URL_RESERVATIONS_QUERY = 'http://booking-query-service:5006';
 const BASE_URL_SAGA_ORCHESTRATOR = 'http://orchestrator:5005';
 
 // Serviços
@@ -54,15 +58,30 @@ const flightsServiceProxy = httpProxy(BASE_URL_FLIGHTS);
 const reservationsServiceProxy = httpProxy(BASE_URL_RESERVATIONS_COMMAND);
 const reservationsQueryServiceProxy = httpProxy(BASE_URL_RESERVATIONS_QUERY);
 
+// Set para armazenar tokens invalidados (blacklist)
+const blacklistedTokens = new Set();
+const JWT_SECRET = Buffer.from(process.env.JWT_SECRET, 'base64');
+
 function verifyJWT(req, res, next) {
     const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
     if (!token)
         return res.status(401).json({ auth: false, message: 'Token não fornecido.' });
 
-    jwt.verify(token, process.env.SECRET, function (err, decoded) {
-        if (err)
-            return res.status(500).json({ auth: false, message: 'Falha ao autenticar o token.' });
-        req.userId = decoded.id;
+    // Verifica se o token está na blacklist
+    if (blacklistedTokens.has(token)) {
+        return res.status(401).json({ auth: false, message: 'Token invalidado.' });
+    }
+
+    jwt.verify(token, JWT_SECRET, function (err, decoded) {
+        if (err) {
+            console.log('Erro na verificação do token:', err.message);
+            return res.status(401).json({ auth: false, message: 'Token inválido ou expirado.' });
+        }
+        
+        req.userId = decoded.sub; // Email do usuário (subject)
+        req.userRole = decoded.role; // Tipo de usuário (CLIENTE/FUNCIONARIO)
+        req.userEmail = decoded.sub; // Para compatibilidade
+        req.user = decoded; // Objeto completo decodificado
         next();
     });
 }
@@ -73,14 +92,32 @@ function authorizeRoles(...allowedRoles) {
         const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
         if (!token) return res.status(401).json({ message: 'Token não fornecido.' });
 
-        jwt.verify(token, process.env.SECRET, function (err, decoded) {
-            if (err) return res.status(401).json({ message: 'Token inválido.' });
-            // O endpoint de login gera o token com { sub: usuarioAuth.email, role: usuarioAuth.tipo || 'CLIENTE' }
-            const userRole = decoded.role;
-            if (!allowedRoles.includes(userRole)) {
-                return res.status(403).json({ message: 'Acesso negado.' });
+        jwt.verify(token, JWT_SECRET, function (err, decoded) {
+            if (err) {
+                console.log('Erro na verificação do token:', err.message);
+                return res.status(401).json({ message: 'Token inválido ou expirado.' });
             }
+            
+            // Pega o role do token decodificado
+            const userRole = decoded.role;
+            
+            // Verifica se o token tem o campo role
+            if (!userRole) {
+                return res.status(403).json({ message: 'Token não contém informações de permissão.' });
+            }
+            
+            // Verifica se o usuário tem permissão
+            if (!allowedRoles.includes(userRole)) {
+                return res.status(403).json({ 
+                    message: `Acesso negado. Requer: ${allowedRoles.join(' ou ')}. Você é: ${userRole}` 
+                });
+            }
+            
+            // Adiciona as informações do usuário na requisição
             req.user = decoded;
+            req.userId = decoded.sub;
+            req.userRole = decoded.role;
+            req.userEmail = decoded.sub;
             next();
         });
     };
@@ -89,35 +126,32 @@ function authorizeRoles(...allowedRoles) {
 app.post('/login', async (req, res) => {
     try {
         // Adapta o corpo para o serviço de autenticação
+        console.log(req.body)
         const authBody = {
-            email: req.body.login,
-            password: req.body.senha
+            login: req.body.login,
+            senha: req.body.senha
         };
-
+        console.log(authBody)
         // Chamada para o serviço de autenticação
         const authResponse = await axios.post(`${BASE_URL_AUTH}/login`, authBody);
-
-        const usuarioAuth = authResponse.data;
+        console.log(authResponse)
+        const authData = authResponse.data;
 
         // Se não veio id, login inválido
-        if (!usuarioAuth.id) {
+        if (!authData.usuario.id) {
             return res.status(401).json({ message: 'Login inválido!' });
         }
 
-        // Gera token JWT
-        const access_token = jwt.sign({ sub: usuarioAuth.email, role: usuarioAuth.tipo || 'CLIENTE' }, process.env.SECRET, {
-            expiresIn: 3600, // 1h
-        });
-
-        const token_type = 'bearer';
-
         // Descobre tipo e busca dados completos
         let usuarioResponse;
-        let tipo = usuarioAuth.tipo || 'CLIENTE';
-        let codigo = usuarioAuth.codigo || usuarioAuth.id;
+        let tipo = authData.tipo;
+        let email = authData.usuario.email
+        let codigo = authData.codigo || authData.id;
+        let access_token = authData.access_token
+        let token_type = authData.token_type
 
         if (tipo === 'CLIENTE') {
-            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/${codigo}`);
+            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${email}`);
         } else if (tipo === 'FUNCIONARIO') {
             usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`);
         } else {
@@ -143,36 +177,99 @@ app.post('/login', async (req, res) => {
 // Rotas para o serviço de Clientes
 app.post('/clientes', async (req, res, next) => {
     try {
-        // Envia a requisição para o serviço de clientes
-        const response = await axios.post(`${BASE_URL_CLIENTS}/clientes`, req.body);
+        console.log(req.body)
+        // 1. Inicia a SAGA de criação de cliente
+        const sagaResponse = await axios.post(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/saga/usuarios/cliente`,
+            req.body,
+            { 
+                headers: {
+                        'Content-Type': 'application/json' 
+                    } 
+                }
+        );
 
-        // Verifica se o cliente foi criado com sucesso
-        if (response.status == 201) {
-            // Publica os dados do cliente na fila "create-auth-user"
-            if (channel) {
-                const userPayload = {
-                    id: response.data.id, // Inclui o ID do cliente
-                    email: req.body.email,
-                    nome: req.body.nome,
-                    ...response.data // Inclui outros dados retornados pelo serviço de clientes
-                };
-                channel.assertQueue('create-auth-user', { durable: true})
-                channel.sendToQueue('create-auth-user', Buffer.from(JSON.stringify(userPayload)));
-                console.log('Mensagem enviada para a fila create-auth-user:', userPayload);
-            } else {
-                console.error('Canal RabbitMQ não está configurado.');
-                return res.status(500).json({ message: 'Erro interno: Canal RabbitMQ não configurado.' });
-            }
-
-            // Retorna a resposta para o cliente
-            res.status(response.status).json(response.data);
-        } else {
-            console.error('Erro ao criar cliente no serviço de clientes:', response.data);
-            res.status(400).json({ message: 'Erro ao criar cliente.', details: response.data });
+        const { correlationId } = sagaResponse.data;
+        if (!correlationId) {
+            return res.status(500).json({ message: 'Saga não retornou correlationId.' });
         }
+
+        // 3. Polling até finalizar a saga
+        const maxAttempts = 20;
+        const intervalMs = 1500;
+        let attempts = 0;
+
+        async function pollSagaStatus() {
+            try {
+                const statusResponse = await axios.get(
+                    `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                const { status } = statusResponse.data;
+
+                if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    if (status === 'COMPLETED_ERROR') {
+                        const errorResponse = {
+                            status: 'COMPLETED_ERROR',
+                            message: 'Falha ao processar o cadastro do cliente',
+                            failedServices: statusResponse.data.failedServices || [],
+                        };
+                        console.log(statusResponse.data)
+                        // 409 para conflito, 400 para outros erros
+                        if (statusResponse.data.failedServices && statusResponse.data.failedServices.includes('CLIENT')) {
+                            errorResponse.message = 'Cliente já existente.';
+                            return res.status(409).json(errorResponse);
+                        }
+                        return res.status(400).json(errorResponse);
+                    }
+                    // SUCESSO - Busca o cliente criado pelo email
+                    if (status === 'COMPLETED_SUCCESS') {
+                        try {
+                            // Aguarda alguns segundos para garantir que os dados foram persistidos
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
+                            // Busca o cliente pelo email
+                            const clienteResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${req.body.email}/dto`);
+                            const clienteCriado = clienteResponse.data;
+
+                            return res.status(201).json({
+                                clienteCriado
+                            });
+                        } catch (clientError) {
+                            console.error('Erro ao buscar cliente criado:', clientError.message);
+                            // Se não conseguir buscar o cliente, retorna resposta básica da saga
+                            return res.status(201).json({
+                                message: 'Cliente criado com sucesso',
+                                correlationId,
+                                email: req.body.email
+                            });
+                        }
+                    }
+                    // Fallback
+                    return res.status(200).json(statusResponse.data);
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(pollSagaStatus, intervalMs);
+                } else {
+                    return res.status(202).json({
+                        message: 'Saga ainda em andamento.',
+                        status,
+                        correlationId
+                    });
+                }
+            } catch (err) {
+                return res.status(500).json({
+                    message: 'Erro ao consultar status da SAGA.',
+                    error: err.message
+                });
+            }
+        }
+        pollSagaStatus();
     } catch (error) {
         console.error('Erro ao processar /clientes:', error.message);
-        if (!error.response) {
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
             res.status(500).json({ message: 'Erro interno ao processar a requisição.' });
         }
     }
@@ -192,17 +289,13 @@ app.get('/clientes/:codigoCliente/milhas', verifyJWT, authorizeRoles('CLIENTE'),
 
 // Rotas para o serviço de Reservas
 
-// (via Orquestrador Saga)
+// (via Orquestrador Saga) FUNCIONAL
 app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
     try {
-        const sagaPayload = req.body;
-
-        console.log('API Gateway: Recebido POST /reservas. Payload:', sagaPayload);
-
-        // Chamada para o Serviço Saga (Spring Boot) - Endpoint de criação de reserva
-        const sagaServiceResponse = await axios.post(
-            `${BASE_URL_SAGA_ORCHESTRATOR}/api/orchestrator/reservation/start-saga`,
-            sagaPayload,
+        // 1. Inicia a SAGA
+        const sagaResponse = await axios.post(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/api/orchestrator/reservation`,
+            req.body,
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -210,17 +303,156 @@ app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => 
             }
         );
 
-        console.log('API Gateway: Resposta do Serviço Saga (criar reserva):', sagaServiceResponse.data);
+        const { correlationId } = sagaResponse.data;
+        if (!correlationId) {
+            return res.status(500).json({ message: 'Saga não retornou correlationId.' });
+        }
 
-        // Retorna a resposta do Serviço Saga para o cliente.
-        res.status(sagaServiceResponse.status).json(sagaServiceResponse.data);
+        // 2. Polling até finalizar
+        const maxAttempts = 20;
+        const intervalMs = 1500;
+        let attempts = 0;
+
+        async function pollSagaStatus() {
+            try {
+                const statusResponse = await axios.get(
+                    `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                const { status } = statusResponse.data;
+
+                if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    // TRATAMENTO DE ERRO (CONFLICT e outros)
+                    if (status === 'COMPLETED_ERROR') {
+                        const errorResponse = {
+                            status: 'COMPLETED_ERROR',
+                            message: 'Falha ao processar a reserva',
+                            failedServices: statusResponse.data.failedServices || [],
+                        };
+                        
+                        // Verifica se foi erro de MILHAS com código específico
+                        if (statusResponse.data.failedServices && 
+                            statusResponse.data.failedServices.includes('MILHAS')) {
+                            
+                            if (statusResponse.data.errorInfo) {
+                                const errorCode = statusResponse.data.errorInfo.errorCode;
+                                if (errorCode === 404) {
+                                    errorResponse.message = 'Cliente não encontrado';
+                                    return res.status(404).json(errorResponse);
+                                } else if (errorCode === 409) {
+                                    errorResponse.message = 'Milhas insuficientes para realizar a reserva';
+                                    return res.status(409).json(errorResponse);
+                                } else {
+                                    errorResponse.message = statusResponse.data.errorInfo.errorMessage || 'Erro no serviço de milhas';
+                                    return res.status(errorCode || 400).json(errorResponse);
+                                }
+                            } else {
+                                errorResponse.message = 'Erro no serviço de milhas';
+                                return res.status(400).json(errorResponse);
+                            }
+                        }
+                        
+                        // Verifica se foi erro de VOO com código específico
+                        if (statusResponse.data.failedServices && 
+                            statusResponse.data.failedServices.includes('VOO')) {
+                            
+                            if (statusResponse.data.errorInfo) {
+                                const errorCode = statusResponse.data.errorInfo.errorCode;
+                                if (errorCode === 404) {
+                                    errorResponse.message = 'Voo não encontrado';
+                                    return res.status(404).json(errorResponse);
+                                } else if (errorCode === 409) {
+                                    errorResponse.message = 'Poltronas insuficientes no voo selecionado';
+                                    return res.status(409).json(errorResponse);
+                                } else {
+                                    errorResponse.message = statusResponse.data.errorInfo.errorMessage || 'Erro no serviço de voo';
+                                    return res.status(errorCode || 400).json(errorResponse);
+                                }
+                            } else {
+                                errorResponse.message = 'Poltronas insuficientes no voo selecionado';
+                                return res.status(409).json(errorResponse);
+                            }
+                        }
+                        
+                        // Outros erros genéricos
+                        return res.status(400).json(errorResponse);
+                    }
+                    
+                    // TRATAMENTO DE SUCESSO (API Composition)
+                    if (status === 'COMPLETED_SUCCESS' && statusResponse.data.result) {
+                        const result = statusResponse.data.result;
+                        
+                        // Se for uma reserva, faz API Composition
+                        if (result.type === 'reservation' && result.codigoReserva) {
+                            try {
+                                // Aguarda alguns segundos para o CQRS propagar os dados
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                                // Busca detalhes da reserva criada
+                                const reservaResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/reservas/${result.codigoReserva}`);
+                                const reserva = reservaResponse.data;
+
+                                // Busca detalhes do voo
+                                const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${reserva.codigo_voo}`);
+                                const voo = vooResponse.data;
+
+                                // Monta resposta final
+                                const resposta = {
+                                    codigo: reserva.codigo,
+                                    data: new Date(reserva.data).toISOString().replace('Z', '-03:00'),
+                                    valor: reserva.valor,
+                                    milhas_utilizadas: reserva.milhas_utilizadas,
+                                    quantidade_poltronas: reserva.quantidade_poltronas,
+                                    codigo_cliente: reserva.codigo_cliente,
+                                    estado: reserva.estado,
+                                    codigo_voo: reserva.codigo_voo,
+                                    aeroporto_origem: voo.aeroporto_origem,
+                                    aeroporto_destino: voo.aeroporto_destino
+                                };
+
+                                return res.status(201).json(resposta);
+                            } catch (error) {
+                                console.error('Erro no API Composition:', error);
+                                // Se API Composition falhar, retorna só o código da reserva
+                                return res.status(201).json({
+                                    codigo_reserva: result.codigoReserva,
+                                    message: 'Reserva criada com sucesso, mas falha ao buscar detalhes completos'
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Fallback para outros casos de sucesso
+                    return res.status(200).json(statusResponse.data);
+                    
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(pollSagaStatus, intervalMs);
+                } else {
+                    return res.status(202).json({ 
+                        message: 'Saga ainda em andamento.', 
+                        status,
+                        correlationId 
+                    });
+                }
+            } catch (err) {
+                return res.status(500).json({ 
+                    message: 'Erro ao consultar status da SAGA.', 
+                    error: err.message 
+                });
+            }
+        }
+
+        pollSagaStatus();
 
     } catch (error) {
         console.error('API Gateway: Erro ao processar POST /reservas via Serviço Saga:', error.message);
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
-            res.status(500).json({ message: 'Erro interno no API Gateway ao processar a reserva.' });
+            res.status(500).json({ 
+                message: 'Erro interno no API Gateway ao processar a reserva.' 
+            });
         }
     }
 });
@@ -439,8 +671,23 @@ app.delete('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIO
 });
 
 // Logout
-app.post('/logout', function (req, res) {
-    res.json({ auth: false, token: null });
+app.post('/logout', verifyJWT, function (req, res) {
+    const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
+    
+    if (!token) {
+        return res.status(400).json({ message: 'Token não fornecido.' });
+    }
+    
+    // Adiciona o token à blacklist para invalidá-lo
+    blacklistedTokens.add(token);
+    
+    // Opcional: log para debug
+    console.log(`Token invalidado no logout: ${token.substring(0, 20)}...`);
+    
+    // Retorna confirmação do logout
+    res.status(200).json({ 
+        login: req.userEmail || req.userId 
+    });
 });
 
 // Cria o servidor na porta 3000

@@ -5,7 +5,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.booking.auth.auth.DTO.AuthDTO;
@@ -17,24 +16,24 @@ import com.booking.auth.auth.utils.JwtUtil;
 
 @CrossOrigin
 @RestController
-@RequestMapping("login")
 public class AuthRest {
   @Autowired
   private UserRepository userRepository;
 
-  @PostMapping("")
+  @PostMapping("login")
   ResponseEntity<?> login(@RequestBody AuthDTO login) {
-    if (!userRepository.existsByEmail(login.getEmail())) {
+    System.out.println(login);
+    if (!userRepository.existsByEmail(login.getLogin())) {
       return ResponseEntity.status(401).body("Invalid credentials");
     }
 
-    User user = userRepository.findByEmail(login.getEmail());
+    User user = userRepository.findByEmail(login.getLogin());
 
     try {
-      String hashedInputPassword = HashUtil.hashPassword(login.getPassword(), user.getSalt());
+      String hashedInputPassword = HashUtil.hashPassword(login.getSenha(), user.getSalt());
 
       if (hashedInputPassword.equals(user.getPassword())) {
-        String token = JwtUtil.generateToken(user.getEmail());
+        String token = JwtUtil.generateToken(user.getEmail(), user.getType());
 
         LoginResponseDTO response = new LoginResponseDTO(token, user.getType(), user);
         return ResponseEntity.ok(response);

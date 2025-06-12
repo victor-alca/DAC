@@ -5,6 +5,7 @@ import com.booking.command.bookingcommand.dtos.BookingEventDTO;
 import com.booking.command.bookingcommand.dtos.BookingRequestDTO;
 import com.booking.command.bookingcommand.dtos.BookingResponseDTO;
 import com.booking.command.bookingcommand.dtos.BookingStatusUpdateDTO;
+import com.booking.command.bookingcommand.dtos.ReservationDTO;
 import com.booking.command.bookingcommand.entity.Booking;
 import com.booking.command.bookingcommand.entity.BookingStatus;
 import com.booking.command.bookingcommand.repository.BookingRepository;
@@ -20,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -56,9 +58,25 @@ public class BookingCommandService {
         amqpTemplate.convertAndSend(RabbitConfig.BOOKING_EXCHANGE, "booking." + eventType.toLowerCase(), event);
     }
 
+    private String generateUniqueBookingCode() {
+        Random random = new Random();
+        
+        // Gera 3 letras maiúsculas
+        StringBuilder letters = new StringBuilder();
+        for (int i = 0; i < 3; i++) {
+            char letter = (char) ('A' + random.nextInt(26));
+            letters.append(letter);
+        }
+        
+        // Gera 3 números
+        String numbers = String.format("%03d", random.nextInt(1000));
+        
+        return letters.toString() + numbers;
+    }
+
     public BookingResponseDTO createBooking(BookingRequestDTO dto) {
         Booking booking = new Booking();
-        booking.setCode(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        booking.setCode(generateUniqueBookingCode()); // de acordo com o requisito
         booking.setDate(new Date());
         booking.setFlightCode(dto.codigo_voo);
         booking.setMoneySpent(dto.valor != null ? dto.valor.intValue() : null);
@@ -78,6 +96,62 @@ public class BookingCommandService {
         publishBookingEvent("CREATED", booking);
 
         return toResponseDTO(booking, dto);
+    }
+
+    public String createBookingBySaga(ReservationDTO dto) {
+        try {
+            // Converte o ReservationDTO para BookingRequestDTO
+            BookingRequestDTO request = new BookingRequestDTO();
+            request.codigo_cliente = dto.getCodigo_cliente();
+            request.valor = dto.getValor();
+            request.milhas_utilizadas = dto.getMilhas_utilizadas();
+            request.quantidade_poltronas = dto.getQuantidade_poltronas();
+            request.codigo_voo = dto.getCodigo_voo();
+            request.codigo_aeroporto_origem = dto.getCodigo_aeroporto_origem();
+            request.codigo_aeroporto_destino = dto.getCodigo_aeroporto_destino();
+
+            // Usa o método padrão com CQRS e retorna o código da reserva
+            BookingResponseDTO response = createBooking(request);
+            return response.codigo; // Retorna o código da reserva criada
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Erro ao criar reserva na SAGA");
+        }
+    }
+
+    public boolean criarReservaSaga(ReservationDTO dto) {
+        try {
+            createBookingBySaga(dto);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public void cancelBookingBySaga(ReservationDTO dto) {
+        // Cancela a reserva do cliente para o voo específico
+        Booking booking = bookingRepository
+            .findByClientIdAndFlightCodeAndTotalSeats(
+                dto.getCodigo_cliente(),
+                dto.getCodigo_voo(),
+                dto.getQuantidade_poltronas()
+            )
+            .stream()
+            .findFirst()
+            .orElse(null);
+
+        if (booking != null) {
+            BookingStatus status = bookingStatusRepository.findByCode("CANCELADA");
+            if (status != null) {
+                booking.setStatus(status);
+                bookingRepository.save(booking);
+                publishBookingEvent("CANCELLED", booking);
+                System.out.println("[RESERVA] Reserva cancelada por compensação SAGA.");
+            }
+        } else {
+            System.out.println("[RESERVA] Nenhuma reserva encontrada para compensação SAGA.");
+        }
     }
 
     public BookingResponseDTO updateBookingStatus(String codigoReserva, BookingStatusUpdateDTO dto) {

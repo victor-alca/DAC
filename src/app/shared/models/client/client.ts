@@ -3,7 +3,6 @@ export class Client {
     constructor (
         public code: number = 0,
 
-        
         public cpf: string = "",
         public name: string = "",
         public miles: number = 0,
