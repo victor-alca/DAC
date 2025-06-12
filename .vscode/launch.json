@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-OrchestratorApplication<orchestrator>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.orchestrator.orchestrator.OrchestratorApplication",
+            "projectName": "orchestrator",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=62581 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=orchestrator"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ProjetoFuncionarioApplication<ProjetoFuncionario>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.projetofuncionario.ProjetoFuncionarioApplication",
+            "projectName": "ProjetoFuncionario",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ClientsApplication<clients>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "backend.clients.ClientsApplication",
+            "projectName": "clients",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
