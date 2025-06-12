@@ -53,7 +53,7 @@ public class Client implements Serializable{
     @Column()
     private String complement;
 
-    public Client(String cpf, String name, String email, String phone, Double miles, boolean active, String cep,
+    public Client(String cpf, String name, String email, Double miles, boolean active, String cep,
             String city, String neighborhood, String street, String federativeUnit, String number, String complement) {
         this.cpf = cpf;
         this.name = name;
@@ -167,5 +167,13 @@ public class Client implements Serializable{
     public void setComplement(String complement) {
         this.complement = complement;
     }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }    
 
 }

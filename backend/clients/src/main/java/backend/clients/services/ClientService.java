@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import backend.clients.dto.ClientBookingsDTO;
 import backend.clients.dto.ClientDTO;
+import backend.clients.dto.ClientResponseDTO;
 import backend.clients.dto.MilesBalanceDTO;
 import backend.clients.dto.MilesTransactionDTO;
 import backend.clients.dto.MilesTransactionDTO.Transaction;
@@ -56,12 +57,12 @@ public class ClientService {
         return clientToSave;
     }
 
-    public Client getClient (int code) {
+    public ClientResponseDTO getClient(int code) {
         Client client = clientRepository.findById(code).orElse(null);
         if(client == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
         }
-        return client;
+        return mapToClientResponseDTO(client);
     }
 
     public Client getClientByEmail (String email) {
@@ -146,6 +147,15 @@ public class ClientService {
         
         milesRecordRepository.save(milesRecord);
     }
+
+    public ClientResponseDTO getClientByEmailFormatted(String email) {
+        Client client = clientRepository.findByEmail(email);
+        if (client == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado");
+        }
+        
+        return mapToClientResponseDTO(client);
+    }
         
     public MilesTransactionDTO getMilesTransactions(int code) {
         Client client = clientRepository.findById(code).orElse(null);
@@ -159,6 +169,9 @@ public class ClientService {
         MilesTransactionDTO milesTransactionDTO = new MilesTransactionDTO();
 
         List<Transaction> transactions = new ArrayList<Transaction>();
+        
+        milesTransactionDTO.setCodigo(client.getCode());
+        milesTransactionDTO.setSaldoMilhas(client.getMiles() != null ? client.getMiles() : 0.0);
 
         for (MilesRecord milesRecord : milesRecords) {
             Transaction transaction = new Transaction(
@@ -195,5 +208,27 @@ public class ClientService {
 
         return new ClientBookingsDTO(bookingCodes);
 
+    }
+
+    private ClientResponseDTO mapToClientResponseDTO(Client client) {
+        ClientResponseDTO response = new ClientResponseDTO();
+        response.codigo = client.getCode();
+        response.cpf = client.getCpf();
+        response.email = client.getEmail();
+        response.nome = client.getName();
+        response.saldo_milhas = client.getMiles() != null ? client.getMiles() : 0.0;
+        
+        ClientResponseDTO.EnderecoDTO endereco = new ClientResponseDTO.EnderecoDTO();
+        endereco.cep = client.getCep();
+        endereco.uf = client.getFederativeUnit();
+        endereco.cidade = client.getCity();
+        endereco.bairro = client.getNeighborhood();
+        endereco.rua = client.getStreet();
+        endereco.numero = client.getNumber();
+        endereco.complemento = client.getComplement();
+        
+        response.endereco = endereco;
+        
+        return response;
     }
 }
