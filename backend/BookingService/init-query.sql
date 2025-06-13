@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS bookingquery;
 
 CREATE TABLE IF NOT EXISTS bookingquery.booking (
   code varchar PRIMARY KEY,
-  "date" date,
+  "date" timestamp,
   origin_airport varchar NOT NULL,
   destination_airport varchar NOT NULL,
   total_seats integer NOT NULL,

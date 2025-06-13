@@ -15,6 +15,8 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -76,8 +78,8 @@ public class BookingCommandService {
 
     public BookingResponseDTO createBooking(BookingRequestDTO dto) {
         Booking booking = new Booking();
-        booking.setCode(generateUniqueBookingCode()); // de acordo com o requisito
-        booking.setDate(new Date());
+        booking.setCode(generateUniqueBookingCode()); 
+        booking.setDate(Timestamp.from(Instant.now()));
         booking.setFlightCode(dto.codigo_voo);
         booking.setMoneySpent(dto.valor != null ? dto.valor.intValue() : null);
         booking.setMilesSpent(dto.milhas_utilizadas);
@@ -187,15 +189,15 @@ public class BookingCommandService {
         BookingResponseDTO response = new BookingResponseDTO();
         response.codigo = booking.getCode();
 
-        // Formatar data para ISO 8601 com timezone -03:00
+        // Formatar data para ISO 8601 com timezone de São Paulo
         if (booking.getDate() != null) {
             ZonedDateTime zdt = booking.getDate().toInstant()
-                .atZone(ZoneId.of("America/Sao_Paulo")); // Ajuste para seu timezone
+                .atZone(ZoneId.of("America/Sao_Paulo"));
             response.data = zdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         } else {
             response.data = null;
-        }        
-            response.valor = booking.getMoneySpent() != null ? booking.getMoneySpent().doubleValue() : null;
+        }    
+        response.valor = booking.getMoneySpent() != null ? booking.getMoneySpent().doubleValue() : null;
         response.milhas_utilizadas = booking.getMilesSpent();
         response.quantidade_poltronas = booking.getTotalSeats();
         response.codigo_cliente = booking.getClientId(); 

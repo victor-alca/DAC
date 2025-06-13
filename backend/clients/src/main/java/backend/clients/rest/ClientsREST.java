@@ -64,6 +64,16 @@ public class ClientsREST {
     @PutMapping("clientes/{code}/milhas")
     public ResponseEntity<MilesBalanceDTO> addClientMiles(@RequestBody MilesRequestDTO milesRequest, @PathVariable("code") int code) {
         MilesBalanceDTO milesBalanceDTO = clientService.addMiles(code, milesRequest.getQuantidade());
+        
+        // Registra a transação no extrato
+        clientService.recordMilesTransaction(
+            code,
+            milesRequest.getQuantidade(),
+            "ENTRADA",
+            "COMPRA DE MILHAS",
+            "" 
+        );
+        
         return ResponseEntity.status(HttpStatus.OK).body(milesBalanceDTO);
     }
 

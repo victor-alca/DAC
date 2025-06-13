@@ -151,9 +151,9 @@ app.post('/login', async (req, res) => {
         let token_type = authData.token_type
 
         if (tipo === 'CLIENTE') {
-            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${email}`);
+            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${email}/dto`);
         } else if (tipo === 'FUNCIONARIO') {
-            usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`);
+            usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}/dto`);
         } else {
             return res.status(500).json({ message: 'Tipo de usuário desconhecido.' });
         }
@@ -232,9 +232,7 @@ app.post('/clientes', async (req, res, next) => {
                             const clienteResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${req.body.email}/dto`);
                             const clienteCriado = clienteResponse.data;
 
-                            return res.status(201).json({
-                                clienteCriado
-                            });
+                            return res.status(201).json(clienteCriado);
                         } catch (clientError) {
                             console.error('Erro ao buscar cliente criado:', clientError.message);
                             // Se não conseguir buscar o cliente, retorna resposta básica da saga
@@ -396,10 +394,10 @@ app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => 
                                 const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${reserva.codigo_voo}`);
                                 const voo = vooResponse.data;
 
-                                // Monta resposta final
+                                // Monta a resposta no formato correto
                                 const resposta = {
                                     codigo: reserva.codigo,
-                                    data: new Date(reserva.data).toISOString().replace('Z', '-03:00'),
+                                    data: reserva.data,
                                     valor: reserva.valor,
                                     milhas_utilizadas: reserva.milhas_utilizadas,
                                     quantidade_poltronas: reserva.quantidade_poltronas,
@@ -506,17 +504,22 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
 
         const voo = vooResponse.data;
 
-        // Combina os detalhes da reserva com os detalhes do voo
-        const reservaComVoo = {
-            ...reserva,
+        // Monta resposta final no formato desejado
+        // Remove o campo codigo_voo da reserva antes de montar a resposta
+        const { codigo_voo, codigo_aeroporto_origem, codigo_aeroporto_destino, ...reservaSemCampos } = reserva;
+        const resposta = {
+            ...reservaSemCampos,
             voo
         };
 
         // Retorna a resposta com os dados combinados
-        res.status(200).json(reservaComVoo);
+        res.status(200).json(resposta);
     } catch (error) {
         // Trata erros de resposta da API
         if (error.response) {
+            if (error.response.status === 404) {
+                return res.status(404).json({ message: 'Reserva ou voo não encontrado.' });
+            }
             return res.status(error.response.status).json(error.response.data);
         }
         // Trata erros genéricos
@@ -527,7 +530,7 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
 app.get('/clientes/:codigoCliente/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
     try {
         // Busca todas as reservas do cliente
-        const reservasResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/clientes/${req.params.codigoCliente}/reservas`, {
+        const reservasResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/reservas/clientes/${req.params.codigoCliente}/reservas`, {
             headers: { Authorization: req.headers['authorization'] }
         });
 
@@ -541,8 +544,10 @@ app.get('/clientes/:codigoCliente/reservas', verifyJWT, authorizeRoles('CLIENTE'
                 });
                 const voo = vooResponse.data;
 
-                // Combina os dados da reserva com os dados do voo
-                return { ...reserva, voo };
+                // Remove os campos indesejados da reserva
+                const { codigo_voo, codigo_aeroporto_origem, codigo_aeroporto_destino, ...reservaSemCampos } = reserva;
+
+                return { ...reservaSemCampos, voo };
             } catch (vooError) {
                 console.error(`Erro ao buscar voo para a reserva ${reserva.codigo}:`, vooError.message);
                 return { ...reserva, voo: null }; // Retorna a reserva mesmo se o voo não for encontrado
@@ -598,8 +603,28 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
     }
 });
 
-app.patch('/reservas/:codigoReserva/estado', verifyJWT, authorizeRoles('CLIENTE', 'FUNCIONARIO'), (req, res, next) => {
-    reservationsServiceProxy(req, res, next);
+app.patch('/reservas/:codigoReserva/estado', verifyJWT, (req, res, next) => {
+    const { estado } = req.body;
+    const userRole = req.user.role; // assumindo que o role está no token JWT
+    
+    // Se o estado é CHECK-IN, tanto CLIENTE quanto FUNCIONARIO podem alterar
+    if (estado === 'CHECK-IN') {
+        if (userRole === 'CLIENTE' || userRole === 'FUNCIONARIO') {
+            return reservationsServiceProxy(req, res, next);
+        }
+    }
+    // Para outros estados, apenas FUNCIONARIO pode alterar
+    else {
+        if (userRole === 'FUNCIONARIO') {
+            return reservationsServiceProxy(req, res, next);
+        }
+    }
+    
+    // Se chegou até aqui, não tem permissão
+    return res.status(403).json({ 
+        error: 'Permissão negada', 
+        message: `Apenas funcionários podem alterar o estado para ${estado}` 
+    });
 });
 
 // Rotas para o serviço de Voos
