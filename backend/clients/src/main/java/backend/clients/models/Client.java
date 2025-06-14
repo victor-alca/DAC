@@ -17,13 +17,13 @@ public class Client implements Serializable{
     @Column(nullable = false)
     private int code;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String cpf;
 
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
@@ -174,6 +174,6 @@ public class Client implements Serializable{
 
     public void setCode(int code) {
         this.code = code;
-    }    
+    }
 
 }

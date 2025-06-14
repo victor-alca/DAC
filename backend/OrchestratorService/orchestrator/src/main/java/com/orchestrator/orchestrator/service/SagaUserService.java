@@ -33,7 +33,7 @@ public class SagaUserService {
     return correlationId;
   }
 
-  public void compensateSuccessfulServices(String correlationId, ClientDTO payload) {
+  public void compensateSuccessfulServicesClient(String correlationId, ClientDTO payload) {
     Set<String> servicosComSucesso = sagaStateManager.get(correlationId).getSuccessfulServices();
 
     for (String service : servicosComSucesso) {
@@ -48,7 +48,7 @@ public class SagaUserService {
       System.out.println("[ORQUESTRADOR] Enviando COMPENSATE para serviço " + service);
     }
   }
-  
+
   // -- funcionario --
   public String startUserRegistrationSagaEmployee(EmployeeDTO employeeDTO) {
     SagaMessage<EmployeeDTO> sagaMessage = new SagaMessage<EmployeeDTO>(employeeDTO);
@@ -62,7 +62,7 @@ public class SagaUserService {
     return correlationId;
   }
 
-    public void compensateSuccessfulServices(String correlationId, EmployeeDTO payload) {
+  public void compensateSuccessfulServicesEmployee(String correlationId, EmployeeDTO payload) {
     Set<String> servicosComSucesso = sagaStateManager.get(correlationId).getSuccessfulServices();
 
     for (String service : servicosComSucesso) {
@@ -78,4 +78,15 @@ public class SagaUserService {
     }
   }
 
+  public String startUserDeletionSagaEmployee(EmployeeDTO employeeDTO) {
+    SagaMessage<EmployeeDTO> sagaMessage = new SagaMessage<>(employeeDTO);
+    String correlationId = sagaMessage.getCorrelationId();
+
+    sagaStateManager.createSaga(correlationId, Set.of("EMPLOYEE", "AUTH"));
+    rabbitTemplate.convertAndSend("saga.exchange", "funcionario.excluir.iniciado", sagaMessage);
+
+    System.out.println("[SAGA] Iniciando exclusão de funcionário com correlationId: " + correlationId);
+
+    return correlationId;
+  }
 }

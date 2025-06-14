@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "employee", schema = "employee")
 public class Employee implements Serializable{
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -14,7 +13,7 @@ public class Employee implements Serializable{
     @Column(nullable = false)
     private boolean active;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String cpf;
 
     @Column(nullable = false, unique = true)

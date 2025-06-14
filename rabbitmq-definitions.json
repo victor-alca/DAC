@@ -23,28 +23,60 @@
   ],
   "queues": [
     { "name": "cliente.cadastro.iniciado.auth", "vhost": "/", "durable": true },
-    { "name": "cliente.cadastro.iniciado.cliente", "vhost": "/", "durable": true},
+    {
+      "name": "cliente.cadastro.iniciado.cliente",
+      "vhost": "/",
+      "durable": true
+    },
     { "name": "cliente.cadastro.sucesso", "vhost": "/", "durable": true },
     { "name": "cliente.cadastro.falhou", "vhost": "/", "durable": true },
     { "name": "cliente.auth.compensar", "vhost": "/", "durable": true },
     { "name": "cliente.client.compensar", "vhost": "/", "durable": true },
 
-    { "name": "funcionario.cadastro.iniciado.auth", "vhost": "/", "durable": true },
-    { "name": "funcionario.cadastro.iniciado.funcionario", "vhost": "/", "durable": true},
+    {
+      "name": "funcionario.cadastro.iniciado.auth",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "funcionario.cadastro.iniciado.funcionario",
+      "vhost": "/",
+      "durable": true
+    },
     { "name": "funcionario.cadastro.sucesso", "vhost": "/", "durable": true },
     { "name": "funcionario.cadastro.falhou", "vhost": "/", "durable": true },
     { "name": "funcionario.auth.compensar", "vhost": "/", "durable": true },
     { "name": "funcionario.employee.compensar", "vhost": "/", "durable": true },
+    { "name": "funcionario.excluir.auth", "vhost": "/", "durable": true },
+    { "name": "funcionario.excluir.sucesso", "vhost": "/", "durable": true },
 
-    { "name": "reserva.criacao.iniciada.milhas", "vhost": "/", "durable": true },
-    { "name": "reserva.criacao.iniciada.reserva", "vhost": "/", "durable": true },
+    {
+      "name": "funcionario.excluir.funcionario",
+      "vhost": "/",
+      "durable": true
+    },
+
+    {
+      "name": "reserva.criacao.iniciada.milhas",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "reserva.criacao.iniciada.reserva",
+      "vhost": "/",
+      "durable": true
+    },
     { "name": "reserva.criacao.iniciada.voo", "vhost": "/", "durable": true },
     { "name": "reserva.criacao.sucesso", "vhost": "/", "durable": true },
     { "name": "reserva.criacao.falhou", "vhost": "/", "durable": true },
     { "name": "reserva.milhas.compensar", "vhost": "/", "durable": true },
     { "name": "reserva.reserva.compensar", "vhost": "/", "durable": true },
     { "name": "reserva.voo.compensar", "vhost": "/", "durable": true },
-    { "name": "reserva.criacao.iniciada.atualizar.milhas", "vhost": "/", "durable": true }
+    {
+      "name": "reserva.criacao.iniciada.atualizar.milhas",
+      "vhost": "/",
+      "durable": true
+    }
   ],
   "exchanges": [
     {
@@ -152,6 +184,28 @@
       "routing_key": "funcionario.employee.compensar",
       "vhost": "/"
     },
+    {
+      "source": "saga.exchange",
+      "destination": "funcionario.excluir.auth",
+      "destination_type": "queue",
+      "routing_key": "funcionario.excluir.iniciado",
+      "vhost": "/"
+    },
+    {
+      "source": "saga.exchange",
+      "destination": "funcionario.excluir.funcionario",
+      "destination_type": "queue",
+      "routing_key": "funcionario.excluir.iniciado",
+      "vhost": "/"
+    },
+    {
+      "source": "saga.exchange",
+      "destination": "funcionario.excluir.sucesso",
+      "destination_type": "queue",
+      "routing_key": "funcionario.excluido.sucesso",
+      "vhost": "/"
+    },
+
 
     {
       "source": "reserva.saga.exchange",

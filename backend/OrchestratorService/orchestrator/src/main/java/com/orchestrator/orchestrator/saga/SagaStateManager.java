@@ -33,7 +33,7 @@ public class SagaStateManager {
     public void clear(String correlationId) {
         sagaMap.remove(correlationId);
         sagaResults.remove(correlationId);
-        sagaErrors.remove(correlationId); 
+        sagaErrors.remove(correlationId);
     }
 
     public void setResult(String correlationId, Object result) {
@@ -51,5 +51,5 @@ public class SagaStateManager {
     public Map<String, Object> getErrorInfo(String correlationId) {
         return sagaErrors.get(correlationId);
     }
-    
+
 }
