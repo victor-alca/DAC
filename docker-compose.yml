@@ -220,24 +220,24 @@ services:
       - default
 
   # Serviço de funcionários
-  employee-service:
-    build: ./backend/EmployeeService/ProjetoFuncionario
-    container_name: employee_service
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://employee-db:5432/employeedb
-      SPRING_DATASOURCE_USERNAME: employeeuser
-      SPRING_DATASOURCE_PASSWORD: employeepass
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: guest
-      SPRING_RABBITMQ_PASSWORD: guest
-    ports:
-      - "5002:5002"
-    depends_on:
-      - employee-db
-      - rabbitmq
-    networks:
-      - default
+  # employee-service:
+  #   build: ./backend/EmployeeService/ProjetoFuncionario
+  #   container_name: employee_service
+  #   environment:
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://employee-db:5432/employeedb
+  #     SPRING_DATASOURCE_USERNAME: employeeuser
+  #     SPRING_DATASOURCE_PASSWORD: employeepass
+  #     SPRING_RABBITMQ_HOST: rabbitmq
+  #     SPRING_RABBITMQ_PORT: 5672
+  #     SPRING_RABBITMQ_USERNAME: guest
+  #     SPRING_RABBITMQ_PASSWORD: guest
+  #   ports:
+  #     - "5002:5002"
+  #   depends_on:
+  #     - employee-db
+  #     - rabbitmq
+  #   networks:
+  #     - default
 
   # Orchestrator Saga
   orchestrator:

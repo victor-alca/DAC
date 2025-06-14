@@ -76,7 +76,11 @@
                   <p class="small mb-3 pb-lg-2">
                     <a class="-50" href="#!">Esqueceu sua senha?</a>
                   </p>
-  
+                  
+                  <div *ngIf="hasError" class="alert alert-danger mt-2" role="alert">
+                    Credenciais de acesso inválidas
+                  </div>
+                  
                   <button
                     data-mdb-button-init
                     data-mdb-ripple-init
@@ -99,4 +103,3 @@
       </div>
     </div>
   </section>
-  

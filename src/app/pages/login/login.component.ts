@@ -20,18 +20,23 @@ import { AuthService } from '../../services/auth/auth.service';
 export class LoginComponent {
   @ViewChild('formLogin') formLogin!: NgForm;
   login: Login = new Login();
-
-  constructor(private loginService: LoginService, private authService: AuthService) {}
+  hasError = false;
+  constructor(private loginService: LoginService, private authService: AuthService, private router: Router) {}
 
   submit(): void {
     if (this.formLogin.form.valid){
       this.loginService.loginUser(this.login).subscribe({
         next: (response) => {
-          console.log(response)
-          alert('logado')
+          this.authService.setCurrentUserData(response)
+          let userType = this.authService.getCurrentUserType()
+          if(userType == "CLIENTE"){
+            this.router.navigate(['/customer-home']);
+          }else{
+            this.router.navigate(['/employee-dashboard'])
+          }
         },
         error: (err) => {
-          alert("Email ou senha inválidos.")
+          this.hasError = true
         }
       })
     }

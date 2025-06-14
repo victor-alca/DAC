@@ -67,10 +67,15 @@ public class UserSagaListener {
 
             sagaStateManager.get(correlationId).markFailure(origin);
 
+            if (message.getErrorInfo() != null){
+                sagaStateManager.setErrorInfo(correlationId, message.getErrorInfo());
+            }
+
             if (sagaStateManager.isComplete(correlationId)) {
                 System.out.println("[ORQUESTRADOR] SAGA CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
                 sagaUserService.compensateSuccessfulServices(correlationId, message.getPayload());
             }
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
