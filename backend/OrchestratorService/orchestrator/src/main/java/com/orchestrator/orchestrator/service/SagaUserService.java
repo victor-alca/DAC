@@ -78,4 +78,15 @@ public class SagaUserService {
     }
   }
 
+  public String startUserDeletionSagaEmployee(EmployeeDTO employeeDTO) {
+    SagaMessage<EmployeeDTO> sagaMessage = new SagaMessage<>(employeeDTO);
+    String correlationId = sagaMessage.getCorrelationId();
+
+    sagaStateManager.createSaga(correlationId, Set.of("EMPLOYEE", "AUTH"));
+    rabbitTemplate.convertAndSend("saga.exchange", "funcionario.excluir.iniciado", sagaMessage);
+
+    System.out.println("[SAGA] Iniciando exclusão de funcionário com correlationId: " + correlationId);
+
+    return correlationId;
+  }
 }

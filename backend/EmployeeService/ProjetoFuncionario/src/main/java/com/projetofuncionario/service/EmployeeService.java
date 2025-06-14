@@ -43,7 +43,7 @@ public class EmployeeService {
     return employeeRepository.findByEmail(email);
   }
 
-  public Employee findByCpf(String cpf) {
+  public Optional<Employee> findByCpf(String cpf) {
     return employeeRepository.findByCpf(cpf);
   }
 }

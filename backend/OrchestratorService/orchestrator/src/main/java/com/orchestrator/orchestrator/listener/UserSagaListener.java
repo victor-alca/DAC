@@ -120,4 +120,30 @@ public class UserSagaListener {
       e.printStackTrace();
     }
   }
+
+  @RabbitListener(queues = "funcionario.excluir.sucesso")
+  public void onFuncionarioExclusaoSucesso(@Payload SagaMessage<EmployeeDTO> message) {
+    try {
+      String correlationId = message.getCorrelationId();
+      String origin = message.getOrigin();
+
+      System.out.println("[ORQUESTRADOR] Serviço " + origin + " confirmou exclusão com sucesso (correlationId: "
+          + correlationId + ")");
+
+      sagaStateManager.markSuccess(correlationId, origin);
+
+      if (sagaStateManager.isComplete(correlationId)) {
+        if (sagaStateManager.get(correlationId).hasFailure()) {
+          System.out
+              .println("[ORQUESTRADOR] SAGA DE EXCLUSÃO CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
+          sagaUserService.compensateSuccessfulServicesEmployee(correlationId, message.getPayload());
+        } else {
+          System.out
+              .println("[ORQUESTRADOR] SAGA DE EXCLUSÃO CONCLUÍDA COM SUCESSO (correlationId: " + correlationId + ")");
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }
