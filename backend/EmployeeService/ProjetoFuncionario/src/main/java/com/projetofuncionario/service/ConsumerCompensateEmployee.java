@@ -7,15 +7,9 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.projetofuncionario.message.SagaMessage;
+import com.projetofuncionario.model.Employee;
 
-import backend.clients.dto.ClientDTO;
-import backend.clients.message.SagaMessage;
-import backend.clients.models.Client;
-import backend.clients.repository.ClientRepository;
-
-//TODO: POST NESSA FILA
-// TODO: TESTAR
-// TODO: TESTAR
 @Component
 public class ConsumerCompensateEmployee {
     @Autowired
@@ -35,12 +29,12 @@ public class ConsumerCompensateEmployee {
                 String correlationId = message.getCorrelationId();
                 System.out.println("[EMPLOYEE] Executando rollback para SAGA " + correlationId);
 
-                Employee employeeToDelete = employeeService.findByCpf(employee.cpf);
+                Employee employeeToDelete = employeeService.findByCpf(employee.getCpf());
                 if (employeeToDelete != null) {
-                    employeeService.delete(clientToDelete);
-                    System.out.println("[EMPLOYEE] Funcionario com CPF " + client.cpf + " deletado com sucesso.");
+                    employeeService.delete(employeeToDelete.getId());
+                    System.out.println("[EMPLOYEE] Funcionario com CPF " + employee.getCpf() + " deletado com sucesso.");
                 } else {
-                    System.out.println("[EMPLOYEE] Nenhum cliente encontrado com CPF " + client.cpf);
+                    System.out.println("[EMPLOYEE] Nenhum cliente encontrado com CPF " + employee.getCpf());
                 }
             }
         } catch (Exception e) {

@@ -33,7 +33,7 @@ public class SagaUserService {
     return correlationId;
   }
 
-  public void compensateSuccessfulServices(String correlationId, ClientDTO payload) {
+  public void compensateSuccessfulServicesClient(String correlationId, ClientDTO payload) {
     Set<String> servicosComSucesso = sagaStateManager.get(correlationId).getSuccessfulServices();
 
     for (String service : servicosComSucesso) {
@@ -48,7 +48,7 @@ public class SagaUserService {
       System.out.println("[ORQUESTRADOR] Enviando COMPENSATE para serviço " + service);
     }
   }
-  
+
   // -- funcionario --
   public String startUserRegistrationSagaEmployee(EmployeeDTO employeeDTO) {
     SagaMessage<EmployeeDTO> sagaMessage = new SagaMessage<EmployeeDTO>(employeeDTO);
@@ -62,7 +62,7 @@ public class SagaUserService {
     return correlationId;
   }
 
-    public void compensateSuccessfulServices(String correlationId, EmployeeDTO payload) {
+  public void compensateSuccessfulServicesEmployee(String correlationId, EmployeeDTO payload) {
     Set<String> servicosComSucesso = sagaStateManager.get(correlationId).getSuccessfulServices();
 
     for (String service : servicosComSucesso) {

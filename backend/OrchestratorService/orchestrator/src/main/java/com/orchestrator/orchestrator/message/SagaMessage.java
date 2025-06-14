@@ -54,7 +54,7 @@ public class SagaMessage<T> {
     public Map<String, Object> getErrorInfo() {
         return errorInfo;
     }
-    
+
     public void setErrorInfo(Map<String, Object> errorInfo) {
         this.errorInfo = errorInfo;
     }
