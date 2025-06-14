@@ -3,7 +3,7 @@ package backend.clients.dto;
 public class ClientDTO {
     public String cpf;
     public String nome;
-    public int saldo_milhas;
+    public double saldo_milhas;
     public String email;
     public EnderecoDTO endereco;
 

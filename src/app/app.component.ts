@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
-import { Login } from './shared';
+import { AuthService } from './services/auth/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -12,15 +12,15 @@ export class AppComponent {
   title = 'dac';
   showHeader = true;
 
-  getUser() {
-    const rawUser = localStorage.getItem('LOGGED_USER');
-    const user = rawUser ? JSON.parse(rawUser) as Login : null;
-    return user
+  getUserType(){
+    return this.authService.getCurrentUserType()
   }
 
+  getCurrentUser(){
+    return this.authService.getCurrentUserData()
+  }
 
-
-  constructor(private router: Router) {
+  constructor(private router: Router, private authService: AuthService) {
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event) => {
@@ -30,10 +30,7 @@ export class AppComponent {
   }
 
   logout(): void {
-    // Limpa dados do usuário (se necessário)
-    // localStorage.clear();
-
-    // Redireciona para a página de login
+    this.authService.removeCurrentUserData()
     this.router.navigate(['/login']);
   }
 }

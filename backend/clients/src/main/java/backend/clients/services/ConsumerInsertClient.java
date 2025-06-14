@@ -1,10 +1,13 @@
 package backend.clients.services;
 
+import java.util.Map;
+
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -35,11 +38,11 @@ public class ConsumerInsertClient {
       message.setOrigin("CLIENT");
       rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.sucesso", message);
 
-    } catch (Exception e) {
+    } catch (ResponseStatusException e) {
       e.printStackTrace();
       try {
-        // Em caso de erro, tenta enviar a mensagem de falha
         SagaMessage<ClientDTO> failedMessage = new SagaMessage<>();
+        failedMessage.setErrorInfo(Map.of("errorCode", e.getStatusCode().value(), "erroMessage", e.getReason()));
         failedMessage.setOrigin("CLIENT");
         failedMessage.setCorrelationId(message.getCorrelationId());
         rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.falhou", failedMessage);

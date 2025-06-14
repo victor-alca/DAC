@@ -11,7 +11,7 @@
       </a>
 
       <ul
-        *ngIf="getUser()?.role === 'user'"
+        *ngIf="getUserType() === 'CLIENTE'"
         class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0"
       >
         <li>
@@ -42,7 +42,7 @@
         </li>
       </ul>
       <ul
-        *ngIf="getUser()?.role === 'employee'"
+        *ngIf="getUserType() === 'FUNCIONARIO'"
         class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0"
       >
         <li>
@@ -64,9 +64,9 @@
       </ul>
 
       <div class="text-end d-flex gap-3 align-items-center">
-        <span *ngIf="getUser()?.role === 'employee'" class="badge text-bg-success"
-        >{{ getUser()?.email }}</span>
-        <span *ngIf="getUser()?.role === 'user'" class="badge text-bg-success"
+        <span *ngIf="getUserType() === 'FUNCIONARIO'" class="badge text-bg-success"
+        >{{ getCurrentUser()?.email }}</span>
+        <span *ngIf="getUserType() === 'user'" class="badge text-bg-success"
           >Minhas Milhas: 5000</span
         >
         <button type="button" class="btn btn-warning" (click)="logout()">

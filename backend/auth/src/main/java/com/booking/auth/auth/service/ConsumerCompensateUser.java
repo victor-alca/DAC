@@ -13,16 +13,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class ConsumerCompensateUser {
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private UserRepository userRepository;
 
     @RabbitListener(queues = "cliente.auth.compensar")
-    public void receiveRead(@Payload String json) {
+    public void receiveRead(@Payload SagaMessage message) {
         try {
-            SagaMessage message = objectMapper.readValue(json, SagaMessage.class);
             ClientDTO client = message.getPayload();
             String operation = message.getOperation();
 

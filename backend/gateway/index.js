@@ -128,8 +128,8 @@ app.post('/login', async (req, res) => {
         // Adapta o corpo para o serviço de autenticação
         console.log(req.body)
         const authBody = {
-            login: req.body.login,
-            senha: req.body.senha
+            login: req.body.email,
+            senha: req.body.password,
         };
         console.log(authBody)
         // Chamada para o serviço de autenticação
@@ -214,13 +214,16 @@ app.post('/clientes', async (req, res, next) => {
                             message: 'Falha ao processar o cadastro do cliente',
                             failedServices: statusResponse.data.failedServices || [],
                         };
-                        console.log(statusResponse.data)
+                        let errorInfo = statusResponse.data.errorInfo
+                        console.log(errorInfo)
+                        console.log(errorInfo.errorCode)
                         // 409 para conflito, 400 para outros erros
-                        if (statusResponse.data.failedServices && statusResponse.data.failedServices.includes('CLIENT')) {
+                        if (errorInfo.errorCode == 409) {
                             errorResponse.message = 'Cliente já existente.';
                             return res.status(409).json(errorResponse);
                         }
-                        return res.status(400).json(errorResponse);
+                        errorResponse.message = errorInfo.errorMessage || 'Ocorreu um erro ao cadastrar o cliente'
+                        return res.status(errorInfo.errorCode || 400).json(errorResponse)
                     }
                     // SUCESSO - Busca o cliente criado pelo email
                     if (status === 'COMPLETED_SUCCESS') {
