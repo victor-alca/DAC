@@ -160,13 +160,30 @@ public class BookingCommandService {
         System.out.println("Recebido estado: " + dto.estado);
         Booking booking = bookingRepository.findById(codigoReserva)
                 .orElseThrow(() -> new RuntimeException("Reserva não encontrada"));
+        
+        System.out.println("Reserva encontrada: " + booking.getCode());
+        
         BookingStatus status = bookingStatusRepository.findByCodeIgnoreCase(dto.estado);
+        
+        System.out.println("Status encontrado: " + (status != null ? status.getCode() : "NULL"));
+        
         if (status == null) {
             throw new RuntimeException("Status não encontrado: " + dto.estado);
         }
-        booking.setStatus(status);
-        bookingRepository.save(booking);
-        publishBookingEvent("UPDATED", booking);
+        
+        try {
+            System.out.println("Tentando setar status...");
+            booking.setStatus(status);
+            System.out.println("Status setado com sucesso, tentando salvar...");
+            bookingRepository.save(booking);
+            System.out.println("Salvou com sucesso, publicando evento...");
+            publishBookingEvent("UPDATED", booking);
+            System.out.println("Evento publicado com sucesso!");
+        } catch (Exception e) {
+            System.out.println("Erro no processo: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
 
         return toResponseDTO(booking, null);
     }
@@ -186,25 +203,54 @@ public class BookingCommandService {
     }
 
     private BookingResponseDTO toResponseDTO(Booking booking, BookingRequestDTO dto) {
-        BookingResponseDTO response = new BookingResponseDTO();
-        response.codigo = booking.getCode();
+        try {
+            System.out.println("Iniciando toResponseDTO...");
+            BookingResponseDTO response = new BookingResponseDTO();
+            System.out.println("BookingResponseDTO criado...");
+            
+            response.codigo = booking.getCode();
+            System.out.println("Código setado: " + response.codigo);
 
-        // Formatar data para ISO 8601 com timezone de São Paulo
-        if (booking.getDate() != null) {
-            ZonedDateTime zdt = booking.getDate().toInstant()
-                .atZone(ZoneId.of("America/Sao_Paulo"));
-            response.data = zdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-        } else {
-            response.data = null;
-        }    
-        response.valor = booking.getMoneySpent() != null ? booking.getMoneySpent().doubleValue() : null;
-        response.milhas_utilizadas = booking.getMilesSpent();
-        response.quantidade_poltronas = booking.getTotalSeats();
-        response.codigo_cliente = booking.getClientId(); 
-        response.estado = booking.getStatus() != null ? booking.getStatus().getCode() : null;
-        response.codigo_voo = booking.getFlightCode();
-        response.codigo_aeroporto_origem = booking.getOriginAirport();
-        response.codigo_aeroporto_destino = booking.getDestinationAirport();
-        return response;
+            // Formatar data para ISO 8601 com timezone de São Paulo
+            if (booking.getDate() != null) {
+                System.out.println("Formatando data...");
+                ZonedDateTime zdt;
+                
+                // Verifica o tipo da data e converte adequadamente
+                if (booking.getDate() instanceof java.sql.Date) {
+                    // Para java.sql.Date, converte para java.util.Date primeiro
+                    java.sql.Date sqlDate = (java.sql.Date) booking.getDate();
+                    zdt = Instant.ofEpochMilli(sqlDate.getTime())
+                        .atZone(ZoneId.of("America/Sao_Paulo"));
+                } else {
+                    // Para java.util.Date ou java.sql.Timestamp
+                    zdt = booking.getDate().toInstant()
+                        .atZone(ZoneId.of("America/Sao_Paulo"));
+                }
+                
+                response.data = zdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                System.out.println("Data formatada: " + response.data);
+            } else {
+                response.data = null;
+                System.out.println("Data é null");
+            }    
+            
+            System.out.println("Setando outros campos...");
+            response.valor = booking.getMoneySpent() != null ? booking.getMoneySpent().doubleValue() : null;
+            response.milhas_utilizadas = booking.getMilesSpent();
+            response.quantidade_poltronas = booking.getTotalSeats();
+            response.codigo_cliente = booking.getClientId(); 
+            response.estado = booking.getStatus() != null ? booking.getStatus().getCode() : null;
+            response.codigo_voo = booking.getFlightCode();
+            response.codigo_aeroporto_origem = booking.getOriginAirport();
+            response.codigo_aeroporto_destino = booking.getDestinationAirport();
+            
+            System.out.println("toResponseDTO concluído com sucesso!");
+            return response;
+        } catch (Exception e) {
+            System.out.println("Erro em toResponseDTO: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 }

@@ -1,5 +1,7 @@
 package backend.clients.rest;
 
+import java.util.List;
+
 import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,6 +36,12 @@ public class ClientsREST {
     public ResponseEntity<Client> createClient(@RequestBody ClientDTO client) {
         Client createdClient = clientService.addClient(client);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdClient);
+    }
+
+    @GetMapping("clientes")
+    public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
+        List<ClientResponseDTO> clients = clientService.getAllClients();
+        return ResponseEntity.status(HttpStatus.OK).body(clients);
     }
 
     @GetMapping("clientes/{code}")

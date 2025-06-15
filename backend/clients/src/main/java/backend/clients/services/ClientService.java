@@ -65,6 +65,15 @@ public class ClientService {
         return mapToClientResponseDTO(client);
     }
 
+    public List<ClientResponseDTO> getAllClients() {
+        List<Client> clients = clientRepository.findAll();
+        List<ClientResponseDTO> responseList = new ArrayList<>();
+        for (Client client : clients) {
+            responseList.add(mapToClientResponseDTO(client));
+        }
+        return responseList;
+    }
+
     public Client getClientByEmail (String email) {
         Client client = clientRepository.findByEmail(email);
         if(client == null) {
@@ -171,7 +180,7 @@ public class ClientService {
         List<Transaction> transactions = new ArrayList<Transaction>();
         
         milesTransactionDTO.setCodigo(client.getCode());
-        milesTransactionDTO.setSaldoMilhas(client.getMiles() != null ? client.getMiles() : 0.0);
+        milesTransactionDTO.setSaldo_milhas(client.getMiles() != null ? client.getMiles() : 0.0);
 
         for (MilesRecord milesRecord : milesRecords) {
             Transaction transaction = new Transaction(
