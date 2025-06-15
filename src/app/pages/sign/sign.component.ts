@@ -10,6 +10,8 @@ import { CepValidatorDirective } from '../../shared/directives/cep-validator.dir
 import { Router } from '@angular/router';
 import { ClientDTO } from '../../shared/models/sing/clientDto';
 import { ClientService } from '../../services/client/client.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { GenericModalComponent } from '../generic-modal/generic-modal.component';
 
 
 @Component({
@@ -38,7 +40,7 @@ export class SignComponent {
   cepError: string | null = null;
   number: string = '';
 
-  constructor(private router: Router, private ClientService: ClientService) {}
+  constructor(private modalService: NgbModal, private router: Router, private ClientService: ClientService) {}
 
   submit(): void {
     if (this.formPerson.form.valid) { 
@@ -50,18 +52,28 @@ export class SignComponent {
       this.clientDTO.endereco.numero = this.number;
       this.ClientService.create(this.clientDTO).subscribe({
         next: () => {
-          alert('Cadastro realizado com sucesso! Sua senha foi enviada para o seu email.');
+          this.openModal("Cadastro realizado com sucesso!", "Sua senha de acesso foi enviada ao email cadastrado.")
           this.router.navigate(['/login']);
         },
         error: (err) => {
           if(err.status == 409){
-            alert(`Erro ao cadastrar cliente! O cliente ja existe.`);
+            this.openModal("Ocorreu um erro.", "O cliente já existe.")
           }else{
-            alert("Ocorreu um erro ao cadastrar o cliente.")
+            this.openModal("Ocorreu um erro.", "Ocorreu um erro ao cadastrar o cliente, tente novamente.")
           }
           console.error(err);
         }
       });
     }
   }
+
+  openModal(title: string, text: string){
+    const modalRef = this.modalService.open(GenericModalComponent)
+    modalRef.componentInstance.title = title
+    modalRef.componentInstance.text = text
+    modalRef.result.then(() => {
+    this.router.navigate(['/login'])});
+  }
 }
+
+

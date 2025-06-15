@@ -2,20 +2,19 @@ package com.booking.auth.auth.message;
 
 import java.util.UUID;
 
-import com.booking.auth.auth.DTO.ClientDTO;
-
+import com.booking.auth.auth.DTO.UserDTO;
 
 public class SagaMessage {
     private String correlationId;
     private String origin;
-    private ClientDTO payload;
+    private UserDTO payload;
     private String operation;
 
     public SagaMessage() {
         this.correlationId = UUID.randomUUID().toString();
     }
 
-    public SagaMessage(ClientDTO payload) {
+    public SagaMessage(UserDTO payload) {
         this();
         this.payload = payload;
     }
@@ -37,11 +36,11 @@ public class SagaMessage {
         this.origin = origin;
     }
 
-    public ClientDTO getPayload() {
+    public UserDTO getPayload() {
         return payload;
     }
 
-    public void setPayload(ClientDTO payload) {
+    public void setPayload(UserDTO payload) {
         this.payload = payload;
     }
 
