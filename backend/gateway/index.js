@@ -128,8 +128,8 @@ app.post('/login', async (req, res) => {
         // Adapta o corpo para o serviço de autenticação
         console.log(req.body)
         const authBody = {
-            login: req.body.email,
-            senha: req.body.password,
+            login: req.body.login || req.body.email,  
+            senha: req.body.senha || req.body.password, 
         };
         console.log(authBody)
         // Chamada para o serviço de autenticação
