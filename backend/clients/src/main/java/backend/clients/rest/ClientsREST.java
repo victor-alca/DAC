@@ -1,5 +1,7 @@
 package backend.clients.rest;
 
+import java.util.List;
+
 import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +38,12 @@ public class ClientsREST {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdClient);
     }
 
+    @GetMapping("clientes")
+    public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
+        List<ClientResponseDTO> clients = clientService.getAllClients();
+        return ResponseEntity.status(HttpStatus.OK).body(clients);
+    }
+
     @GetMapping("clientes/{code}")
     public ResponseEntity<ClientResponseDTO> getClient(@PathVariable("code") int code) {
         ClientResponseDTO client = clientService.getClient(code);
@@ -64,6 +72,16 @@ public class ClientsREST {
     @PutMapping("clientes/{code}/milhas")
     public ResponseEntity<MilesBalanceDTO> addClientMiles(@RequestBody MilesRequestDTO milesRequest, @PathVariable("code") int code) {
         MilesBalanceDTO milesBalanceDTO = clientService.addMiles(code, milesRequest.getQuantidade());
+        
+        // Registra a transação no extrato
+        clientService.recordMilesTransaction(
+            code,
+            milesRequest.getQuantidade(),
+            "ENTRADA",
+            "COMPRA DE MILHAS",
+            "" 
+        );
+        
         return ResponseEntity.status(HttpStatus.OK).body(milesBalanceDTO);
     }
 

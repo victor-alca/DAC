@@ -128,8 +128,8 @@ app.post('/login', async (req, res) => {
         // Adapta o corpo para o serviço de autenticação
         console.log(req.body)
         const authBody = {
-            login: req.body.login,
-            senha: req.body.senha
+            login: req.body.login || req.body.email,  
+            senha: req.body.senha || req.body.password, 
         };
         console.log(authBody)
         // Chamada para o serviço de autenticação
@@ -151,9 +151,9 @@ app.post('/login', async (req, res) => {
         let token_type = authData.token_type
 
         if (tipo === 'CLIENTE') {
-            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${email}`);
+            usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${email}/dto`);
         } else if (tipo === 'FUNCIONARIO') {
-            usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}`);
+            usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}/dto`);
         } else {
             return res.status(500).json({ message: 'Tipo de usuário desconhecido.' });
         }
@@ -214,13 +214,16 @@ app.post('/clientes', async (req, res, next) => {
                             message: 'Falha ao processar o cadastro do cliente',
                             failedServices: statusResponse.data.failedServices || [],
                         };
-                        console.log(statusResponse.data)
+                        let errorInfo = statusResponse.data.errorInfo
+                        console.log(errorInfo)
+                        console.log(errorInfo.errorCode)
                         // 409 para conflito, 400 para outros erros
-                        if (statusResponse.data.failedServices && statusResponse.data.failedServices.includes('CLIENT')) {
+                        if (errorInfo.errorCode == 409) {
                             errorResponse.message = 'Cliente já existente.';
                             return res.status(409).json(errorResponse);
                         }
-                        return res.status(400).json(errorResponse);
+                        errorResponse.message = errorInfo.errorMessage || 'Ocorreu um erro ao cadastrar o cliente'
+                        return res.status(errorInfo.errorCode || 400).json(errorResponse)
                     }
                     // SUCESSO - Busca o cliente criado pelo email
                     if (status === 'COMPLETED_SUCCESS') {
@@ -232,9 +235,7 @@ app.post('/clientes', async (req, res, next) => {
                             const clienteResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${req.body.email}/dto`);
                             const clienteCriado = clienteResponse.data;
 
-                            return res.status(201).json({
-                                clienteCriado
-                            });
+                            return res.status(201).json(clienteCriado);
                         } catch (clientError) {
                             console.error('Erro ao buscar cliente criado:', clientError.message);
                             // Se não conseguir buscar o cliente, retorna resposta básica da saga
@@ -279,11 +280,55 @@ app.get('/clientes/:codigoCliente', verifyJWT, authorizeRoles('CLIENTE'), (req, 
     clientsServiceProxy(req, res, next);
 });
 
-app.put('/clientes/:codigoCliente/milhas', verifyJWT, authorizeRoles('CLIENTE'), (req, res, next) => {
-    clientsServiceProxy(req, res, next);
+app.put('/clientes/:codigoCliente/milhas', verifyJWT, async (req, res, next) => {
+    const userRole = req.user.role;
+    const clienteId = req.params.codigoCliente;
+
+    // Permite se for FUNCIONARIO ou se for o próprio CLIENTE
+    if (userRole === 'FUNCIONARIO') {
+        return clientsServiceProxy(req, res, next);
+    } else if (userRole === 'CLIENTE') {
+        try {
+            const clienteResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${req.user.sub}/dto`);
+            const clienteCodigo = clienteResponse.data.codigo.toString();
+            
+            if (clienteCodigo !== clienteId) {
+                return res.status(403).json({ message: 'Acesso negado - você só pode alterar suas próprias milhas' });
+            }
+            return clientsServiceProxy(req, res, next);
+        } catch (error) {
+            return res.status(403).json({ message: 'Acesso negado' });
+        }
+    } else {
+        return res.status(403).json({ message: 'Acesso negado' });
+    }
 });
 
-app.get('/clientes/:codigoCliente/milhas', verifyJWT, authorizeRoles('CLIENTE'), (req, res, next) => {
+app.get('/clientes/:codigoCliente/milhas', verifyJWT, async (req, res, next) => {
+    const userRole = req.user.role;
+    const clienteId = req.params.codigoCliente;
+
+    // Permite se for FUNCIONARIO ou se for o próprio CLIENTE
+    if (userRole === 'FUNCIONARIO') {
+        return clientsServiceProxy(req, res, next);
+    } else if (userRole === 'CLIENTE') {
+        try {
+            const clienteResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${req.user.sub}/dto`);
+            const clienteCodigo = clienteResponse.data.codigo.toString();
+            
+            if (clienteCodigo !== clienteId) {
+                return res.status(403).json({ message: 'Acesso negado - você só pode ver suas próprias milhas' });
+            }
+            return clientsServiceProxy(req, res, next);
+        } catch (error) {
+            return res.status(403).json({ message: 'Acesso negado' });
+        }
+    } else {
+        return res.status(403).json({ message: 'Acesso negado' });
+    }
+});
+
+app.get('/clientes', verifyJWT, (req, res, next) => {
     clientsServiceProxy(req, res, next);
 });
 
@@ -338,16 +383,20 @@ app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => 
                                 const errorCode = statusResponse.data.errorInfo.errorCode;
                                 if (errorCode === 404) {
                                     errorResponse.message = 'Cliente não encontrado';
+                                    errorResponse.erro = 'Cliente não encontrado';
                                     return res.status(404).json(errorResponse);
                                 } else if (errorCode === 409) {
-                                    errorResponse.message = 'Milhas insuficientes para realizar a reserva';
-                                    return res.status(409).json(errorResponse);
+                                    errorResponse.message = 'Saldo de milhas insuficiente';
+                                    errorResponse.erro = 'Saldo de milhas insuficiente';
+                                    return res.status(400).json(errorResponse);
                                 } else {
                                     errorResponse.message = statusResponse.data.errorInfo.errorMessage || 'Erro no serviço de milhas';
+                                    errorResponse.erro = statusResponse.data.errorInfo.errorMessage || 'Erro no serviço de milhas';
                                     return res.status(errorCode || 400).json(errorResponse);
                                 }
                             } else {
-                                errorResponse.message = 'Erro no serviço de milhas';
+                                errorResponse.message = 'Saldo de milhas insuficiente';
+                                errorResponse.erro = 'Saldo de milhas insuficiente';
                                 return res.status(400).json(errorResponse);
                             }
                         }
@@ -396,18 +445,12 @@ app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => 
                                 const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${reserva.codigo_voo}`);
                                 const voo = vooResponse.data;
 
-                                // Monta resposta final
+                                // Remove os campos indesejados da reserva e adiciona o objeto voo
+                                const { codigo_voo, codigo_aeroporto_origem, codigo_aeroporto_destino, ...reservaSemCampos } = reserva;
+                                
                                 const resposta = {
-                                    codigo: reserva.codigo,
-                                    data: new Date(reserva.data).toISOString().replace('Z', '-03:00'),
-                                    valor: reserva.valor,
-                                    milhas_utilizadas: reserva.milhas_utilizadas,
-                                    quantidade_poltronas: reserva.quantidade_poltronas,
-                                    codigo_cliente: reserva.codigo_cliente,
-                                    estado: reserva.estado,
-                                    codigo_voo: reserva.codigo_voo,
-                                    aeroporto_origem: voo.aeroporto_origem,
-                                    aeroporto_destino: voo.aeroporto_destino
+                                    ...reservaSemCampos,
+                                    voo
                                 };
 
                                 return res.status(201).json(resposta);
@@ -506,85 +549,16 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
 
         const voo = vooResponse.data;
 
-        // Combina os detalhes da reserva com os detalhes do voo
-        const reservaComVoo = {
-            ...reserva,
+        // Monta resposta final no formato desejado
+        // Remove o campo codigo_voo da reserva antes de montar a resposta
+        const { codigo_voo, codigo_aeroporto_origem, codigo_aeroporto_destino, ...reservaSemCampos } = reserva;
+        const resposta = {
+            ...reservaSemCampos,
             voo
         };
 
         // Retorna a resposta com os dados combinados
-        res.status(200).json(reservaComVoo);
-    } catch (error) {
-        // Trata erros de resposta da API
-        if (error.response) {
-            return res.status(error.response.status).json(error.response.data);
-        }
-        // Trata erros genéricos
-        res.status(500).json({ message: 'Erro ao buscar reserva com detalhes do voo.', error: error.message });
-    }
-});
-
-app.get('/clientes/:codigoCliente/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
-    try {
-        // Busca todas as reservas do cliente
-        const reservasResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/clientes/${req.params.codigoCliente}/reservas`, {
-            headers: { Authorization: req.headers['authorization'] }
-        });
-
-        const reservas = reservasResponse.data;
-
-        // Para cada reserva, busca os detalhes do voo associado
-        const reservasComVoos = await Promise.all(reservas.map(async (reserva) => {
-            try {
-                const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${reserva.codigo_voo}`, {
-                    headers: { Authorization: req.headers['authorization'] }
-                });
-                const voo = vooResponse.data;
-
-                // Combina os dados da reserva com os dados do voo
-                return { ...reserva, voo };
-            } catch (vooError) {
-                console.error(`Erro ao buscar voo para a reserva ${reserva.codigo}:`, vooError.message);
-                return { ...reserva, voo: null }; // Retorna a reserva mesmo se o voo não for encontrado
-            }
-        }));
-
-        // Retorna a resposta consolidada
-        res.status(200).json(reservasComVoos);
-    } catch (error) {
-        // Trata erros de resposta da API
-        if (error.response) {
-            return res.status(error.response.status).json(error.response.data);
-        }
-        // Trata erros genéricos
-        res.status(500).json({ message: 'Erro ao buscar reservas com detalhes dos voos.', error: error.message });
-    }
-});
-
-app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
-    try {
-        // Busca os detalhes da reserva no serviço de Reservas
-        const reservaResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/reservas/${req.params.codigoReserva}`, {
-            headers: { Authorization: req.headers['authorization'] }
-        });
-
-        const reserva = reservaResponse.data;
-
-        // Busca os detalhes do voo associado à reserva no serviço de Voos
-        const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${reserva.codigo_voo}`, {
-            headers: { Authorization: req.headers['authorization'] }
-        });
-
-        const voo = vooResponse.data;
-
-        // Combina os dados da reserva com os dados do voo
-        const reservaComVoo = {
-            ...reserva,
-            voo
-        };
-
-        // Retorna a resposta consolidada
-        res.status(200).json(reservaComVoo);
+        res.status(200).json(resposta);
     } catch (error) {
         // Trata erros de resposta da API
         if (error.response) {
@@ -598,8 +572,131 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
     }
 });
 
-app.patch('/reservas/:codigoReserva/estado', verifyJWT, authorizeRoles('CLIENTE', 'FUNCIONARIO'), (req, res, next) => {
-    reservationsServiceProxy(req, res, next);
+app.get('/clientes/:codigoCliente/reservas', verifyJWT, async (req, res) => {
+    const userRole = req.user.role;
+    const clienteId = req.params.codigoCliente; // ADICIONAR ESTA LINHA
+
+    // Permite se for FUNCIONARIO ou se for o próprio CLIENTE
+    if (userRole === 'FUNCIONARIO') {
+        // Funcionário pode ver reservas de qualquer cliente
+    } else if (userRole === 'CLIENTE') {
+        // Cliente só pode ver suas próprias reservas
+        try {
+            const clienteResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${req.user.sub}/dto`);
+            const clienteCodigo = clienteResponse.data.codigo.toString();
+            
+            // CORRIGIR: Garantir que ambos sejam strings
+            if (clienteCodigo !== clienteId.toString()) {
+                console.log(`Autorização negada: clienteCodigo=${clienteCodigo}, clienteId=${clienteId}`);
+                return res.status(403).json({ message: 'Acesso negado - você só pode acessar suas próprias reservas' });
+            }
+        } catch (error) {
+            console.error('Erro na verificação de autorização:', error.message);
+            return res.status(403).json({ message: 'Acesso negado' });
+        }
+    } else {
+        return res.status(403).json({ message: 'Acesso negado' });
+    }
+
+    try {
+        // Busca todas as reservas do cliente
+        const reservasResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/clientes/${clienteId}/reservas`, {
+            headers: { Authorization: req.headers['authorization'] }
+        });
+
+        const reservas = reservasResponse.data;
+
+        // Se não há reservas, retorna 204
+        if (!reservas || reservas.length === 0) {
+            return res.status(204).send();
+        }
+
+        // Para cada reserva, busca os detalhes do voo associado
+        const reservasComVoos = await Promise.all(reservas.map(async (reserva) => {
+            try {
+                const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${reserva.codigo_voo}`, {
+                    headers: { Authorization: req.headers['authorization'] }
+                });
+                const voo = vooResponse.data;
+
+                // Remove os campos indesejados da reserva
+                const { codigo_voo, codigo_aeroporto_origem, codigo_aeroporto_destino, ...reservaSemCampos } = reserva;
+
+                return { ...reservaSemCampos, voo };
+            } catch (vooError) {
+                console.error(`Erro ao buscar voo para a reserva ${reserva.codigo}:`, vooError.message);
+                return { ...reserva, voo: null }; // Retorna a reserva mesmo se o voo não for encontrado
+            }
+        }));
+
+        // Retorna a resposta consolidada
+        res.status(200).json(reservasComVoos);
+    } catch (error) {
+        console.error('Erro ao buscar reservas:', error.message);
+        // Trata erros de resposta da API
+        if (error.response) {
+            console.log('Status do erro:', error.response.status);
+            // Se o booking-query retornar 404 (não encontrado), transformar em 204 (vazio)
+            if (error.response.status === 404) {
+                return res.status(204).send();
+            }
+            return res.status(error.response.status).json(error.response.data);
+        }
+        // Trata erros genéricos
+        res.status(500).json({ message: 'Erro ao buscar reservas com detalhes dos voos.', error: error.message });
+    }
+});
+
+app.patch('/reservas/:codigoReserva/estado', verifyJWT, async (req, res, next) => {
+    const { estado } = req.body;
+    const userRole = req.user.role;
+    const codigoReserva = req.params.codigoReserva;
+    
+    // Se o estado é CHECK-IN, tanto CLIENTE quanto FUNCIONARIO podem alterar
+    if (estado === 'CHECK-IN') {
+        if (userRole === 'FUNCIONARIO') {
+            return reservationsServiceProxy(req, res, next);
+        } else if (userRole === 'CLIENTE') {
+            // Verifica se o cliente é o dono da reserva
+            try {
+                // Busca dados do cliente logado
+                const clienteResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${req.user.sub}/dto`);
+                const clienteCodigo = clienteResponse.data.codigo;
+                
+                // Busca dados da reserva
+                const reservaResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/reservas/${codigoReserva}`);
+                const reserva = reservaResponse.data;
+                
+                // Verifica se o cliente é o dono da reserva
+                if (reserva.codigo_cliente === clienteCodigo) {
+                    return reservationsServiceProxy(req, res, next);
+                } else {
+                    return res.status(403).json({ 
+                        error: 'Permissão negada', 
+                        message: 'Você só pode fazer check-in em suas próprias reservas' 
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao verificar propriedade da reserva:', error.message);
+                return res.status(403).json({ 
+                    error: 'Permissão negada', 
+                    message: 'Erro ao verificar permissões' 
+                });
+            }
+        }
+    }
+    // Para outros estados, apenas FUNCIONARIO pode alterar
+    else {
+        if (userRole === 'FUNCIONARIO') {
+            return reservationsServiceProxy(req, res, next);
+        }
+    }
+    
+    // Se chegou até aqui, não tem permissão
+    return res.status(403).json({ 
+        error: 'Permissão negada', 
+        message: `Apenas funcionários podem alterar o estado para ${estado}` 
+    });
 });
 
 // Rotas para o serviço de Voos
@@ -679,10 +776,10 @@ app.post('/logout', verifyJWT, function (req, res) {
     }
     
     // Adiciona o token à blacklist para invalidá-lo
-    blacklistedTokens.add(token);
+    // blacklistedTokens.add(token);
     
     // Opcional: log para debug
-    console.log(`Token invalidado no logout: ${token.substring(0, 20)}...`);
+    //console.log(`Token invalidado no logout: ${token.substring(0, 20)}...`);
     
     // Retorna confirmação do logout
     res.status(200).json({ 

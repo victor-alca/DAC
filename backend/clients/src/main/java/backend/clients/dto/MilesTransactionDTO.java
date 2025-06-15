@@ -2,26 +2,30 @@ package backend.clients.dto;
 
 import java.util.Date;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class MilesTransactionDTO {
 
     private int codigo;
-    private double saldoMilhas;
+    private double saldo_milhas;
     private List<Transaction> transacoes;
 
     public static class Transaction {
         private Date data;
+        @JsonProperty("valor_reais")
         private double valorReais;
-        private int quantidadeMilhas;
+        @JsonProperty("quantidade_milhas")
+        private int quantidade_milhas;
         private String descricao;
+        @JsonProperty("codigo_reserva")
         private String codigoReserva;
         private String tipo;
 
-        public Transaction(Date data, double valorReais, int quantidadeMilhas, String descricao, String codigoReserva,
+        public Transaction(Date data, double valorReais, int quantidade_milhas, String descricao, String codigoReserva,
                 String tipo) {
             this.data = data;
             this.valorReais = valorReais;
-            this.quantidadeMilhas = quantidadeMilhas;
+            this.quantidade_milhas = quantidade_milhas;
             this.descricao = descricao;
             this.codigoReserva = codigoReserva;
             this.tipo = tipo;
@@ -44,11 +48,11 @@ public class MilesTransactionDTO {
         }
 
         public int getQuantidadeMilhas() {
-            return quantidadeMilhas;
+            return quantidade_milhas;
         }
 
-        public void setQuantidadeMilhas(int quantidadeMilhas) {
-            this.quantidadeMilhas = quantidadeMilhas;
+        public void setQuantidadeMilhas(int quantidade_milhas) {
+            this.quantidade_milhas = quantidade_milhas;
         }
 
         public String getDescricao() {
@@ -84,12 +88,12 @@ public class MilesTransactionDTO {
         this.codigo = codigo;
     }
 
-    public double getSaldoMilhas() {
-        return saldoMilhas;
+    public double getSaldo_milhas() {
+        return saldo_milhas;
     }
 
-    public void setSaldoMilhas(double saldoMilhas) {
-        this.saldoMilhas = saldoMilhas;
+    public void setSaldo_milhas(double saldo_milhas) {
+        this.saldo_milhas = saldo_milhas;
     }
 
     public List<Transaction> getTransacoes() {

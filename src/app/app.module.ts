@@ -28,6 +28,9 @@ import { CheckInComponent } from './pages/check-in/check-in.component';
 import { ExtractComponent } from './pages/extract/extract.component';
 import { PhoneMaskPipe } from './shared/pipes/phone-mask.pipe';
 import { provideHttpClient } from '@angular/common/http';
+import { GenericModalComponent } from './pages/generic-modal/generic-modal.component';
+import { compileDeclareNgModuleFromMetadata } from '@angular/compiler';
+import { CommonModule } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -47,6 +50,7 @@ import { provideHttpClient } from '@angular/common/http';
     CheckInComponent,
     ExtractComponent,
     PhoneMaskPipe,
+    GenericModalComponent,
   ],
   imports: [
     BrowserModule,
@@ -62,6 +66,7 @@ import { provideHttpClient } from '@angular/common/http';
     NgxMaskPipe,
     FormsModule,
     NgxMaskDirective,
+    CommonModule
   ],
   providers: [provideNgxMask(), provideHttpClient()],
   bootstrap: [AppComponent]

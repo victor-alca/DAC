@@ -9,6 +9,7 @@ import java.util.List;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
+    Optional<Employee> findByCpf(String cpf);
     Optional<Employee> findByEmail(String email);
     List<Employee> findByActive(boolean active);
 }

@@ -6,10 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projetofuncionario.model.Employee;
-
+import com.projetofuncionario.dto.EmployeeDTO;
 import com.projetofuncionario.message.SagaMessage;
 
 @Component
@@ -24,11 +23,16 @@ public class ConsumerInsertEmployee {
   private ObjectMapper objectMapper;
 
   @RabbitListener(queues = "funcionario.cadastro.iniciado.funcionario")
-  public void receiveRead(@Payload String json) {
+  public void receiveRead(@Payload SagaMessage<EmployeeDTO> message) {
     try {
-      SagaMessage<Employee> message = objectMapper.readValue(json, new TypeReference<SagaMessage<Employee>>() {});
+      EmployeeDTO employeeRaw = objectMapper.convertValue(message.getPayload(), EmployeeDTO.class);
 
-      Employee employee = message.getPayload();
+      Employee employee = new Employee();
+      employee.setCpf(employeeRaw.cpf);
+      employee.setActive(true);
+      employee.setEmail(employeeRaw.email);
+      employee.setPhone(employeeRaw.phone);
+      employee.setName(employeeRaw.name);
 
       employeeService.save(employee);
 
@@ -42,6 +46,7 @@ public class ConsumerInsertEmployee {
         // Em caso de erro, tenta enviar a mensagem de falha
         SagaMessage<Employee> failedMessage = new SagaMessage<>();
         failedMessage.setOrigin("EMPLOYEE");
+        failedMessage.setCorrelationId(message.getCorrelationId());
         rabbitTemplate.convertAndSend("saga.exchange", "funcionario.cadastro.falhou", failedMessage);
       } catch (Exception ex) {
         ex.printStackTrace();

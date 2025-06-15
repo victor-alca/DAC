@@ -60,8 +60,8 @@ public class BookingEventListener {
     private void applyDTOToEntity(BookingEventDTO dto, Booking booking) {
         booking.setCode(dto.code);
         booking.setDate(dto.date);
-        booking.setOriginAirport(dto.originAirport);
-        booking.setDestinationAirport(dto.destinationAirport);
+        booking.setOriginAirport(dto.originAirport != null ? dto.originAirport : null);
+        booking.setDestinationAirport(dto.destinationAirport != null ? dto.destinationAirport : null);
         booking.setTotalSeats(dto.totalSeats);
         booking.setStatusBooking(dto.statusBooking);
         booking.setMoneySpent(dto.moneySpent);

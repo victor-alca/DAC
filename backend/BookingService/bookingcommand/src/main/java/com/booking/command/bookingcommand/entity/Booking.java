@@ -35,10 +35,10 @@ public class Booking implements Serializable {
     @Column(name = "total_seats")
     private Integer totalSeats;
 
-    @Column(name = "origin_airport", nullable = false)
+    @Column(name = "origin_airport")
     private String originAirport;
 
-    @Column(name = "destination_airport", nullable = false)
+    @Column(name = "destination_airport")
     private String destinationAirport;
 
     public Booking() {}

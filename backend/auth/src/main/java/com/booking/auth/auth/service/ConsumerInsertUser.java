@@ -10,7 +10,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.booking.auth.auth.DTO.ClientDTO;
+import com.booking.auth.auth.DTO.UserDTO;
 import com.booking.auth.auth.email.EmailService;
 import com.booking.auth.auth.message.SagaMessage;
 import com.booking.auth.auth.model.User;
@@ -29,10 +29,9 @@ public class ConsumerInsertUser {
   private RabbitTemplate rabbitTemplate;
 
   @RabbitListener(queues = "cliente.cadastro.iniciado.auth")
-  public void receiveRead(@Payload SagaMessage message) {
+  public void receiveReadClient(@Payload SagaMessage message) {
     try {
-      System.out.println(message.getPayload());
-      ClientDTO client = message.getPayload();
+      UserDTO client = message.getPayload();
 
       String generatedPassword = String.format("%04d", new Random().nextInt(10000));
       System.out.println("Generated password for user " + client.email + ": " + generatedPassword);
@@ -46,8 +45,8 @@ public class ConsumerInsertUser {
       user.setPassword(hashedPassword);
       user.setSalt(salt);
       System.out.println(user);
-      
-      if(userRepository.findByEmail(user.getEmail()) != null){
+
+      if (userRepository.findByEmail(user.getEmail()) != null) {
         throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
       }
 
@@ -64,6 +63,47 @@ public class ConsumerInsertUser {
       try {
         message.setOrigin("AUTH");
         rabbitTemplate.convertAndSend("saga.exchange", "cliente.cadastro.falhou", message);
+      } catch (Exception ex) {
+        ex.printStackTrace();
+      }
+    }
+  }
+
+  @RabbitListener(queues = "funcionario.cadastro.iniciado.auth")
+  public void receiveReadEmployee(@Payload SagaMessage message) {
+    try {
+      UserDTO client = message.getPayload();
+
+      String generatedPassword = String.format("%04d", new Random().nextInt(10000));
+      System.out.println("Generated password for user " + client.email + ": " + generatedPassword);
+
+      String salt = HashUtil.generateSalt();
+      String hashedPassword = HashUtil.hashPassword(generatedPassword, salt);
+
+      User user = new User();
+      user.setType("FUNCIONARIO");
+      user.setEmail(client.email);
+      user.setPassword(hashedPassword);
+      user.setSalt(salt);
+      System.out.println(user);
+
+      if (userRepository.findByEmail(user.getEmail()) != null) {
+        throw new ResponseStatusException(HttpStatus.CONFLICT, "O Funcionario já existe!");
+      }
+
+      userRepository.save(user);
+
+      emailService.sendPasswordEmail(user.getEmail(), generatedPassword);
+
+      message.setOrigin("AUTH");
+      rabbitTemplate.convertAndSend("saga.exchange", "funcionario.cadastro.sucesso", message);
+
+      System.out.println("[AUTH] Usuário criado com sucesso: " + user.getEmail());
+    } catch (Exception e) {
+      e.printStackTrace();
+      try {
+        message.setOrigin("AUTH");
+        rabbitTemplate.convertAndSend("saga.exchange", "funcionario.cadastro.falhou", message);
       } catch (Exception ex) {
         ex.printStackTrace();
       }

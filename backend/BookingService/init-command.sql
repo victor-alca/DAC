@@ -3,7 +3,7 @@ CREATE SCHEMA IF NOT EXISTS bookingcommand;
 CREATE TABLE IF NOT EXISTS bookingcommand.booking (
     code varchar PRIMARY KEY,
     flight_code varchar NOT NULL,
-    date date,
+    date timestamp,
     status integer NOT NULL,
     money_spent integer,
     miles_spent integer,

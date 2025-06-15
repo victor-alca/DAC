@@ -14,8 +14,9 @@ services:
       auth-db:
         condition: service_started
       rabbitmq:
-        condition: service_started
-  
+        condition: service_healthy
+    networks:
+      - app-network
 
   auth-db:
     container_name: auth-db
@@ -25,20 +26,15 @@ services:
     volumes:
       - mongo-data:/data/db
       - ./backend/auth/docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-
-  #front-end:
-    #container_name: front-end
-    #build:
-    #  context: ./
-    #ports:
-    #  - "4200:80"
+    networks:
+      - app-network
 
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3-management
     ports:
-      - "5672:5672"     # AMQP protocol
-      - "15672:15672"   # Management UI
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -50,6 +46,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    networks:
+      - app-network
       
   gateway:
     container_name: gateway
@@ -66,21 +65,28 @@ services:
       auth-api:
         condition: service_started
     networks:
-      - default
+      - app-network
 
-  clients-db:
-    container_name: clients-db
-    image: postgres:15
+  # Banco PostgreSQL único com schemas separados
+  postgres-db:
+    container_name: postgres-db
+    image: postgres:16
     ports:
-      - "5438:5432"
+      - "5433:5432"
     environment:
-      POSTGRES_DB: clients
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - clients-data:/var/lib/postgresql/data 
+      - postgres-data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
-      - default
+      - app-network
 
   clients:
     container_name: clients
@@ -89,84 +95,28 @@ services:
     ports:
       - "5001:5001"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://clients-db:5432/clients
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/postgres?currentSchema=client
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
     depends_on:
-      - clients-db
-      - gateway
-      - rabbitmq
+      postgres-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
-      - default
-  
-  # Banco de dados do serviço de reservas (Booking Command)
-  booking-command-db:
-    image: postgres:16
-    container_name: booking_command_postgres
-    environment:
-      POSTGRES_DB: bookingdb_command
-      POSTGRES_USER: bookinguser
-      POSTGRES_PASSWORD: bookingpass
-    ports:
-      - "5436:5432"
-    volumes:
-      - ./backend/BookingService/init-command.sql:/docker-entrypoint-initdb.d/init-command.sql
-    networks:
-      - default
+      - app-network
 
-  # Banco de dados do serviço de reservas (Booking Query)
-  booking-query-db:
-    image: postgres:16
-    container_name: booking_query_postgres
-    environment:
-      POSTGRES_DB: bookingdb_query
-      POSTGRES_USER: bookinguser
-      POSTGRES_PASSWORD: bookingpass
-    ports:
-      - "5437:5432"
-    volumes:
-      - ./backend/BookingService/init-query.sql:/docker-entrypoint-initdb.d/init-query.sql
-    networks:
-      - default
-
-  # Banco de dados do serviço de voos
-  flight-db:
-    image: postgres:16
-    container_name: flight_postgres
-    environment:
-      POSTGRES_DB: flightdb
-      POSTGRES_USER: flightuser
-      POSTGRES_PASSWORD: flightpass
-    ports:
-      - "5434:5432"
-    volumes:
-      - ./backend/FlightService/flight/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - default
-
-  # Banco de dados do serviço de funcionários
-  employee-db:
-    image: postgres:16
-    container_name: employee_postgres
-    environment:
-      POSTGRES_DB: employeedb
-      POSTGRES_USER: employeeuser
-      POSTGRES_PASSWORD: employeepass
-    ports:
-      - "5435:5432"
-    volumes:
-      - ./backend/EmployeeService/ProjetoFuncionario/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - default
-
-  # Serviço de reservas (Command)
   booking-command-service:
     build: ./backend/BookingService/bookingcommand
     container_name: booking_command_service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://booking-command-db:5432/bookingdb_command
-      SPRING_DATASOURCE_USERNAME: bookinguser
-      SPRING_DATASOURCE_PASSWORD: bookingpass
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/postgres?currentSchema=bookingcommand
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
@@ -174,19 +124,20 @@ services:
     ports:
       - "5004:5004"
     depends_on:
-      - booking-command-db
-      - rabbitmq
+      postgres-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
-      - default
+      - app-network
 
-  # Serviço de reservas (Query)
   booking-query-service:
     build: ./backend/BookingService/bookingquery
     container_name: booking_query_service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://booking-query-db:5432/bookingdb_query
-      SPRING_DATASOURCE_USERNAME: bookinguser
-      SPRING_DATASOURCE_PASSWORD: bookingpass
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/postgres?currentSchema=bookingquery
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
@@ -194,19 +145,20 @@ services:
     ports:
       - "5006:5006"
     depends_on:
-      - booking-query-db
-      - rabbitmq
+      postgres-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
-      - default
+      - app-network
 
-  # Serviço de voos
   flight-service:
     build: ./backend/FlightService/flight
     container_name: flight_service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://flight-db:5432/flightdb
-      SPRING_DATASOURCE_USERNAME: flightuser
-      SPRING_DATASOURCE_PASSWORD: flightpass
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/postgres?currentSchema=flight
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
@@ -214,19 +166,20 @@ services:
     ports:
       - "5003:5003"
     depends_on:
-      - flight-db
-      - rabbitmq
+      postgres-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
-      - default
+      - app-network
 
-  # Serviço de funcionários
   employee-service:
     build: ./backend/EmployeeService/ProjetoFuncionario
     container_name: employee_service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://employee-db:5432/employeedb
-      SPRING_DATASOURCE_USERNAME: employeeuser
-      SPRING_DATASOURCE_PASSWORD: employeepass
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/postgres?currentSchema=employee
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
@@ -234,12 +187,13 @@ services:
     ports:
       - "5002:5002"
     depends_on:
-      - employee-db
-      - rabbitmq
+      postgres-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
-      - default
+      - app-network
 
-  # Orchestrator Saga
   orchestrator:
     build: ./backend/OrchestratorService/orchestrator
     container_name: orchestrator
@@ -251,12 +205,15 @@ services:
     ports:
       - "5005:5005"
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     networks:
-      - default
-  
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
 volumes:
   mongo-data:
-  clients-data:
-
-
+  postgres-data:
