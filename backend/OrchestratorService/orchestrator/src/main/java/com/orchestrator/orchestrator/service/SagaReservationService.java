@@ -30,8 +30,22 @@ public class SagaReservationService {
 
         // Primeiro passo: só milhas consome
         rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.criacao.iniciada", sagaMessage);
-
         System.out.println("[SAGA] Iniciando reserva com correlationId: " + correlationId);
+
+        return correlationId;
+    }
+
+    // SAGA DE CANCELAMENTO
+    public String startCancellationSaga(ReservationDTO reservationDTO) {
+        SagaMessage<ReservationDTO> sagaMessage = new SagaMessage<>(reservationDTO);
+        String correlationId = sagaMessage.getCorrelationId();
+
+        // Espera sucesso de: CANCELAR_RESERVA, DEVOLVER_MILHAS (ordem controlada pelo orchestrator)
+        sagaStateManager.createSaga(correlationId, Set.of("CANCELAR_RESERVA", "DEVOLVER_MILHAS"));
+
+        // Primeiro passo: cancelar reserva
+        rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.cancelamento.iniciado", sagaMessage);
+        System.out.println("[SAGA] Iniciando cancelamento de reserva com correlationId: " + correlationId);
 
         return correlationId;
     }
@@ -81,6 +95,33 @@ public class SagaReservationService {
             System.out.println("[SAGA] Código da reserva armazenado: " + payload.getCodigo_reserva());
         }
     }
+    
+    // Chame este método quando receber sucesso do cancelamento da reserva
+    public void onCancelBookingSuccess(String correlationId, ReservationDTO payload) {
+        sagaStateManager.markSuccess(correlationId, "CANCELAR_RESERVA");
+        // Próximo passo: devolver milhas
+        SagaMessage<ReservationDTO> sagaMessage = new SagaMessage<>(payload);
+        sagaMessage.setCorrelationId(correlationId);
+        rabbitTemplate.convertAndSend("reserva.saga.exchange", "reserva.cancelamento.iniciado.milhas", sagaMessage);
+        System.out.println("[SAGA] Reserva cancelada OK, enviando para DEVOLVER_MILHAS. correlationId: " + correlationId);
+    }
+
+    // Chame este método quando receber sucesso da devolução de milhas
+    public void onReturnMilesSuccess(String correlationId, ReservationDTO payload) {
+        sagaStateManager.markSuccess(correlationId, "DEVOLVER_MILHAS");
+        System.out.println("[SAGA] Devolução de milhas concluída. Saga de cancelamento COMPLETED_SUCCESS. correlationId: " + correlationId);
+        
+        // Armazena o resultado do cancelamento
+        if (payload.getCodigo_reserva() != null) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("codigoReserva", payload.getCodigo_reserva());
+            result.put("type", "cancellation");
+            result.put("status", "CANCELADA");
+            
+            sagaStateManager.setResult(correlationId, result);
+            System.out.println("[SAGA] Cancelamento concluído para reserva: " + payload.getCodigo_reserva());
+        }
+    }
 
     // Chame este método quando receber falha de qualquer serviço
     public void onSagaFailure(String correlationId, ReservationDTO payload) {
@@ -97,6 +138,9 @@ public class SagaReservationService {
                 case "MILHAS" -> "reserva.milhas.compensar";
                 case "VOO" -> "reserva.voo.compensar";
                 case "RESERVA" -> "reserva.reserva.compensar";
+                // NOVAS COMPENSAÇÕES PARA CANCELAMENTO
+                case "CANCELAR_RESERVA" -> "reserva.cancelar.compensar";
+                case "DEVOLVER_MILHAS" -> "reserva.devolver.milhas.compensar";
                 default -> null;
             };
             if (routingKey != null) {

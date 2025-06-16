@@ -130,7 +130,7 @@ public class BookingCommandService {
             return false;
         }
     }
-
+    
     public void cancelBookingBySaga(ReservationDTO dto) {
         // Cancela a reserva do cliente para o voo específico
         Booking booking = bookingRepository
@@ -188,18 +188,88 @@ public class BookingCommandService {
         return toResponseDTO(booking, null);
     }
 
-    public BookingResponseDTO cancelBooking(String codigoReserva) {
-        Booking booking = bookingRepository.findById(codigoReserva)
-                .orElseThrow(() -> new RuntimeException("Reserva não encontrada"));
-        BookingStatus status = bookingStatusRepository.findByCode("CANCELADA");
-        if (status == null) {
-            throw new RuntimeException("Status CANCELADA não encontrado");
-        }
-        booking.setStatus(status);
-        bookingRepository.save(booking);
-        publishBookingEvent("CANCELLED", booking);
+    public boolean cancelBooking(ReservationDTO dto) {
+        try {
+            String codigoReserva = dto.getCodigo_reserva();
+            
+            // Busca a reserva pelo código
+            Booking booking = bookingRepository.findById(codigoReserva).orElse(null);
+            if (booking == null) {
+                throw new RuntimeException("Reserva não encontrada: " + codigoReserva);
+            }
 
-        return toResponseDTO(booking, null);
+            // Armazena o status anterior para possível compensação
+            String statusAnterior = booking.getStatus().getCode();
+            
+            // Verifica se o status permite cancelamento (CRIADA ou CHECK-IN)
+            if (!"CRIADA".equals(statusAnterior) && !"CHECK-IN".equals(statusAnterior)) {
+                throw new RuntimeException("Reserva não pode ser cancelada. Status atual: " + statusAnterior);
+            }
+
+            // Preenche os dados da reserva no DTO para os próximos passos da saga
+            dto.setCodigo_cliente(booking.getClientId());
+            dto.setMilhas_utilizadas(booking.getMilesSpent());
+            dto.setCodigo_voo(booking.getFlightCode());
+            dto.setCodigo_aeroporto_origem(booking.getOriginAirport());
+            dto.setCodigo_aeroporto_destino(booking.getDestinationAirport());
+            
+            // Adiciona o status anterior no DTO para compensação
+            dto.setStatusAnterior(statusAnterior);
+
+            // Atualiza o status para CANCELADA
+            BookingStatus status = bookingStatusRepository.findByCode("CANCELADA");
+            if (status == null) {
+                throw new RuntimeException("Status CANCELADA não encontrado");
+            }
+            
+            booking.setStatus(status);
+            bookingRepository.save(booking);
+            publishBookingEvent("CANCELLED", booking);
+            
+            System.out.println("[RESERVA] Reserva " + codigoReserva + " cancelada com sucesso na SAGA");
+            return true;
+            
+        } catch (Exception e) {
+            System.err.println("[RESERVA] Erro ao cancelar reserva na SAGA: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    public void revertCancellationBySaga(ReservationDTO dto) {
+        try {
+            String codigoReserva = dto.getCodigo_reserva();
+            String statusAnterior = dto.getStatusAnterior();
+            
+            if (statusAnterior == null) {
+                statusAnterior = "CRIADA"; // fallback
+            }
+            
+            // Busca a reserva pelo código
+            Booking booking = bookingRepository.findById(codigoReserva).orElse(null);
+            if (booking == null) {
+                System.err.println("[RESERVA] Reserva não encontrada para compensação: " + codigoReserva);
+                return;
+            }
+
+            // Volta para o status anterior
+            BookingStatus status = bookingStatusRepository.findByCode(statusAnterior);
+            if (status == null) {
+                System.err.println("[RESERVA] Status anterior não encontrado: " + statusAnterior + ". Voltando para CRIADA");
+                status = bookingStatusRepository.findByCode("CRIADA");
+            }
+            
+            if (status != null) {
+                booking.setStatus(status);
+                bookingRepository.save(booking);
+                publishBookingEvent("UPDATED", booking);
+                
+                System.out.println("[RESERVA] Cancelamento da reserva " + codigoReserva + " foi revertido para " + statusAnterior);
+            }
+            
+        } catch (Exception e) {
+            System.err.println("[RESERVA] Erro ao reverter cancelamento na SAGA: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private BookingResponseDTO toResponseDTO(Booking booking, BookingRequestDTO dto) {

@@ -1,1 +1,0 @@
-Nessa pasta criem os serviços do backend separadamente.

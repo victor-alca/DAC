@@ -12,6 +12,7 @@ import com.projetofuncionario.model.Employee;
 import com.projetofuncionario.service.EmployeeService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -50,6 +51,15 @@ public class EmployeeController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(list);
         }
         return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<EmployeeResponseDTO> findByEmail(@PathVariable String email) {
+        Optional<Employee> employee = employeeService.findByEmail(email);
+        if (employee.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Funcionário não encontrado");
+        }
+        return ResponseEntity.ok(toResponseDTO(employee.get()));
     }
 
     @GetMapping("/{id}")

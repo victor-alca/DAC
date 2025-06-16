@@ -9,6 +9,7 @@ public class ReservationDTO {
     private String codigo_aeroporto_origem;
     private String codigo_aeroporto_destino;
     private String codigo_reserva;
+    private String statusAnterior;
 
     // Getters e Setters
     public Integer getCodigo_cliente() {
@@ -59,4 +60,11 @@ public class ReservationDTO {
     public void setCodigo_reserva(String codigo_reserva) {
         this.codigo_reserva = codigo_reserva;
     }
+    public String getStatusAnterior() {
+        return statusAnterior;
+    }
+    public void setStatusAnterior(String statusAnterior) {
+        this.statusAnterior = statusAnterior;
+    }
+    
 }

@@ -26,6 +26,8 @@ public class ReservationSagaListener {
         this.sagaStateManager = sagaStateManager;
     }
 
+    // Criação de reserva
+
     @RabbitListener(queues = "reserva.criacao.sucesso")
     public void onReservaSucesso(@Payload String json) {
         try {
@@ -69,6 +71,61 @@ public class ReservationSagaListener {
             String origin = message.getOrigin();
 
             System.out.println("[ORCHESTRATOR] Serviço " + origin + " FALHOU (correlationId: " + correlationId + ")");
+
+            sagaStateManager.get(correlationId).markFailure(origin);
+            
+            // Captura informações detalhadas do erro se disponíveis
+            if (message.getErrorInfo() != null) {
+                sagaStateManager.setErrorInfo(correlationId, message.getErrorInfo());
+            }
+
+            orchestratorService.onSagaFailure(correlationId, message.getPayload());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Cancelamento de reserva
+
+    @RabbitListener(queues = "reserva.cancelamento.sucesso")
+    public void onCancelamentoSucesso(@Payload String json) {
+        try {
+            SagaMessage<ReservationDTO> message = objectMapper.readValue(json, new TypeReference<SagaMessage<ReservationDTO>>() {});
+            String correlationId = message.getCorrelationId();
+            String origin = message.getOrigin();
+
+            System.out.println("[ORCHESTRATOR] Serviço " + origin + " confirmou SUCESSO no cancelamento (correlationId: " + correlationId + ")");
+
+            sagaStateManager.markSuccess(correlationId, origin);
+
+            // Controle de fluxo da saga de cancelamento (cancelar_reserva -> devolver_milhas)
+            if ("CANCELAR_RESERVA".equals(origin)) {
+                orchestratorService.onCancelBookingSuccess(correlationId, message.getPayload());
+            } else if ("DEVOLVER_MILHAS".equals(origin)) {
+                orchestratorService.onReturnMilesSuccess(correlationId, message.getPayload());
+            }
+
+            if (sagaStateManager.isComplete(correlationId)) {
+                if (sagaStateManager.get(correlationId).hasFailure()) {
+                    System.out.println("[ORCHESTRATOR] SAGA DE CANCELAMENTO CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
+                    orchestratorService.onSagaFailure(correlationId, message.getPayload());
+                } else {
+                    System.out.println("[ORCHESTRATOR] SAGA DE CANCELAMENTO CONCLUÍDA COM SUCESSO (correlationId: " + correlationId + ")");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RabbitListener(queues = "reserva.cancelamento.falhou")
+    public void onCancelamentoFalhou(@Payload String json) {
+        try {
+            SagaMessage<ReservationDTO> message = objectMapper.readValue(json, new TypeReference<SagaMessage<ReservationDTO>>() {});
+            String correlationId = message.getCorrelationId();
+            String origin = message.getOrigin();
+
+            System.out.println("[ORCHESTRATOR] Serviço " + origin + " FALHOU no cancelamento (correlationId: " + correlationId + ")");
 
             sagaStateManager.get(correlationId).markFailure(origin);
             
