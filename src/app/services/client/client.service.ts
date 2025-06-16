@@ -3,6 +3,7 @@ import { ClientDTO } from '../../shared/models/sing/clientDto';
 import { Client} from '../../shared/models/client/client'
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 
 const BASE_URL = "http://localhost:3000/clientes"
 
@@ -12,21 +13,26 @@ const BASE_URL = "http://localhost:3000/clientes"
 
 export class ClientService {
 
-  httpOptions = {
-    observe: "response" as "response",
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json'
-    }),
+  constructor(private http: HttpClient, private authService: AuthService) { }
+
+  getHttpOptions() {
+    const token = this.authService.getAccessToken();
+    return {
+      observe: "response" as const,
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      })
+    };
   }
 
-  constructor(private http: HttpClient) { }
-
-  getById(id: number) : Observable<Client | null>{
-    return this.http.get<Client>(
+  getById(id: number) : Observable<ClientDTO | null>{
+    return this.http.get<ClientDTO>(
       BASE_URL + "/" + id,
-      this.httpOptions).pipe(
-        map((resp: HttpResponse<Client>) => {
+      this.getHttpOptions()).pipe(
+        map((resp: HttpResponse<ClientDTO>) => {
           if(resp.status==200){
+            console.log(resp.body)
             return resp.body
           }else{
             return null
@@ -41,7 +47,7 @@ export class ClientService {
   create(client: ClientDTO): Observable<Client | null>{
     return this.http.post<Client>(BASE_URL,
       JSON.stringify(client),
-      this.httpOptions).pipe(
+      this.getHttpOptions()).pipe(
         map((resp: HttpResponse<Client> ) => {
         if (resp != null){
           console.log(resp.body)
@@ -59,7 +65,7 @@ export class ClientService {
     return this.http.put<any>(
       `${BASE_URL}/${client.code}/milhas`, 
       { miles }, 
-      this.httpOptions
+      this.getHttpOptions()
     ).pipe(
       map((resp: HttpResponse<any>) => {
         if (resp.status === 200) {
@@ -78,7 +84,7 @@ export class ClientService {
   getMilesTransactions(client: Client): Observable<any> {
     return this.http.get<any>(
       `${BASE_URL}/${client.code}/milhas`,
-      this.httpOptions
+      this.getHttpOptions()
     ).pipe(
       map((resp: HttpResponse<any>) => {
         if (resp.status === 200) {
@@ -97,4 +103,4 @@ export class ClientService {
   getClientBookings(client: Client){ //Confirmar implementação
   }
 }
-  
+
