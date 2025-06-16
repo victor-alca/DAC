@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Client } from '../../shared/models/client/client';
 import { Employee } from '../../shared/models/employee/employee';
-import { ClientDTO } from '../../shared/models/sing/clientDto';
+import { ClientDTO } from '../../shared/dtos/clientDto';
 
 const LS_KEY = "USERS"
 

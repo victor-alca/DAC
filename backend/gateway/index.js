@@ -295,6 +295,7 @@ app.put('/clientes/:codigoCliente/milhas', verifyJWT, async (req, res, next) => 
             if (clienteCodigo !== clienteId) {
                 return res.status(403).json({ message: 'Acesso negado - você só pode alterar suas próprias milhas' });
             }
+            console.log(req.body)
             return clientsServiceProxy(req, res, next);
         } catch (error) {
             return res.status(403).json({ message: 'Acesso negado' });

@@ -8,7 +8,7 @@ import { EmailValidatorDirective } from '../../shared/directives/email-validator
 import { PhoneValidatorDirective } from '../../shared/directives/phone-validator.directive';
 import { CepValidatorDirective } from '../../shared/directives/cep-validator.directive';
 import { Router } from '@angular/router';
-import { ClientDTO } from '../../shared/models/sing/clientDto';
+import { ClientDTO } from '../../shared/dtos/clientDto';
 import { ClientService } from '../../services/client/client.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { GenericModalComponent } from '../generic-modal/generic-modal.component';

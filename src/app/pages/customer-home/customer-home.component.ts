@@ -7,7 +7,7 @@ import { BookingService } from '../../services/booking.service';
 import { Router } from '@angular/router';
 import { ClientService } from '../../services/client/client.service';
 import { AuthService } from '../../services/auth/auth.service';
-import { ClientDTO } from '../../shared/models/sing/clientDto';
+import { ClientDTO } from '../../shared/dtos/clientDto';
 
 @Component({
   selector: 'app-customer-home',

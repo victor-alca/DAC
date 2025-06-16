@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ClientDTO } from '../../shared/models/sing/clientDto';
+import { ClientDTO } from '../../shared/dtos/clientDto';
 import { Client} from '../../shared/models/client/client'
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
@@ -61,10 +61,10 @@ export class ClientService {
       }))
   };
 
-  addClientMiles(client: Client, miles: number): Observable<Client | null> {
+  addClientMiles(code: number, miles: number): Observable<Client | null> {
     return this.http.put<any>(
-      `${BASE_URL}/${client.code}/milhas`, 
-      { miles }, 
+      `${BASE_URL}/${code}/milhas`, 
+      { 'quantidade': miles }, 
       this.getHttpOptions()
     ).pipe(
       map((resp: HttpResponse<any>) => {

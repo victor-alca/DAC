@@ -4,7 +4,7 @@ import { filter } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
 import { ClientService } from './services/client/client.service';
 import { Client } from './shared/models/client/client';
-import { ClientDTO } from './shared/models/sing/clientDto';
+import { ClientDTO } from './shared/dtos/clientDto';
 
 @Component({
   selector: 'app-root',
