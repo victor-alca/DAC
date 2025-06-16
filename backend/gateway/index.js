@@ -509,7 +509,7 @@ app.delete('/reservas/:codigoReserva', verifyJWT, authorizeRoles('CLIENTE'), asy
 
         // Chamada para o Serviço Saga (Spring Boot) - Endpoint de cancelamento de reserva
         const sagaServiceResponse = await axios.delete(
-            `${BASE_URL_SAGA_ORCHESTRATOR}/reservas/${codigoReserva}`,
+            `${BASE_URL_SAGA_ORCHESTRATOR}/api/orchestrator/reservation/reservas/${codigoReserva}`,
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -517,10 +517,123 @@ app.delete('/reservas/:codigoReserva', verifyJWT, authorizeRoles('CLIENTE'), asy
             }
         );
 
-        console.log('API Gateway: Resposta do Serviço Saga (cancelar reserva):', sagaServiceResponse.data);
+        const { correlationId } = sagaServiceResponse.data;
+        if (!correlationId) {
+            return res.status(500).json({ message: 'Saga não retornou correlationId.' });
+        }
 
-        // Retorna a resposta do Serviço Saga para o cliente.
-        res.status(sagaServiceResponse.status).json(sagaServiceResponse.data);
+        // Polling até finalizar
+        const maxAttempts = 20;
+        const intervalMs = 1500;
+        let attempts = 0;
+
+        async function pollSagaStatus() {
+            try {
+                const statusResponse = await axios.get(
+                    `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                const { status } = statusResponse.data;
+
+                if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    if (status === 'COMPLETED_ERROR') {
+                        const errorResponse = {
+                            status: 'COMPLETED_ERROR',
+                            message: 'Falha ao cancelar a reserva',
+                            failedServices: statusResponse.data.failedServices || [],
+                        };
+                        
+                        let errorInfo = statusResponse.data.errorInfo;
+                        if (errorInfo) {
+                            if (errorInfo.errorCode === 404) {
+                                errorResponse.message = 'Reserva não encontrada';
+                                return res.status(404).json(errorResponse);
+                            } else if (errorInfo.errorMessage && errorInfo.errorMessage.includes('não pode ser cancelada')) {
+                                errorResponse.message = 'Reserva não pode ser cancelada no status atual';
+                                return res.status(400).json(errorResponse);
+                            } else if (errorInfo.errorMessage && errorInfo.errorMessage.includes('Cliente não encontrado')) {
+                                errorResponse.message = 'Cliente não encontrado para devolução de milhas';
+                                return res.status(400).json(errorResponse);
+                            } else {
+                                errorResponse.message = errorInfo.errorMessage || 'Erro ao cancelar reserva';
+                                return res.status(errorInfo.errorCode || 400).json(errorResponse);
+                            }
+                        }
+                        
+                        // Verifica se falhou na devolução de milhas
+                        if (statusResponse.data.failedServices && 
+                            statusResponse.data.failedServices.includes('DEVOLVER_MILHAS')) {
+                            errorResponse.message = 'Falha na devolução de milhas. O cancelamento foi revertido.';
+                            return res.status(400).json(errorResponse);
+                        }
+                        
+                        return res.status(400).json(errorResponse);
+                    }
+                    
+                    // SUCESSO - Busca dados da reserva cancelada
+                    if (status === 'COMPLETED_SUCCESS' && statusResponse.data.result) {
+                        const result = statusResponse.data.result;
+                        
+                        if (result.type === 'cancellation' && result.codigoReserva) {
+                            try {
+                                // Aguarda para CQRS propagar
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                                // Busca detalhes da reserva cancelada
+                                const reservaResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/reservas/${result.codigoReserva}`);
+                                const reserva = reservaResponse.data;
+
+                                // Busca os detalhes do voo associado à reserva
+                                const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${reserva.codigo_voo}`, {
+                                    headers: { Authorization: req.headers['authorization'] }
+                                });
+
+                                const voo = vooResponse.data;
+
+                                // Monta resposta final no formato igual ao GET /reservas/:codigoReserva
+                                // Remove os campos indesejados da reserva antes de montar a resposta
+                                const { codigo_voo, codigo_aeroporto_origem, codigo_aeroporto_destino, ...reservaSemCampos } = reserva;
+                                
+                                const reservaComVoo = {
+                                    ...reservaSemCampos,
+                                    voo
+                                };
+
+                                return res.status(200).json(reservaComVoo);
+                            } catch (error) {
+                                console.error('Erro ao buscar reserva cancelada:', error);
+                                // Fallback se não conseguir buscar detalhes
+                                return res.status(200).json({
+                                    codigo: result.codigoReserva,
+                                    estado: 'CANCELADA',
+                                    message: 'Reserva cancelada com sucesso. Milhas devolvidas ao saldo.'
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Fallback
+                    return res.status(200).json(statusResponse.data);
+                    
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(pollSagaStatus, intervalMs);
+                } else {
+                    return res.status(202).json({ 
+                        message: 'Cancelamento ainda em andamento.', 
+                        status,
+                        correlationId 
+                    });
+                }
+            } catch (err) {
+                return res.status(500).json({ 
+                    message: 'Erro ao consultar status da SAGA de cancelamento.', 
+                    error: err.message 
+                });
+            }
+        }
+
+        pollSagaStatus();
 
     } catch (error) {
         console.error(`API Gateway: Erro ao processar DELETE /reservas/${req.params.codigoReserva} via Serviço Saga:`, error.message);
@@ -573,34 +686,11 @@ app.get('/reservas/:codigoReserva', verifyJWT, async (req, res) => {
 });
 
 app.get('/clientes/:codigoCliente/reservas', verifyJWT, async (req, res) => {
-    const userRole = req.user.role;
-    const clienteId = req.params.codigoCliente; // ADICIONAR ESTA LINHA
-
-    // Permite se for FUNCIONARIO ou se for o próprio CLIENTE
-    if (userRole === 'FUNCIONARIO') {
-        // Funcionário pode ver reservas de qualquer cliente
-    } else if (userRole === 'CLIENTE') {
-        // Cliente só pode ver suas próprias reservas
-        try {
-            const clienteResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${req.user.sub}/dto`);
-            const clienteCodigo = clienteResponse.data.codigo.toString();
-            
-            // CORRIGIR: Garantir que ambos sejam strings
-            if (clienteCodigo !== clienteId.toString()) {
-                console.log(`Autorização negada: clienteCodigo=${clienteCodigo}, clienteId=${clienteId}`);
-                return res.status(403).json({ message: 'Acesso negado - você só pode acessar suas próprias reservas' });
-            }
-        } catch (error) {
-            console.error('Erro na verificação de autorização:', error.message);
-            return res.status(403).json({ message: 'Acesso negado' });
-        }
-    } else {
-        return res.status(403).json({ message: 'Acesso negado' });
-    }
+    const clienteId = req.params.codigoCliente; 
 
     try {
         // Busca todas as reservas do cliente
-        const reservasResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/clientes/${clienteId}/reservas`, {
+        const reservasResponse = await axios.get(`${BASE_URL_RESERVATIONS_QUERY}/reservas/clientes/${clienteId}/reservas`, {
             headers: { Authorization: req.headers['authorization'] }
         });
 

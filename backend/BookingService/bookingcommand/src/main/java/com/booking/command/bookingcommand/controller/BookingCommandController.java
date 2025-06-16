@@ -33,11 +33,4 @@ public class BookingCommandController {
         BookingResponseDTO response = commandService.updateBookingStatus(codigoReserva, dto);
         return ResponseEntity.ok(response);
     }
-
-    // Cancelar reserva (DELETE)
-    @DeleteMapping("/{codigoReserva}")
-    public ResponseEntity<BookingResponseDTO> cancelBooking(@PathVariable String codigoReserva) {
-        BookingResponseDTO response = commandService.cancelBooking(codigoReserva);
-        return ResponseEntity.ok(response);
-    }
 }

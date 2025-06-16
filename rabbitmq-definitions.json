@@ -76,7 +76,21 @@
       "name": "reserva.criacao.iniciada.atualizar.milhas",
       "vhost": "/",
       "durable": true
-    }
+    },
+    {
+      "name": "reserva.cancelamento.iniciado.reserva",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "reserva.cancelamento.iniciado.milhas",
+      "vhost": "/",
+      "durable": true
+    },
+    { "name": "reserva.cancelamento.sucesso", "vhost": "/", "durable": true },
+    { "name": "reserva.cancelamento.falhou", "vhost": "/", "durable": true },
+    { "name": "reserva.cancelar.compensar", "vhost": "/", "durable": true },
+    { "name": "reserva.devolver.milhas.compensar", "vhost": "/", "durable": true }
   ],
   "exchanges": [
     {
@@ -268,6 +282,48 @@
       "destination": "reserva.criacao.iniciada.atualizar.milhas",
       "destination_type": "queue",
       "routing_key": "reserva.criacao.iniciada.atualizar.milhas",
+      "vhost": "/"
+    },
+    {
+      "source": "reserva.saga.exchange",
+      "destination": "reserva.cancelamento.iniciado.reserva",
+      "destination_type": "queue",
+      "routing_key": "reserva.cancelamento.iniciado",
+      "vhost": "/"
+    },
+    {
+      "source": "reserva.saga.exchange",
+      "destination": "reserva.cancelamento.iniciado.milhas",
+      "destination_type": "queue",
+      "routing_key": "reserva.cancelamento.iniciado.milhas",
+      "vhost": "/"
+    },
+    {
+      "source": "reserva.saga.exchange",
+      "destination": "reserva.cancelamento.sucesso",
+      "destination_type": "queue",
+      "routing_key": "reserva.cancelamento.sucesso",
+      "vhost": "/"
+    },
+    {
+      "source": "reserva.saga.exchange",
+      "destination": "reserva.cancelamento.falhou",
+      "destination_type": "queue",
+      "routing_key": "reserva.cancelamento.falhou",
+      "vhost": "/"
+    },
+    {
+      "source": "reserva.saga.exchange",
+      "destination": "reserva.cancelar.compensar",
+      "destination_type": "queue",
+      "routing_key": "reserva.cancelar.compensar",
+      "vhost": "/"
+    },
+    {
+      "source": "reserva.saga.exchange",
+      "destination": "reserva.devolver.milhas.compensar",
+      "destination_type": "queue",
+      "routing_key": "reserva.devolver.milhas.compensar",
       "vhost": "/"
     }
   ]
