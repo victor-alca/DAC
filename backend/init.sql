@@ -151,8 +151,8 @@ CREATE TABLE IF NOT EXISTS employee.employee (
     active BOOLEAN NOT NULL,
     cpf VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
-    name VARCHAR(255) NOT NULL,
-    phone VARCHAR(255) NOT NULL
+    name VARCHAR(255),
+    phone VARCHAR(255)
 );
 
 -- Inserir funcionário pré-cadastrado

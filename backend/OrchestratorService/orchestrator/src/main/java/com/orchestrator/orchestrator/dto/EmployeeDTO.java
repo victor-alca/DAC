@@ -7,4 +7,5 @@ public class EmployeeDTO {
   public String email;
   public String phone;
   public String name;
+  public String senha;
 }

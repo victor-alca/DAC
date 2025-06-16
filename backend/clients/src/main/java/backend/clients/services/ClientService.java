@@ -157,6 +157,33 @@ public class ClientService {
         milesRecordRepository.save(milesRecord);
     }
 
+    public void returnMilesFromCancellation(int clientCode, Double miles, String bookingCode) {
+        Client client = clientRepository.findById(clientCode).orElse(null);
+        if(client == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado");
+        }
+        
+        // Devolve as milhas para o saldo
+        client.setMiles(client.getMiles() + miles);
+        clientRepository.save(client);
+        
+        // Registra a operação de devolução no extrato
+        MilesRecord milesRecord = new MilesRecord();
+        milesRecord.setClientCode(clientCode);
+        milesRecord.setTransactionDate(new Timestamp(System.currentTimeMillis()));
+        milesRecord.setClient(client);
+        milesRecord.setValue((int) (miles * 5));
+        milesRecord.setAmount(miles.intValue());
+        milesRecord.setType("ENTRADA");
+        milesRecord.setDescription("Cancelamento de reserva");
+        milesRecord.setBookingCode(bookingCode != null ? bookingCode : "");
+        
+        milesRecordRepository.save(milesRecord);
+        
+        System.out.println("[CLIENTES] Devolvidas " + miles + " milhas para cliente " + clientCode + 
+            " por cancelamento da reserva " + bookingCode);
+    }
+
     public ClientResponseDTO getClientByEmailFormatted(String email) {
         Client client = clientRepository.findByEmail(email);
         if (client == null) {

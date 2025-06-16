@@ -19,10 +19,8 @@ public class Employee implements Serializable{
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
     private String phone;
 
     // Getters e Setters
