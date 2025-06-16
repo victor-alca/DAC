@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Client } from '../../shared/models/client/client';
 import { Employee } from '../../shared/models/employee/employee';
+import { ClientDTO } from '../../shared/dtos/clientDto';
 
 const LS_KEY = "USERS"
 
@@ -17,7 +18,7 @@ export class AuthService {
     localStorage.removeItem(LS_KEY);
   }
 
-  getCurrentUserData() : Client | Employee | null{
+  getCurrentUserData() : ClientDTO | Employee | null{
     let ls = localStorage.getItem(LS_KEY)
     console.log(ls)
     if (!ls){
@@ -25,7 +26,7 @@ export class AuthService {
     }
     let user = JSON.parse(ls)
     if(user.tipo == "CLIENTE"){
-      return user.usuario as Client;
+      return user.usuario as ClientDTO;
   
     }else{
       return user.usuario as Employee

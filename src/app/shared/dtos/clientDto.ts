@@ -12,6 +12,7 @@ export class Endereco {
 
 export class ClientDTO {
     constructor(
+        public codigo: number = 0,
         public cpf: string = '',
         public email: string = '',
         public nome: string = '',
