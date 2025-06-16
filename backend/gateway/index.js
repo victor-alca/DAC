@@ -845,15 +845,214 @@ app.get('/funcionarios', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, ne
     employeesServiceProxy(req, res, next);
 });
 
-app.post('/funcionarios', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
-    employeesServiceProxy(req, res, next);
+// POST /funcionarios - via SAGA
+app.post('/funcionarios', verifyJWT, authorizeRoles('FUNCIONARIO'), async (req, res) => {
+    try {
+        console.log('API Gateway: Recebido POST /funcionarios');
+        console.log(req.body);
+
+        // 1. Inicia a SAGA de criação de funcionário
+        const sagaResponse = await axios.post(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/saga/usuarios/funcionario`,
+            req.body,
+            { 
+                headers: {
+                    'Content-Type': 'application/json' 
+                } 
+            }
+        );
+
+        const { correlationId } = sagaResponse.data;
+        if (!correlationId) {
+            return res.status(500).json({ message: 'Saga não retornou correlationId.' });
+        }
+
+        // 2. Polling até finalizar a saga
+        const maxAttempts = 20;
+        const intervalMs = 1500;
+        let attempts = 0;
+
+        async function pollSagaStatus() {
+            try {
+                const statusResponse = await axios.get(
+                    `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                const { status } = statusResponse.data;
+
+                if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    if (status === 'COMPLETED_ERROR') {
+                        const errorResponse = {
+                            status: 'COMPLETED_ERROR',
+                            message: 'Falha ao processar o cadastro do funcionário',
+                            failedServices: statusResponse.data.failedServices || [],
+                        };
+                        let errorInfo = statusResponse.data.errorInfo;
+                        if (errorInfo) {
+                            if (errorInfo.errorCode === 409) {
+                                errorResponse.message = 'Funcionário já existente.';
+                                return res.status(409).json(errorResponse);
+                            }
+                            errorResponse.message = errorInfo.errorMessage || 'Ocorreu um erro ao cadastrar o funcionário';
+                            return res.status(errorInfo.errorCode || 400).json(errorResponse);
+                        }
+                        return res.status(400).json(errorResponse);
+                    }
+                    
+                    // SUCESSO - Busca o funcionário criado pelo email
+                    if (status === 'COMPLETED_SUCCESS') {
+                        try {
+                            // Aguarda alguns segundos para garantir que os dados foram persistidos
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
+                            // Busca o funcionário pelo email
+                            const funcionarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/email/${req.body.email}`);
+                            const funcionarioCriado = funcionarioResponse.data;
+
+                            return res.status(201).json(funcionarioCriado);
+                        } catch (funcionarioError) {
+                            console.error('Erro ao buscar funcionário criado:', funcionarioError.message);
+                            // Se não conseguir buscar o funcionário, retorna resposta básica da saga
+                            return res.status(201).json({
+                                message: 'Funcionário criado com sucesso',
+                                correlationId,
+                                email: req.body.email
+                            });
+                        }
+                    }
+                    
+                    // Fallback
+                    return res.status(200).json(statusResponse.data);
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(pollSagaStatus, intervalMs);
+                } else {
+                    return res.status(202).json({
+                        message: 'Saga ainda em andamento.',
+                        status,
+                        correlationId
+                    });
+                }
+            } catch (err) {
+                return res.status(500).json({
+                    message: 'Erro ao consultar status da SAGA.',
+                    error: err.message
+                });
+            }
+        }
+        pollSagaStatus();
+    } catch (error) {
+        console.error('Erro ao processar POST /funcionarios:', error.message);
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ message: 'Erro interno ao processar a requisição.' });
+        }
+    }
+});
+
+// DELETE /funcionarios/:codigoFuncionario - via SAGA
+app.delete('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIONARIO'), async (req, res) => {
+    try {
+        const codigoFuncionario = req.params.codigoFuncionario;
+        console.log(`API Gateway: Recebido DELETE /funcionarios/${codigoFuncionario}`);
+
+        // 1. Busca os dados do funcionário primeiro
+        const funcionarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigoFuncionario}`);
+        const funcionario = funcionarioResponse.data;
+
+        // 2. Inicia a SAGA de exclusão de funcionário
+        const sagaResponse = await axios.post(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/saga/usuarios/funcionario/remover`,
+            {
+                cpf: funcionario.cpf,
+                email: funcionario.email,
+                name: funcionario.nome,
+                phone: funcionario.telefone
+            },
+            { 
+                headers: {
+                    'Content-Type': 'application/json' 
+                } 
+            }
+        );
+
+        const { correlationId } = sagaResponse.data;
+        if (!correlationId) {
+            return res.status(500).json({ message: 'Saga não retornou correlationId.' });
+        }
+
+        // 3. Polling até finalizar a saga
+        const maxAttempts = 20;
+        const intervalMs = 1500;
+        let attempts = 0;
+
+        async function pollSagaStatus() {
+            try {
+                const statusResponse = await axios.get(
+                    `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                const { status } = statusResponse.data;
+
+                if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    if (status === 'COMPLETED_ERROR') {
+                        const errorResponse = {
+                            status: 'COMPLETED_ERROR',
+                            message: 'Falha ao excluir o funcionário',
+                            failedServices: statusResponse.data.failedServices || [],
+                        };
+                        let errorInfo = statusResponse.data.errorInfo;
+                        if (errorInfo) {
+                            if (errorInfo.errorCode === 404) {
+                                errorResponse.message = 'Funcionário não encontrado.';
+                                return res.status(404).json(errorResponse);
+                            }
+                            errorResponse.message = errorInfo.errorMessage || 'Ocorreu um erro ao excluir o funcionário';
+                            return res.status(errorInfo.errorCode || 400).json(errorResponse);
+                        }
+                        return res.status(400).json(errorResponse);
+                    }
+                    
+                    // SUCESSO - Retorna os dados do funcionário excluído
+                    if (status === 'COMPLETED_SUCCESS') {
+                        return res.status(200).json(funcionario);
+                    }
+                    
+                    // Fallback
+                    return res.status(200).json(statusResponse.data);
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(pollSagaStatus, intervalMs);
+                } else {
+                    return res.status(202).json({
+                        message: 'Exclusão ainda em andamento.',
+                        status,
+                        correlationId
+                    });
+                }
+            } catch (err) {
+                return res.status(500).json({
+                    message: 'Erro ao consultar status da SAGA.',
+                    error: err.message
+                });
+            }
+        }
+        pollSagaStatus();
+    } catch (error) {
+        console.error(`Erro ao processar DELETE /funcionarios/${req.params.codigoFuncionario}:`, error.message);
+        if (error.response) {
+            if (error.response.status === 404) {
+                return res.status(404).json({ message: 'Funcionário não encontrado.' });
+            }
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ message: 'Erro interno ao processar a requisição.' });
+        }
+    }
 });
 
 app.put('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
-    employeesServiceProxy(req, res, next);
-});
-
-app.delete('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
     employeesServiceProxy(req, res, next);
 });
 
@@ -867,9 +1066,6 @@ app.post('/logout', verifyJWT, function (req, res) {
     
     // Adiciona o token à blacklist para invalidá-lo
     // blacklistedTokens.add(token);
-    
-    // Opcional: log para debug
-    //console.log(`Token invalidado no logout: ${token.substring(0, 20)}...`);
     
     // Retorna confirmação do logout
     res.status(200).json({ 
