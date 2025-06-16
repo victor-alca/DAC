@@ -146,14 +146,14 @@ app.post('/login', async (req, res) => {
         let usuarioResponse;
         let tipo = authData.tipo;
         let email = authData.usuario.email
-        let codigo = authData.codigo || authData.id;
+        let codigo = authData.codigo || authData.usuario.id;
         let access_token = authData.access_token
         let token_type = authData.token_type
 
         if (tipo === 'CLIENTE') {
             usuarioResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${email}/dto`);
         } else if (tipo === 'FUNCIONARIO') {
-            usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigo}/dto`);
+            usuarioResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/email/${email}`);
         } else {
             return res.status(500).json({ message: 'Tipo de usuário desconhecido.' });
         }

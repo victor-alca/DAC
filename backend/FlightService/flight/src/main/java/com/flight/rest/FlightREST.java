@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,16 +77,21 @@ public class FlightREST {
     public ResponseEntity<Map<String, Object>> getVoosPorPeriodo(
             @RequestParam String inicio,
             @RequestParam String fim) {
-        LocalDateTime dataInicio, dataFim;
+        LocalDate dataInicio, dataFim;
         try {
-            dataInicio = LocalDateTime.parse(inicio);
-            dataFim = LocalDateTime.parse(fim);
+            // Parse apenas da data (YYYY-MM-DD)
+            dataInicio = LocalDate.parse(inicio);
+            dataFim = LocalDate.parse(fim);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Datas inválidas");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Datas inválidas. Use formato YYYY-MM-DD");
         }
 
         List<Flight> voos = flightService.findAll().stream()
-                .filter(f -> !f.getDate().isBefore(dataInicio) && !f.getDate().isAfter(dataFim))
+                .filter(f -> {
+                    if (f.getDate() == null) return false;
+                    LocalDate dataVoo = f.getDate().toLocalDate();
+                    return !dataVoo.isBefore(dataInicio) && !dataVoo.isAfter(dataFim);
+                })
                 .collect(Collectors.toList());
 
         if (voos.isEmpty()) {
@@ -104,22 +110,51 @@ public class FlightREST {
     public ResponseEntity<VooDTO> inserirVoo(@RequestBody Map<String, Object> body) {
         try {
             Flight flight = new Flight();
+            
+            // Parse da data com suporte a timezone
             String dataStr = (String) body.get("data");
             if (dataStr != null) {
-                flight.setDate(LocalDateTime.parse(dataStr));
-            } else {
-                flight.setDate(null);
+                try {
+                    // Tenta primeiro com timezone (OffsetDateTime)
+                    if (dataStr.contains("T") && (dataStr.contains("+") || dataStr.contains("-") || dataStr.endsWith("Z"))) {
+                        OffsetDateTime offsetDateTime = OffsetDateTime.parse(dataStr);
+                        flight.setDate(offsetDateTime.toLocalDateTime());
+                    } else {
+                        // Fallback para LocalDateTime
+                        flight.setDate(LocalDateTime.parse(dataStr));
+                    }
+                } catch (Exception e) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Formato de data inválido. Use: YYYY-MM-DDTHH:mm:ss ou YYYY-MM-DDTHH:mm:ss±HH:mm");
+                }
             }
+            
+            // Gera código automaticamente se não fornecido
+            String codigo = (String) body.get("codigo");
+            if (codigo == null || codigo.trim().isEmpty()) {
+                // Gera código baseado em timestamp
+                codigo = "TADS" + String.format("%04d", (int)(System.currentTimeMillis() % 10000));
+            }
+            flight.setCode(codigo);
+            
             flight.setOriginAirport((String) body.get("codigo_aeroporto_origem"));
             flight.setDestinationAirport((String) body.get("codigo_aeroporto_destino"));
             flight.setTotalSeats((Integer) body.get("quantidade_poltronas_total"));
-            flight.setOccupatedSeats((Integer) body.get("quantidade_poltronas_ocupadas"));
+            
+            // Define poltronas ocupadas (padrão 0 se não informado)
+            Integer ocupadas = (Integer) body.get("quantidade_poltronas_ocupadas");
+            flight.setOccupatedSeats(ocupadas != null ? ocupadas : 0);
+            
             if (body.get("valor_passagem") != null) {
                 flight.setValorPassagem(Double.valueOf(body.get("valor_passagem").toString()));
             }
+            
+            // Define status padrão como CONFIRMADO (1)
             flight.setStatus(1);
+            
             Flight saved = flightService.save(flight);
             return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(saved));
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao criar voo: " + e.getMessage());
         }
@@ -145,7 +180,7 @@ public class FlightREST {
         VooDTO dto = new VooDTO();
         dto.setCodigo(flight.getCode());
         if (flight.getDate() != null) {
-            dto.setData(flight.getDate().atOffset(OffsetDateTime.now().getOffset()));
+            dto.setData(flight.getDate().atZone(ZoneId.of("America/Sao_Paulo")).toOffsetDateTime());
         }
         dto.setValor_passagem(flight.getValorPassagem());
         dto.setQuantidade_poltronas_total(flight.getTotalSeats());
