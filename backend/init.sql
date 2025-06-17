@@ -139,9 +139,12 @@ INSERT INTO flight.flightstatus (id, code, description) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO flight.flight (code, date, origin_airport, destination_airport, total_seats, occupated_seats, status, valor_passagem) VALUES
-('TADS0002', NOW() + INTERVAL '2 months', 'POA', 'CWB', 180, 50, 1, 450.00),
-('TADS0003', NOW() + INTERVAL '1 year', 'CWB', 'GIG', 180, 60, 1, 500.00),
-('TADS0004', NOW(), 'CWB', 'POA', 180, 70, 1, 420.00)
+('TADS0002', '2025-08-10T10:30:00-03:00', 'POA', 'CWB', 180, 50, 1, 450.00),
+('TADS0003', '2025-09-11T09:30:00-03:00', 'CWB', 'GIG', 180, 60, 1, 500.00),
+('TADS0004', '2025-10-12T08:30:00-03:00', 'CWB', 'POA', 180, 70, 1, 420.00),
+('TADS0005', NOW() + INTERVAL '2 months', 'POA', 'CWB', 180, 50, 1, 450.00),
+('TADS0006', NOW() + INTERVAL '1 year', 'CWB', 'GIG', 180, 60, 1, 500.00),
+('TADS0007', NOW(), 'CWB', 'POA', 180, 70, 1, 420.00)
 ON CONFLICT (code) DO NOTHING;
 
 -- ===== SCHEMA: employee =====
