@@ -31,11 +31,11 @@
         </tr>
         <tr>
           <th scope="row">Origem</th>
-          <td>{{ reserva.flight.originAirport }}</td>
+          <td>{{ reserva.flight.aeroporto_origem }}</td>
         </tr>
         <tr>
           <th scope="row">Destino</th>
-          <td>{{ reserva.flight.destinationAirport }}</td>
+          <td>{{ reserva.flight.aeroporto_destino }}</td>
         </tr>
         <tr>
           <th scope="row">Valor Gasto</th>
@@ -47,7 +47,7 @@
         </tr>
         <tr>
           <th scope="row">Status do Voo</th>
-          <td>{{ getFlightStatusText(reserva.flight.status) }}</td>
+          <td>{{ getFlightStatusText(reserva.flight.estado) }}</td>
         </tr>
         <tr>
           <th scope="row">Status da Reserva</th>

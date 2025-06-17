@@ -15,7 +15,7 @@
       placeholder="Pesquisar por destino"
     />
 
-    <button class="btn btn-primary" (click)="filterTable()">
+    <button class="btn btn-primary" (click)="loadFlightsWithFilter()">
       Buscar
     </button>
   </div>
@@ -30,12 +30,12 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let booking of filteredBookings">
-        <td>{{ booking.date.toLocaleDateString() }}</td>
-        <td>{{ booking.flight.originAirport }}</td>
-        <td>{{ booking.flight.destinationAirport }}</td>
+      <tr *ngFor="let flight of flights">
+        <td>{{ flight.data | date:'dd/MM/yyyy HH:mm'}}</td>
+        <td>{{ flight.aeroporto_origem.nome }}</td>
+        <td>{{ flight.aeroporto_destino.nome }}</td>
         <td>
-          <button class="btn btn-primary" (click)="openBookingModal()">
+          <button class="btn btn-primary" (click)="openBookingModal(flight.codigo)">
             Selecionar
           </button>
         </td>

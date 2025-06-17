@@ -23,9 +23,9 @@
     </thead>
     <tbody>
       <tr *ngFor="let reserva of reservasReservadas">
-        <td>{{ reserva.flight.originAirport }}</td>
-        <td>{{ reserva.flight.destinationAirport }}</td>
-        <td>{{ reserva.flight.date | date : "dd/MM/yyyy HH:mm" }}</td>
+        <td>{{ reserva.flight.aeroporto_origem }}</td>
+        <td>{{ reserva.flight.aeroporto_destino }}</td>
+        <td>{{ reserva.flight.data | date : "dd/MM/yyyy HH:mm" }}</td>
         <td>{{ getBookingStatusText(reserva.status) }}</td>
         <td>
           <button class="btn btn-sm btn-info me-2" [routerLink]="['/view-booking', reserva.ID]">Ver</button>
@@ -54,9 +54,9 @@
     </thead>
     <tbody>
       <tr *ngFor="let reserva of reservasFeitas">
-        <td>{{ reserva.flight.originAirport }}</td>
-        <td>{{ reserva.flight.destinationAirport }}</td>
-        <td>{{ reserva.flight.date | date : "dd/MM/yyyy HH:mm" }}</td>
+        <td>{{ reserva.flight.aeroporto_origem }}</td>
+        <td>{{ reserva.flight.aeroporto_destino }}</td>
+        <td>{{ reserva.flight.data | date : "dd/MM/yyyy HH:mm" }}</td>
         <td>{{ getBookingStatusText(reserva.status) }}</td>
       </tr>
     </tbody>
@@ -81,9 +81,9 @@
     </thead>
     <tbody>
       <tr *ngFor="let reserva of reservasCanceladas">
-        <td>{{ reserva.flight.originAirport }}</td>
-        <td>{{ reserva.flight.destinationAirport }}</td>
-        <td>{{ reserva.flight.date | date : "dd/MM/yyyy HH:mm" }}</td>
+        <td>{{ reserva.flight.aeroporto_origem }}</td>
+        <td>{{ reserva.flight.aeroporto_destino }}</td>
+        <td>{{ reserva.flight.data | date : "dd/MM/yyyy HH:mm" }}</td>
         <td>{{ getBookingStatusText(reserva.status) }}</td>
       </tr>
     </tbody>

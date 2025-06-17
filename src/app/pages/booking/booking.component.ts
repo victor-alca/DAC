@@ -3,9 +3,10 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { BookingModalComponent } from '../booking-modal/booking-modal.component';
-import { BookingService } from '../../services/booking.service';
 import { Booking } from '../../shared/models/booking/booking.model';
 import { BookingStatus } from '../../shared/models/booking/booking-status.enum';
+import { FlightService } from '../../services/flight.service';
+import { Flight } from '../../shared/models/flight/flight.model';
 
 @Component({
   selector: 'app-booking',
@@ -16,37 +17,58 @@ import { BookingStatus } from '../../shared/models/booking/booking-status.enum';
 })
 export class BookingComponent {
   
-  bookings: Booking[] = [];
-  filteredBookings: Booking[] = [];
+  flights: Flight[] = [];
   searchOrigin: string = '';
   searchDestination: string = '';
 
-  constructor(private modalService: NgbModal, private bookingService: BookingService) {}
+  constructor(private modalService: NgbModal, private flightService: FlightService) {}
 
   ngOnInit() {
-    this.loadBookings();
-    this.filterTable();
+    this.loadFlights();
   }
 
-  loadBookings() {
-    this.bookings = this.bookingService.getAll();
-    this.filteredBookings = [...this.bookings];
+  loadFlights() {
+    const dataFim = new Date();
+    dataFim.setFullYear(dataFim.getFullYear() + 2);
+    this.flightService.getAllByPeriod(new Date(), dataFim).subscribe({
+      next: (resp) => {
+        if (resp != null) {
+          this.flights = resp.voos;
+        } else {
+          console.log("nenhum voo cadastrado")
+          this.flights = []; 
+        }
+      },
+      error: (e) => {
+        console.log(e)
+        this.flights = [];
+      }
+    });
   }
 
-  filterTable() {
-    this.filteredBookings = this.bookings
-      .filter(b => 
-        b.flight.originAirport.toLowerCase().includes(this.searchOrigin.toLowerCase()) &&
-        b.flight.destinationAirport.toLowerCase().includes(this.searchDestination.toLowerCase())
-      )
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  loadFlightsWithFilter(){
+    this.flightService.getAllByOriginAndDestiny(new Date(), this.searchOrigin, this.searchDestination).subscribe({
+      next: (resp) => {
+        if (resp != null) {
+          this.flights = resp.voos; 
+        } else {
+          console.log("Nenhum voo cadastrado")
+          this.flights = []; 
+        }
+      },
+      error: (e) => {
+        console.log(e)
+        this.flights = [];
+      }
+    });
   }
 
-  openBookingModal() {
+  openBookingModal(flightCode: string) {
     const modalRef = this.modalService.open(BookingModalComponent);
+    const selectedFlight = this.flights.find(f => f.codigo == flightCode);
     modalRef.componentInstance.booking = new Booking(
       1,
-      this.bookings[0]?.flight, // Exemplo: usa o primeiro voo da lista
+      selectedFlight!,
       new Date(),
       BookingStatus.CREATED,
       0,
