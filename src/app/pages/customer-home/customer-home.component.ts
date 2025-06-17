@@ -5,6 +5,9 @@ import { Flight } from '../../shared/models/flight/flight.model';
 import { FlightStatus } from '../../shared/models/flight/flight-status.enum';
 import { BookingService } from '../../services/booking.service';
 import { Router } from '@angular/router';
+import { ClientService } from '../../services/client/client.service';
+import { AuthService } from '../../services/auth/auth.service';
+import { ClientDTO } from '../../shared/dtos/clientDto';
 
 @Component({
   selector: 'app-customer-home',
@@ -16,12 +19,18 @@ export class CustomerHomeComponent implements OnInit {
   reservasReservadas: Booking[] = [];
   reservasFeitas: Booking[] = [];
   reservasCanceladas: Booking[] = [];
+  milhas: Number = 0
 
-  constructor(private bookingService: BookingService, private router: Router) {}
+  constructor(private bookingService: BookingService, private authService: AuthService, private clientService: ClientService, private router: Router) {}
 
   ngOnInit(): void {
     this.reservas = this.bookingService.getAll();
     this.filterReservas();
+    let currentClient = this.authService.getCurrentUserData() as ClientDTO
+    this.clientService.getById(currentClient.codigo).subscribe((resp) => {
+      console.log(resp!.saldo_milhas)
+      this.milhas = resp!.saldo_milhas
+    })
   }
   filterReservas(): void {
     this.reservasReservadas = this.reservas.filter(

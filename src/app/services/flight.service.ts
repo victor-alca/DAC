@@ -1,15 +1,63 @@
 import { Injectable } from '@angular/core';
 import { Flight } from '../shared/models/flight/flight.model';
 import { FlightStatus } from '../shared/models/flight/flight-status.enum';
+import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
+import { catchError, map, Observable, pipe, throwError } from 'rxjs';
+import { VoosDTO } from '../shared/dtos/vooDto';
 
 // const para o local storage
 const LS_KEY = 'flights';
+const BASE_URL = 'http://localhost:3000/voos'
 
 @Injectable({
   providedIn: 'root',
 })
 export class FlightService {
-  constructor() {}
+  constructor(private http: HttpClient) {}
+
+  httpOptions = {
+        observe: "response" as "response",
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json'
+        }),
+    }
+
+  getAllByPeriod(inicio: Date, fim: Date) : Observable<VoosDTO | null>{
+      return this.http.get<VoosDTO>(
+        `${BASE_URL}?inicio=${inicio.toISOString().slice(0, 10)}&fim=${fim.toISOString().slice(0, 10)}`,
+        this.httpOptions).pipe(
+          map((resp: HttpResponse<VoosDTO>) => {
+            if(resp.status==200){
+              console.log(resp.body)
+              return resp.body
+            }else{
+              return null
+            }
+          }),
+          catchError((err) => {
+            return throwError(() => err)
+          })
+        )
+  }
+
+  getAllByOriginAndDestiny(data: Date, origem: String, destino: String): Observable<VoosDTO | null>{
+    return this.http.get<VoosDTO>(
+        `${BASE_URL}?data=${data.toISOString().slice(0, 10)}&origem=${origem}&destino=${destino}`,
+        this.httpOptions).pipe(
+          map((resp: HttpResponse<VoosDTO>) => {
+            if(resp.status==200){
+              console.log(resp.body)
+              return resp.body
+            }else{
+              return null
+            }
+          }),
+          catchError((err) => {
+            return throwError(() => err)
+          })
+        )
+  }
+
 
   getAll(): Flight[] {
     const flights = localStorage[LS_KEY];
@@ -23,24 +71,24 @@ export class FlightService {
     const flights = this.getAll();
 
     const flightsCount = flights.length + 1;
-    flight.ID = `TADS${flightsCount.toString().padStart(4, '0')}`;
+    flight.codigo = `TADS${flightsCount.toString().padStart(4, '0')}`;
     flights.push(flight);
 
     localStorage[LS_KEY] = JSON.stringify(flights);
 
-    return flight.ID; // Retorna o ID gerado automaticamente
+    return flight.codigo; // Retorna o code gerado automaticamente
   }
 
-  getById(id: string): Flight | undefined {
+  getById(code: string): Flight | undefined {
     const flights = this.getAll();
-    return flights.find((flight) => flight.ID === id);
+    return flights.find((flight) => flight.codigo === code);
   }
 
   update(flight: Flight): void {
     const flights = this.getAll();
 
     flights.forEach((obj, index, objs) => {
-      if (flight.ID === obj.ID) {
+      if (flight.codigo === obj.codigo) {
         objs[index] = flight;
       }
     });
@@ -48,57 +96,57 @@ export class FlightService {
     localStorage[LS_KEY] = JSON.stringify(flights);
   }
 
-  delete(id: string): void {
+  delete(code: string): void {
     let flights = this.getAll();
 
-    flights = flights.filter((flight) => flight.ID !== id);
+    flights = flights.filter((flight) => flight.codigo !== code);
     localStorage[LS_KEY] = JSON.stringify(flights);
   }
 
   // Método temporário para inserir voos manualmente
-  seedFlights(): void {
-    const now = new Date();
-    const next48Hours = new Date();
-    next48Hours.setHours(now.getHours() + 48);
+  // seedFlights(): void {
+  //   const now = new Date();
+  //   const next48Hours = new Date();
+  //   next48Hours.setHours(now.getHours() + 48);
   
-    const flights: Flight[] = [
-      // Voo 1: Dentro das próximas 48 horas
-      new Flight(
-        '1',
-        new Date(now.getTime() + 2 * 60 * 60 * 1000), // 2 horas a partir de agora
-        'CWB',
-        'GRU',
-        500,
-        180,
-        50,
-        FlightStatus.CONFIRMED
-      ),
-      // Voo 2: Dentro das próximas 48 horas
-      new Flight(
-        '2',
-        new Date(now.getTime() + 24 * 60 * 60 * 1000), // 24 horas a partir de agora
-        'GRU',
-        'GIG',
-        400,
-        200,
-        120,
-        FlightStatus.CONFIRMED
-      ),
-      // Voo 3: Fora das próximas 48 horas
-      new Flight(
-        '3',
-        new Date(next48Hours.getTime() + 24 * 60 * 60 * 1000), // 72 horas a partir de agora
-        'BSB',
-        'POA',
-        300,
-        150,
-        80,
-        FlightStatus.CANCELED
-      ),
-    ];
+  //   const flights: Flight[] = [
+  //     // Voo 1: Dentro das próximas 48 horas
+  //     new Flight(
+  //       '1',
+  //       new Date(now.getTime() + 2 * 60 * 60 * 1000), // 2 horas a partir de agora
+  //       'CWB',
+  //       'GRU',
+  //       500,
+  //       180,
+  //       50,
+  //       FlightStatus.CONFIRMED
+  //     ),
+  //     // Voo 2: Dentro das próximas 48 horas
+  //     new Flight(
+  //       '2',
+  //       new Date(now.getTime() + 24 * 60 * 60 * 1000), // 24 horas a partir de agora
+  //       'GRU',
+  //       'GIG',
+  //       400,
+  //       200,
+  //       120,
+  //       FlightStatus.CONFIRMED
+  //     ),
+  //     // Voo 3: Fora das próximas 48 horas
+  //     new Flight(
+  //       '3',
+  //       new Date(next48Hours.getTime() + 24 * 60 * 60 * 1000), // 72 horas a partir de agora
+  //       'BSB',
+  //       'POA',
+  //       300,
+  //       150,
+  //       80,
+  //       FlightStatus.CANCELED
+  //     ),
+  //   ];
   
-    localStorage[LS_KEY] = JSON.stringify(flights);
-  }
+  //   localStorage[LS_KEY] = JSON.stringify(flights);
+  // }
 
   getFlightStatusText(status: FlightStatus): string {
     switch (status) {

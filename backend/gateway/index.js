@@ -2,7 +2,6 @@
 require("dotenv-safe").config();
 
 // Importações de bibliotecas
-const RABBITMQ_URL = process.env.RABBITMQ_URL;
 const express = require('express');
 const http = require('http');
 const httpProxy = require('express-http-proxy');
@@ -13,23 +12,6 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const amqp = require('amqplib');
-
-let channel;
-
-(async () => {
-    for(let i = 0; i < 5; i++){
-        try {
-        const connection = await amqp.connect(RABBITMQ_URL);
-        channel = await connection.createChannel();
-        console.log('Conectado ao RabbitMQ');
-    } catch (error) {
-        console.error('Erro ao conectar ao RabbitMQ:', error);
-        await new Promise(res => setTimeout(res, 3000));
-    }
-    }
-    
-})();
 
 // Inicialização do app Express
 const app = express();
@@ -58,19 +40,12 @@ const flightsServiceProxy = httpProxy(BASE_URL_FLIGHTS);
 const reservationsServiceProxy = httpProxy(BASE_URL_RESERVATIONS_COMMAND);
 const reservationsQueryServiceProxy = httpProxy(BASE_URL_RESERVATIONS_QUERY);
 
-// Set para armazenar tokens invalidados (blacklist)
-const blacklistedTokens = new Set();
 const JWT_SECRET = Buffer.from(process.env.JWT_SECRET, 'base64');
 
 function verifyJWT(req, res, next) {
     const token = req.headers['x-access-token'] || (req.headers['authorization'] && req.headers['authorization'].split(' ')[1]);
     if (!token)
         return res.status(401).json({ auth: false, message: 'Token não fornecido.' });
-
-    // Verifica se o token está na blacklist
-    if (blacklistedTokens.has(token)) {
-        return res.status(401).json({ auth: false, message: 'Token invalidado.' });
-    }
 
     jwt.verify(token, JWT_SECRET, function (err, decoded) {
         if (err) {
@@ -101,7 +76,6 @@ function authorizeRoles(...allowedRoles) {
             // Pega o role do token decodificado
             const userRole = decoded.role;
             
-            // Verifica se o token tem o campo role
             if (!userRole) {
                 return res.status(403).json({ message: 'Token não contém informações de permissão.' });
             }
@@ -284,10 +258,7 @@ app.put('/clientes/:codigoCliente/milhas', verifyJWT, async (req, res, next) => 
     const userRole = req.user.role;
     const clienteId = req.params.codigoCliente;
 
-    // Permite se for FUNCIONARIO ou se for o próprio CLIENTE
-    if (userRole === 'FUNCIONARIO') {
-        return clientsServiceProxy(req, res, next);
-    } else if (userRole === 'CLIENTE') {
+    if (userRole === 'CLIENTE') {
         try {
             const clienteResponse = await axios.get(`${BASE_URL_CLIENTS}/clientes/email/${req.user.sub}/dto`);
             const clienteCodigo = clienteResponse.data.codigo.toString();
@@ -295,6 +266,7 @@ app.put('/clientes/:codigoCliente/milhas', verifyJWT, async (req, res, next) => 
             if (clienteCodigo !== clienteId) {
                 return res.status(403).json({ message: 'Acesso negado - você só pode alterar suas próprias milhas' });
             }
+            console.log(req.body)
             return clientsServiceProxy(req, res, next);
         } catch (error) {
             return res.status(403).json({ message: 'Acesso negado' });
@@ -334,7 +306,7 @@ app.get('/clientes', verifyJWT, (req, res, next) => {
 
 // Rotas para o serviço de Reservas
 
-// (via Orquestrador Saga) FUNCIONAL
+// (via Orquestrador Saga) 
 app.post('/reservas', verifyJWT, authorizeRoles('CLIENTE'), async (req, res) => {
     try {
         // 1. Inicia a SAGA
@@ -806,32 +778,114 @@ app.post('/voos', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => 
 app.patch('/voos/:codigoVoo/estado', verifyJWT, authorizeRoles('FUNCIONARIO'), async (req, res) => {
     try {
         const codigoVoo = req.params.codigoVoo;
-        const { estado } = req.body; 
+        const { estado } = req.body;
 
         console.log(`API Gateway: Recebido PATCH /voos/${codigoVoo}/estado com estado: ${estado}`);
 
-        // Chamada para o Serviço Saga (Spring Boot) - Endpoint de alteração de estado do voo
-        const sagaServiceResponse = await axios.patch(
-            `${BASE_URL_SAGA_ORCHESTRATOR}/voos/${codigoVoo}/estado`,
-            { estado: estado }, // Envia o estado no corpo da requisição
-            {
-                headers: {
-                    'Content-Type': 'application/json',
+        let endpoint;
+        if (estado === 'CANCELADO') {
+            endpoint = `${BASE_URL_SAGA_ORCHESTRATOR}/saga/voos/${codigoVoo}/cancelar`;
+        } else if (estado === 'REALIZADO') {
+            endpoint = `${BASE_URL_SAGA_ORCHESTRATOR}/saga/voos/${codigoVoo}/realizar`;
+        } else {
+            return res.status(400).json({ message: `Estado inválido: ${estado}. Apenas CANCELADO ou REALIZADO são permitidos.` });
+        }
+
+        // Chamada para o Serviço Saga
+        const sagaServiceResponse = await axios.post(endpoint, { estado }, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const { correlationId } = sagaServiceResponse.data;
+        if (!correlationId) {
+            return res.status(500).json({ message: 'Saga não retornou correlationId.' });
+        }
+
+        // Polling até finalizar
+        const maxAttempts = 30; // Increase attempts for flight operations
+        const intervalMs = 2000; // Increase interval
+        let attempts = 0;
+
+        async function pollSagaStatus() {
+            try {
+                const statusResponse = await axios.get(
+                    `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                const { status } = statusResponse.data;
+
+                console.log(`API Gateway: Tentativa ${attempts + 1} - Status da SAGA: ${status}`);
+
+                if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    if (status === 'COMPLETED_ERROR') {
+                        const errorResponse = {
+                            status: 'COMPLETED_ERROR',
+                            message: 'Falha ao alterar estado do voo',
+                            failedServices: statusResponse.data.failedServices || [],
+                        };
+                        let errorInfo = statusResponse.data.errorInfo;
+                        if (errorInfo) {
+                            if (errorInfo.errorCode === 404) {
+                                errorResponse.message = 'Voo não encontrado.';
+                                return res.status(404).json(errorResponse);
+                            }
+                            errorResponse.message = errorInfo.errorMessage || 'Ocorreu um erro ao alterar estado do voo';
+                            return res.status(errorInfo.errorCode || 400).json(errorResponse);
+                        }
+                        return res.status(400).json(errorResponse);
+                    }
+                    
+                    // SUCESSO - Busca o voo atualizado
+                    if (status === 'COMPLETED_SUCCESS') {
+                        try {
+                            // Aguarda alguns segundos para garantir que os dados foram atualizados
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
+                            // Busca o voo atualizado
+                            const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${codigoVoo}`);
+                            const vooAtualizado = vooResponse.data;
+
+                            return res.status(200).json(vooAtualizado);
+                        } catch (vooError) {
+                            console.error('Erro ao buscar voo atualizado:', vooError.message);
+                            // Se não conseguir buscar o voo, retorna resposta básica
+                            return res.status(200).json({
+                                message: `Voo ${estado.toLowerCase()} com sucesso`,
+                                codigo: codigoVoo,
+                                estado: estado
+                            });
+                        }
+                    }
+                    
+                    // Fallback
+                    return res.status(200).json(statusResponse.data);
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(pollSagaStatus, intervalMs);
+                } else {
+                    return res.status(202).json({
+                        message: 'Alteração de estado ainda em andamento.',
+                        status,
+                        correlationId
+                    });
                 }
+            } catch (err) {
+                console.error('Erro ao consultar status da SAGA:', err.message);
+                return res.status(500).json({
+                    message: 'Erro ao consultar status da SAGA.',
+                    error: err.message
+                });
             }
-        );
+        }
 
-        console.log('API Gateway: Resposta do Serviço Saga (alterar estado do voo):', sagaServiceResponse.data);
-
-        // Retorna a resposta do Serviço Saga para o cliente.
-        res.status(sagaServiceResponse.status).json(sagaServiceResponse.data);
+        pollSagaStatus();
 
     } catch (error) {
         console.error(`API Gateway: Erro ao processar PATCH /voos/${req.params.codigoVoo}/estado via Serviço Saga:`, error.message);
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
-            res.status(500).json({ message: 'Erro interno no API Gateway ao processar a alteração do estado do voo.' });
+            res.status(500).json({ message: 'Erro interno ao processar alteração do estado do voo.' });
         }
     }
 });

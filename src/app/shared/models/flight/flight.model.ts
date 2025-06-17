@@ -1,14 +1,15 @@
+import { Airport } from '../airport/airport.model';
 import { FlightStatus } from './flight-status.enum';
 
 export class Flight {
   constructor(
-    public ID: string,
-    public date: Date,
-    public originAirport: string,
-    public destinationAirport: string,
-    public ticketCost: number,
-    public totalSeats: number,
-    public occupatedSeats: number,
-    public status: FlightStatus
+    public codigo: string,
+    public data: Date,
+    public aeroporto_origem: Airport,
+    public aeroporto_destino: Airport,
+    public valor_passagem: number,
+    public quantidade_poltronas_total: number,
+    public quantidade_poltronas_ocupadas: number,
+    public estado: FlightStatus
   ) {}
 }

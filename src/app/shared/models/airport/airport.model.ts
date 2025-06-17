@@ -1,8 +1,8 @@
 export class Airport {
   constructor(
-    public code: string[3],
-    public name: string,
-    public city: string,
-    public federativeUnit: string
+    public codigo: string[3],
+    public nome: string,
+    public cidade: string,
+    public uf: string
   ) {}
 }

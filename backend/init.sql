@@ -135,7 +135,8 @@ ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO flight.flightstatus (id, code, description) VALUES
 (1, 'ATIVO', 'Voo ativo'),
-(2, 'CANCELADO', 'Voo cancelado')
+(2, 'CANCELADO', 'Voo cancelado'),
+(3, 'REALIZADO', 'Voo realizado')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO flight.flight (code, date, origin_airport, destination_airport, total_seats, occupated_seats, status, valor_passagem) VALUES

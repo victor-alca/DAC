@@ -27,17 +27,18 @@ A seguir, a lista dos microsserviços gerenciados e suas respectivas portas:
 
 ## Bancos de Dados
 
-O sistema utiliza múltiplos bancos de dados especializados:
+O sistema utiliza uma arquitetura de **Schema-per-Service** para garantir o isolamento de dados entre microsserviços, mantendo a independência e autonomia de cada serviço.
 
-### PostgreSQL
-- **clients-db**: Porta **5438** - Banco de dados do serviço de clientes
-- **booking-command-db**: Porta **5436** - Banco de dados para comandos de reserva
-- **booking-query-db**: Porta **5437** - Banco de dados para consultas de reserva
-- **flight-db**: Porta **5434** - Banco de dados do serviço de voos
-- **employee-db**: Porta **5435** - Banco de dados do serviço de funcionários
+### PostgreSQL (Schema-per-Service)
+- **postgres-db**: Porta **5433** - Instância única do PostgreSQL que hospeda múltiplos schemas:
+  - **Schema `client`**: Dados do serviço de clientes (milhas, transações, informações pessoais)
+  - **Schema `bookingcommand`**: Dados de comandos de reserva (CQRS - Write side)
+  - **Schema `bookingquery`**: Dados de consultas de reserva (CQRS - Read side)
+  - **Schema `flight`**: Dados de voos e aeroportos
+  - **Schema `employee`**: Dados de funcionários
 
 ### MongoDB
-- **auth-db**: Porta **27017** - Banco de dados do serviço de autenticação
+- **auth-db**: Porta **27017** - Banco de dados do serviço de autenticação (credenciais e tokens)
 
 ## Message Broker
 
@@ -53,6 +54,7 @@ O sistema utiliza múltiplos bancos de dados especializados:
 2. **SAGA Pattern**: Coordena transações distribuídas
 3. **CQRS**: Separa operações de leitura e escrita para reservas
 4. **Event-Driven Architecture**: Comunicação assíncrona via RabbitMQ
+5. **Schema-per-Service**: Isolamento de dados com schemas dedicados
 
 ### Autenticação e Autorização
 
@@ -74,3 +76,4 @@ Todos os endpoints devem ser acessados através do API Gateway na porta **3000**
 - O API Gateway implementa blacklist de tokens para logout seguro
 - As transações distribuídas são coordenadas pelo Orchestrator Service usando RabbitMQ
 - O sistema suporta rollback automático em caso de falhas nas transações SAGA
+- Cada microsserviço possui seu próprio schema no PostgreSQL, garantindo isolamento de dados
