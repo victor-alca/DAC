@@ -40,7 +40,7 @@ export class BookingLookupComponent {
   canCheckIn(): boolean {
     if (!this.reserva) return false;
     const now = new Date();
-    const flightDate = new Date(this.reserva.flight.date);
+    const flightDate = new Date(this.reserva.flight.data);
     const diffInHours = (flightDate.getTime() - now.getTime()) / (1000 * 60 * 60);
     return diffInHours <= 48 && diffInHours > 0 && this.reserva.status === BookingStatus.CREATED;
   }

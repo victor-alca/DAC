@@ -2,13 +2,13 @@
 
 <div class="border-top p-3 mb-3">
   <h5 class="card-title mb-3">Informações do Voo</h5>
-  <p><strong>Data:</strong> {{ booking.flight.date.toLocaleDateString() }}</p>
+  <p><strong>Data:</strong> {{ booking.flight.data | date:'dd/MM/yyyy HH:mm' }}</p>
   <div class="d-flex gap-2 justify-content-between">
     <p class="w-100 mb-0">
-      <strong>Origem:</strong> {{ booking.flight.originAirport }}
+      <strong>Origem:</strong> {{ booking.flight.aeroporto_origem.nome }}
     </p>
     <p class="w-100 mb-0">
-      <strong>Destino:</strong> {{ booking.flight.destinationAirport }}
+      <strong>Destino:</strong> {{ booking.flight.aeroporto_destino.nome }}
     </p>
   </div>
 </div>
@@ -17,11 +17,11 @@
   <div class="row">
     <div class="col">
       <p class="fw-bold card-title">Assentos Disponíveis</p>
-      <p>{{ booking.flight.totalSeats - booking.flight.occupatedSeats }}</p>
+      <p>{{ booking.flight.quantidade_poltronas_total - booking.flight.quantidade_poltronas_ocupadas }}</p>
     </div>
     <div class="col">
       <p class="fw-bold card-title">Valor do assento</p>
-      <p>R$: {{ booking.flight.ticketCost }}</p>
+      <p>R$ {{ booking.flight.valor_passagem }}</p>
     </div>
   </div>
   <div class="row">
@@ -35,7 +35,7 @@
         class="form-control w-25"
         [(ngModel)]="selectedSeats"
         [min]="1"
-        [max]="booking.flight.totalSeats - booking.flight.occupatedSeats"
+        [max]="booking.flight.quantidade_poltronas_total - booking.flight.quantidade_poltronas_ocupadas"
         placeholder="Escolha a quantidade"
       />
     </div>
@@ -55,7 +55,7 @@
     </div>
     <div class="col">
       <p class="fw-bold card-title">Valor a pagar</p>
-      <p>R$ {{ selectedSeats * booking.flight.ticketCost }}</p>
+      <p>R$ {{ selectedSeats * booking.flight.valor_passagem }}</p>
     </div>
   </div>
   <div class="row">
@@ -67,13 +67,13 @@
         class="form-control w-75"
         [(ngModel)]="selectedMilles"
         [min]="1"
-        [max]="selectedSeats * booking.flight.ticketCost"
+        [max]="selectedSeats * booking.flight.valor_passagem"
         placeholder="Escolha a quantidade"
       />
     </div>
     <div class="col">
       <p class="fw-bold card-title">Valor a pagar em reais</p>
-      <p>R$ {{ selectedSeats * booking.flight.ticketCost - selectedMilles }}</p>
+      <p>R$ {{ selectedSeats * booking.flight.valor_passagem - selectedMilles }}</p>
     </div>
   </div>
 

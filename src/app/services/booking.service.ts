@@ -65,9 +65,9 @@ export class BookingService {
     return this.getAll().filter(booking => booking.status === 2);
   }
 
-  getFlightDetails(flightId: string): Flight | undefined {
+  getFlightDetails(flightCode: string): Flight | undefined {
     const flights: Flight[] = JSON.parse(localStorage.getItem('flights') || '[]');
-    return flights.find(flight => flight.ID === flightId);
+    return flights.find(flight => flight.codigo === flightCode);
   }
 
   // Método temporário para inserir reservas manualmente

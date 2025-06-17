@@ -80,19 +80,19 @@ export class FlightRegistrationComponent implements OnInit {
     // Garantir que ticketCost é uma string antes de usar replace
     const numericTicketCost = parseFloat(String(this.ticketCost).replace(/[^\d.-]/g, '')); // Remove máscara e converte para número
   
-    const newFlight = new Flight(
-      '', // ID será gerado automaticamente
-      this.date,
-      this.originAirport,
-      this.destinationAirport,
-      numericTicketCost,
-      this.totalSeats,
-      0, // Assentos ocupados inicialmente
-      FlightStatus.CONFIRMED
-    );
+    // const newFlight = new Flight(
+    //   '', // ID será gerado automaticamente
+    //   this.date,
+    //   this.originAirport,
+    //   this.destinationAirport,
+    //   numericTicketCost,
+    //   this.totalSeats,
+    //   0, // Assentos ocupados inicialmente
+    //   FlightStatus.CONFIRMED
+    // );
   
-    const generatedId = this.flightService.create(newFlight); // Recebe o ID gerado
-    this.successMessage = `Voo ${generatedId} cadastrado com sucesso!`; // Exibe o ID na mensagem
+    // const generatedId = this.flightService.create(); // Recebe o ID gerado
+    this.successMessage = `Voo ${1} cadastrado com sucesso!`; // Exibe o ID na mensagem
     this.resetForm();
   }
 

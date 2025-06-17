@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Booking } from '../../shared/models/booking/booking.model';
 import { Flight } from '../../shared/models/flight/flight.model';
+import { Airport } from '../../shared/models/airport/airport.model';
 
 @Component({
   selector: 'app-cancel-booking',
@@ -8,6 +9,6 @@ import { Flight } from '../../shared/models/flight/flight.model';
   styleUrl: './cancel-booking.component.css',
 })
 export class CancelBookingComponent {
-  voo = new Flight('1', new Date, "JFK", "CWB", 7777.7, 48, 20, 1)
+  voo = new Flight('1', new Date, new Airport("qfd", "awe", "fwewef", "wfe"), new Airport("qfd", "awe", "fwewef", "wfe"), 7777.7, 48, 20, 1)
   reserva = new Booking(1,this.voo,new Date(), 1,1,1);
 }
