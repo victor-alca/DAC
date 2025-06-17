@@ -2,7 +2,6 @@
 require("dotenv-safe").config();
 
 // Importações de bibliotecas
-const RABBITMQ_URL = process.env.RABBITMQ_URL;
 const express = require('express');
 const http = require('http');
 const httpProxy = require('express-http-proxy');
@@ -13,23 +12,6 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const amqp = require('amqplib');
-
-let channel;
-
-(async () => {
-    for(let i = 0; i < 5; i++){
-        try {
-        const connection = await amqp.connect(RABBITMQ_URL);
-        channel = await connection.createChannel();
-        console.log('Conectado ao RabbitMQ');
-    } catch (error) {
-        console.error('Erro ao conectar ao RabbitMQ:', error);
-        await new Promise(res => setTimeout(res, 3000));
-    }
-    }
-    
-})();
 
 // Inicialização do app Express
 const app = express();
