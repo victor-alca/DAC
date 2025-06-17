@@ -35,7 +35,7 @@ public class SagaReservationService {
         return correlationId;
     }
 
-    // SAGA DE CANCELAMENTO
+    // SAGA DE CANCELAMENTO DE RESERVA
     public String startCancellationSaga(ReservationDTO reservationDTO) {
         SagaMessage<ReservationDTO> sagaMessage = new SagaMessage<>(reservationDTO);
         String correlationId = sagaMessage.getCorrelationId();
@@ -123,7 +123,7 @@ public class SagaReservationService {
         }
     }
 
-    // Chame este método quando receber falha de qualquer serviço
+    // Chame este método quando receber falha de qualquer serviço 
     public void onSagaFailure(String correlationId, ReservationDTO payload) {
         System.out.println("[SAGA] Falha detectada, iniciando compensação. correlationId: " + correlationId);
         Set<String> servicosComSucesso = sagaStateManager.get(correlationId).getSuccessfulServices();
@@ -135,10 +135,11 @@ public class SagaReservationService {
             compensacaoMessage.setOperation("COMPENSATE");
 
             String routingKey = switch (service) {
+                // CRIACAO
                 case "MILHAS" -> "reserva.milhas.compensar";
                 case "VOO" -> "reserva.voo.compensar";
                 case "RESERVA" -> "reserva.reserva.compensar";
-                // NOVAS COMPENSAÇÕES PARA CANCELAMENTO
+                // CANCELAMENTO
                 case "CANCELAR_RESERVA" -> "reserva.cancelar.compensar";
                 case "DEVOLVER_MILHAS" -> "reserva.devolver.milhas.compensar";
                 default -> null;

@@ -22,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -268,6 +269,67 @@ public class BookingCommandService {
             
         } catch (Exception e) {
             System.err.println("[RESERVA] Erro ao reverter cancelamento na SAGA: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Métodos das Sagas de Voo
+    public boolean cancelBookingsByFlight(String codigoVoo) {
+        try {
+            // Busca todas as reservas do voo
+            List<Booking> bookings = bookingRepository.findByFlightCode(codigoVoo); 
+            
+            if (bookings.isEmpty()) {
+                System.out.println("[RESERVAS] Nenhuma reserva ativa encontrada para o voo " + codigoVoo);
+                return true;
+            }
+
+            BookingStatus statusCanceladaVoo = bookingStatusRepository.findByCode("CANCELADA VOO");
+            if (statusCanceladaVoo == null) {
+                throw new RuntimeException("Status 'CANCELADA VOO' não encontrado");
+            }
+
+            for (Booking booking : bookings) {
+                // Cancela as reservas
+                booking.setStatus(statusCanceladaVoo);
+                bookingRepository.save(booking);
+                publishBookingEvent("UPDATED", booking);
+                System.out.println("[RESERVAS] Reserva " + booking.getCode() + " cancelada por cancelamento do voo " + codigoVoo);
+            }
+            
+            return true;
+        } catch (Exception e) {
+            System.err.println("[RESERVAS] Erro ao cancelar reservas do voo " + codigoVoo + ": " + e.getMessage());
+            throw new RuntimeException("Falha ao cancelar reservas do voo: " + e.getMessage());
+        }
+    }
+
+    public void revertFlightReservationsCancellation(String codigoVoo) {
+        try {
+            // Busca todas as reservas do voo que foram canceladas por cancelamento de voo
+            BookingStatus statusCanceladaVoo = bookingStatusRepository.findByCode("CANCELADA VOO");
+            if (statusCanceladaVoo == null) {
+                System.err.println("[RESERVAS] Status 'CANCELADA VOO' não encontrado");
+                return;
+            }
+            
+            List<Booking> bookings = bookingRepository.findByFlightCodeAndStatus(codigoVoo, statusCanceladaVoo);
+            
+            BookingStatus statusCriada = bookingStatusRepository.findByCode("CRIADA");
+            if (statusCriada == null) {
+                System.err.println("[RESERVAS] Status 'CRIADA' não encontrado para reversão");
+                return;
+            }
+
+            for (Booking booking : bookings) {
+                // Volta para CRIADA (status mais comum)
+                booking.setStatus(statusCriada);
+                bookingRepository.save(booking);
+                publishBookingEvent("UPDATED", booking);
+                System.out.println("[RESERVAS] Cancelamento da reserva " + booking.getCode() + " foi revertido");
+            }
+        } catch (Exception e) {
+            System.err.println("[RESERVAS] Erro ao reverter cancelamento de reservas: " + e.getMessage());
             e.printStackTrace();
         }
     }
