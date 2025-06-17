@@ -59,7 +59,15 @@
     { "name": "voo.cancelamento.reservas.sucesso", "vhost": "/", "durable": true },
     { "name": "voo.cancelamento.reservas.falhou", "vhost": "/", "durable": true },
     { "name": "voo.cancelamento.compensar", "vhost": "/", "durable": true },
-    { "name": "voo.reservas.cancelamento.compensar", "vhost": "/", "durable": true }
+    { "name": "voo.reservas.cancelamento.compensar", "vhost": "/", "durable": true },
+    { "name": "voo.realizacao.iniciado.voo", "vhost": "/", "durable": true },
+    { "name": "voo.realizacao.reservas.iniciado.reserva", "vhost": "/", "durable": true },
+    { "name": "voo.realizacao.sucesso", "vhost": "/", "durable": true },
+    { "name": "voo.realizacao.falhou", "vhost": "/", "durable": true },
+    { "name": "voo.realizacao.reservas.sucesso", "vhost": "/", "durable": true },
+    { "name": "voo.realizacao.reservas.falhou", "vhost": "/", "durable": true },
+    { "name": "voo.realizacao.compensar", "vhost": "/", "durable": true },
+    { "name": "voo.reservas.realizacao.compensar", "vhost": "/", "durable": true }
   ],
   "exchanges": [
     {
@@ -262,7 +270,7 @@
       "routing_key": "reserva.criacao.iniciada.atualizar.milhas",
       "vhost": "/"
     },
-    
+
     {
       "source": "reserva.saga.exchange",
       "destination": "reserva.cancelamento.iniciado.reserva",
@@ -360,6 +368,62 @@
       "destination": "voo.reservas.cancelamento.compensar",
       "destination_type": "queue",
       "routing_key": "voo.reservas.cancelamento.compensar",
+      "vhost": "/"
+    },
+        {
+      "source": "voo.saga.exchange",
+      "destination": "voo.realizacao.iniciado.voo",
+      "destination_type": "queue",
+      "routing_key": "voo.realizacao.iniciado",
+      "vhost": "/"
+    },
+    {
+      "source": "voo.saga.exchange",
+      "destination": "voo.realizacao.reservas.iniciado.reserva",
+      "destination_type": "queue",
+      "routing_key": "voo.realizacao.reservas.iniciado",
+      "vhost": "/"
+    },
+    {
+      "source": "voo.saga.exchange",
+      "destination": "voo.realizacao.sucesso",
+      "destination_type": "queue",
+      "routing_key": "voo.realizacao.sucesso",
+      "vhost": "/"
+    },
+    {
+      "source": "voo.saga.exchange",
+      "destination": "voo.realizacao.falhou",
+      "destination_type": "queue",
+      "routing_key": "voo.realizacao.falhou",
+      "vhost": "/"
+    },
+    {
+      "source": "voo.saga.exchange",
+      "destination": "voo.realizacao.reservas.sucesso",
+      "destination_type": "queue",
+      "routing_key": "voo.realizacao.reservas.sucesso",
+      "vhost": "/"
+    },
+    {
+      "source": "voo.saga.exchange",
+      "destination": "voo.realizacao.reservas.falhou",
+      "destination_type": "queue",
+      "routing_key": "voo.realizacao.reservas.falhou",
+      "vhost": "/"
+    },
+    {
+      "source": "voo.saga.exchange",
+      "destination": "voo.realizacao.compensar",
+      "destination_type": "queue",
+      "routing_key": "voo.realizacao.compensar",
+      "vhost": "/"
+    },
+    {
+      "source": "voo.saga.exchange",
+      "destination": "voo.reservas.realizacao.compensar",
+      "destination_type": "queue",
+      "routing_key": "voo.reservas.realizacao.compensar",
       "vhost": "/"
     }
   ]

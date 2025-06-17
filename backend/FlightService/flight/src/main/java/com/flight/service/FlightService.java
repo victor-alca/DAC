@@ -69,6 +69,11 @@ public class FlightService {
         if (voo == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Voo não encontrado");
         }
+
+        // Verifica se o voo está no status CONFIRMADO (1)
+        if (voo.getStatus() != 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Voo deve estar no status CONFIRMADO para ser cancelado");
+        }
         
         voo.setStatus(2); // CANCELADO
         flightRepository.save(voo);
@@ -83,6 +88,33 @@ public class FlightService {
         voo.setStatus(1); // CONFIRMADO
         flightRepository.save(voo);
         System.out.println("[VOO] Cancelamento do voo " + codigoVoo + " foi revertido");
+    }
+
+    public boolean realizeFlight(String codigoVoo) {
+        Flight voo = flightRepository.findById(codigoVoo).orElse(null);
+        if (voo == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Voo não encontrado");
+        }
+        
+        // Verifica se o voo está no status CONFIRMADO (1)
+        if (voo.getStatus() != 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Voo deve estar no status CONFIRMADO para ser realizado");
+        }
+        
+        voo.setStatus(3); // REALIZADO
+        flightRepository.save(voo);
+        System.out.println("[VOO] Voo " + codigoVoo + " realizado com sucesso");
+        return true;
+    }
+
+    public void revertFlightRealization(String codigoVoo) {
+        Flight voo = flightRepository.findById(codigoVoo).orElse(null);
+        if (voo == null) return;
+        
+        // Volta para CONFIRMADO (assumindo que era o status anterior)
+        voo.setStatus(1); // CONFIRMADO
+        flightRepository.save(voo);
+        System.out.println("[VOO] Realização do voo " + codigoVoo + " foi revertida");
     }
 
 }

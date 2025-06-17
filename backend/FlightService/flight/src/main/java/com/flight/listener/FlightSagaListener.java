@@ -113,4 +113,90 @@ public class FlightSagaListener {
             e.printStackTrace();
         }
     }
+
+    @RabbitListener(queues = "voo.realizacao.iniciado.voo")
+    public void onRealizeFlightSaga(@Payload String json) {
+        try {
+            SagaMessage<FlightDTO> message = objectMapper.readValue(
+                json, new TypeReference<SagaMessage<FlightDTO>>() {}
+            );
+            
+            FlightDTO dto = message.getPayload();
+            String correlationId = message.getCorrelationId();
+
+            System.out.println("[REALIZAR_VOO] Processando realização do voo " + dto.getCodigo_voo());
+
+            // Realiza o voo
+            boolean success = flightService.realizeFlight(dto.getCodigo_voo());
+            message.setOrigin("REALIZAR_VOO");
+
+            if (success) {
+                String jsonResponse = objectMapper.writeValueAsString(message);
+                rabbitTemplate.convertAndSend("voo.saga.exchange", "voo.realizacao.sucesso", jsonResponse);
+                System.out.println("[REALIZAR_VOO] Voo " + dto.getCodigo_voo() + " realizado com sucesso na SAGA");
+            } else {
+                String jsonError = objectMapper.writeValueAsString(message);
+                rabbitTemplate.convertAndSend("voo.saga.exchange", "voo.realizacao.falhou", jsonError);
+                System.out.println("[REALIZAR_VOO] Falha ao realizar voo " + dto.getCodigo_voo() + " na SAGA");
+            }
+        } catch (ResponseStatusException e) {
+            System.err.println("[REALIZAR_VOO] Falha na SAGA - " + e.getStatusCode() + ": " + e.getReason());
+            
+            try {
+                SagaMessage<FlightDTO> message = objectMapper.readValue(
+                    json, new TypeReference<SagaMessage<FlightDTO>>() {}
+                );
+                message.setOrigin("REALIZAR_VOO");
+                
+                // Adiciona informações do erro na mensagem
+                Map<String, Object> errorInfo = new HashMap<>();
+                errorInfo.put("errorCode", e.getStatusCode().value());
+                errorInfo.put("errorMessage", e.getReason());
+                message.setErrorInfo(errorInfo);
+                
+                String jsonError = objectMapper.writeValueAsString(message);
+                rabbitTemplate.convertAndSend("voo.saga.exchange", "voo.realizacao.falhou", jsonError);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        } catch (Exception e) {
+            System.err.println("[REALIZAR_VOO] Erro inesperado: " + e.getMessage());
+            e.printStackTrace();
+            try {
+                SagaMessage<FlightDTO> message = objectMapper.readValue(
+                    json, new TypeReference<SagaMessage<FlightDTO>>() {}
+                );
+                message.setOrigin("REALIZAR_VOO");
+                String jsonError = objectMapper.writeValueAsString(message);
+                rabbitTemplate.convertAndSend("voo.saga.exchange", "voo.realizacao.falhou", jsonError);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    // LISTENER PARA COMPENSAÇÃO (REVERTER REALIZAÇÃO)
+    @RabbitListener(queues = "voo.realizacao.compensar")
+    public void onCompensateRealizeFlight(@Payload String json) {
+        try {
+            SagaMessage<FlightDTO> message = objectMapper.readValue(
+                json, new TypeReference<SagaMessage<FlightDTO>>() {}
+            );
+            
+            FlightDTO dto = message.getPayload();
+            String correlationId = message.getCorrelationId();
+
+            System.out.println("[FLIGHT] Executando compensação de realização para SAGA " + correlationId);
+            System.out.println("[FLIGHT] Voltando voo " + dto.getCodigo_voo() + " para o status anterior");
+
+            // Reverte a realização - volta o voo para status CONFIRMADO
+            flightService.revertFlightRealization(dto.getCodigo_voo());
+            
+            System.out.println("[FLIGHT] Compensação de realização concluída para voo " + dto.getCodigo_voo());
+            
+        } catch (Exception e) {
+            System.err.println("[FLIGHT] Erro na compensação de realização: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

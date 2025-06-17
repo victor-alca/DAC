@@ -334,6 +334,96 @@ public class BookingCommandService {
         }
     }
 
+    public boolean realizeBookingsByFlight(String codigoVoo) {
+        try {
+            // Busca todas as reservas do voo
+            List<Booking> bookings = bookingRepository.findByFlightCode(codigoVoo); 
+            
+            if (bookings.isEmpty()) {
+                System.out.println("[RESERVAS] Nenhuma reserva encontrada para o voo " + codigoVoo);
+                return true;
+            }
+
+            BookingStatus statusRealizada = bookingStatusRepository.findByCode("REALIZADA");
+            BookingStatus statusNaoRealizada = bookingStatusRepository.findByCode("NÃO REALIZADA");
+            
+            if (statusRealizada == null || statusNaoRealizada == null) {
+                throw new RuntimeException("Status 'REALIZADA' ou 'NÃO REALIZADA' não encontrados");
+            }
+
+            for (Booking booking : bookings) {
+                String statusAtual = booking.getStatus().getCode();
+                
+                // Se estava EMBARCADA, passa para REALIZADA
+                if ("EMBARCADA".equals(statusAtual)) {
+                    booking.setStatus(statusRealizada);
+                    bookingRepository.save(booking);
+                    publishBookingEvent("UPDATED", booking);
+                    System.out.println("[RESERVAS] Reserva " + booking.getCode() + " realizada (cliente embarcou) no voo " + codigoVoo);
+                }
+                // Se estava em qualquer outro status (CRIADA, CHECK-IN), passa para NÃO REALIZADA
+                else if ("CRIADA".equals(statusAtual) || "CHECK-IN".equals(statusAtual)) {
+                    booking.setStatus(statusNaoRealizada);
+                    bookingRepository.save(booking);
+                    publishBookingEvent("UPDATED", booking);
+                    System.out.println("[RESERVAS] Reserva " + booking.getCode() + " não realizada (cliente não embarcou) no voo " + codigoVoo);
+                }
+                // Se já estava cancelada ou já realizada, não faz nada
+                else {
+                    System.out.println("[RESERVAS] Reserva " + booking.getCode() + " mantida no status " + statusAtual + " para o voo " + codigoVoo);
+                }
+            }
+            
+            return true;
+        } catch (Exception e) {
+            System.err.println("[RESERVAS] Erro ao realizar reservas do voo " + codigoVoo + ": " + e.getMessage());
+            throw new RuntimeException("Falha ao realizar reservas do voo: " + e.getMessage());
+        }
+    }
+
+    public void revertFlightReservationsRealization(String codigoVoo) {
+        try {
+            // Busca todas as reservas do voo que foram realizadas ou não realizadas
+            BookingStatus statusRealizada = bookingStatusRepository.findByCode("REALIZADA");
+            BookingStatus statusNaoRealizada = bookingStatusRepository.findByCode("NÃO REALIZADA");
+            
+            if (statusRealizada == null || statusNaoRealizada == null) {
+                System.err.println("[RESERVAS] Status 'REALIZADA' ou 'NÃO REALIZADA' não encontrados para reversão");
+                return;
+            }
+
+            List<Booking> bookingsRealizadas = bookingRepository.findByFlightCodeAndStatus(codigoVoo, statusRealizada);
+            List<Booking> bookingsNaoRealizadas = bookingRepository.findByFlightCodeAndStatus(codigoVoo, statusNaoRealizada);
+            
+            BookingStatus statusEmbarcada = bookingStatusRepository.findByCode("EMBARCADA");
+            BookingStatus statusCheckIn = bookingStatusRepository.findByCode("CHECK-IN");
+            
+            if (statusEmbarcada == null || statusCheckIn == null) {
+                System.err.println("[RESERVAS] Status 'EMBARCADA' ou 'CHECK-IN' não encontrados para reversão");
+                return;
+            }
+
+            // Reverter reservas que foram marcadas como REALIZADA (volta para EMBARCADA)
+            for (Booking booking : bookingsRealizadas) {
+                booking.setStatus(statusEmbarcada);
+                bookingRepository.save(booking);
+                publishBookingEvent("UPDATED", booking);
+                System.out.println("[RESERVAS] Realização da reserva " + booking.getCode() + " foi revertida para EMBARCADA");
+            }
+
+            // Reverter reservas que foram marcadas como NÃO REALIZADA (volta para CHECK-IN como padrão)
+            for (Booking booking : bookingsNaoRealizadas) {
+                booking.setStatus(statusCheckIn);
+                bookingRepository.save(booking);
+                publishBookingEvent("UPDATED", booking);
+                System.out.println("[RESERVAS] Não realização da reserva " + booking.getCode() + " foi revertida para CHECK-IN");
+            }
+        } catch (Exception e) {
+            System.err.println("[RESERVAS] Erro ao reverter realização de reservas: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     private BookingResponseDTO toResponseDTO(Booking booking, BookingRequestDTO dto) {
         try {
             System.out.println("Iniciando toResponseDTO...");

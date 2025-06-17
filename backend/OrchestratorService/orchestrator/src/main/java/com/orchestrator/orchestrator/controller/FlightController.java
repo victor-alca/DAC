@@ -33,4 +33,22 @@ public class FlightController {
         
         return ResponseEntity.accepted().body(response);
     }
+
+    @PostMapping("/{codigoVoo}/realizar")
+    public ResponseEntity<Map<String, String>> realizarVoo(@PathVariable String codigoVoo, @RequestBody Map<String, String> body) {
+        // Cria um DTO com o código do voo e estado para realização
+        FlightDTO flightRealizationDTO = new FlightDTO();
+        flightRealizationDTO.setCodigo_voo(codigoVoo);
+        flightRealizationDTO.setEstado(body.get("estado"));
+        
+        String correlationId = service.startFlightRealizationSaga(flightRealizationDTO);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("correlationId", correlationId);
+        response.put("status", "FLIGHT_REALIZATION_STARTED");
+        response.put("codigoVoo", codigoVoo);
+        response.put("message", "Realização de voo iniciada com sucesso");
+        
+        return ResponseEntity.accepted().body(response);
+    }
 }

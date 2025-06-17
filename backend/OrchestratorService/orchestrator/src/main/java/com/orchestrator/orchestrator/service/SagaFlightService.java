@@ -49,6 +49,37 @@ public class SagaFlightService {
         System.out.println("[SAGA] Reservas do voo canceladas. Saga de cancelamento de voo COMPLETED_SUCCESS. correlationId: " + correlationId);
     }
 
+    // SAGA DE REALIZAÇÃO DE VOO
+    public String startFlightRealizationSaga(FlightDTO flightRealizationDTO) {
+        SagaMessage<FlightDTO> sagaMessage = new SagaMessage<>(flightRealizationDTO);
+        String correlationId = sagaMessage.getCorrelationId();
+
+        // Espera sucesso de: REALIZAR_VOO, REALIZAR_RESERVAS_VOO (ordem controlada pelo orchestrator)
+        sagaStateManager.createSaga(correlationId, Set.of("REALIZAR_VOO", "REALIZAR_RESERVAS_VOO"));
+
+        // Primeiro passo: realizar voo
+        rabbitTemplate.convertAndSend("voo.saga.exchange", "voo.realizacao.iniciado", sagaMessage);
+        System.out.println("[SAGA] Iniciando realização de voo com correlationId: " + correlationId);
+
+        return correlationId;
+    }
+
+    // Chame este método quando receber sucesso da realização do voo
+    public void onFlightRealizationSuccess(String correlationId, FlightDTO payload) {
+        sagaStateManager.markSuccess(correlationId, "REALIZAR_VOO");
+        // Próximo passo: realizar reservas do voo
+        SagaMessage<FlightDTO> sagaMessage = new SagaMessage<>(payload);
+        sagaMessage.setCorrelationId(correlationId);
+        rabbitTemplate.convertAndSend("voo.saga.exchange", "voo.realizacao.reservas.iniciado", sagaMessage);
+        System.out.println("[SAGA] Voo realizado OK, enviando para REALIZAR_RESERVAS_VOO. correlationId: " + correlationId);
+    }
+
+    // Chame este método quando receber sucesso da realização das reservas do voo
+    public void onFlightReservationsRealizationSuccess(String correlationId, FlightDTO payload) {
+        sagaStateManager.markSuccess(correlationId, "REALIZAR_RESERVAS_VOO");
+        System.out.println("[SAGA] Reservas do voo realizadas. Saga de realização de voo COMPLETED_SUCCESS. correlationId: " + correlationId);
+    }
+
     // Chame este método quando receber falha na saga de cancelamento de voo
     public void onSagaFailure(String correlationId, FlightDTO payload) {
         System.out.println("[SAGA] Falha detectada no cancelamento de voo, iniciando compensação. correlationId: " + correlationId);
@@ -63,6 +94,8 @@ public class SagaFlightService {
             String routingKey = switch (service) {
                 case "CANCELAR_VOO" -> "voo.cancelamento.compensar";
                 case "CANCELAR_RESERVAS_VOO" -> "voo.reservas.cancelamento.compensar";
+                case "REALIZAR_VOO" -> "voo.realizacao.compensar";
+                case "REALIZAR_RESERVAS_VOO" -> "voo.reservas.realizacao.compensar";
                 default -> null;
             };
             if (routingKey != null) {

@@ -81,4 +81,63 @@ public class FlightSagaListener {
             e.printStackTrace();
         }
     }
+
+    @RabbitListener(queues = "voo.realizacao.reservas.iniciado.reserva")
+    public void onRealizeFlightReservationsSaga(@Payload SagaMessage<FlightDTO> message) {
+        try {
+            FlightDTO dto = message.getPayload();
+            String correlationId = message.getCorrelationId();
+            
+            System.out.println("[REALIZAR_RESERVAS_VOO] Processando realização de reservas do voo " + dto.getCodigo_voo());
+            
+            // Realiza todas as reservas do voo
+            boolean success = bookingCommandService.realizeBookingsByFlight(dto.getCodigo_voo());
+            message.setOrigin("REALIZAR_RESERVAS_VOO");
+
+            if (success) {
+                String jsonResponse = objectMapper.writeValueAsString(message);
+                rabbitTemplate.convertAndSend("voo.saga.exchange", "voo.realizacao.reservas.sucesso", jsonResponse);
+                System.out.println("[REALIZAR_RESERVAS_VOO] Reservas do voo " + dto.getCodigo_voo() + " realizadas com sucesso na SAGA");
+            } else {
+                String jsonError = objectMapper.writeValueAsString(message);
+                rabbitTemplate.convertAndSend("voo.saga.exchange", "voo.realizacao.reservas.falhou", jsonError);
+                System.out.println("[REALIZAR_RESERVAS_VOO] Falha ao realizar reservas do voo " + dto.getCodigo_voo() + " na SAGA");
+            }
+        } catch (Exception e) {
+            System.err.println("[REALIZAR_RESERVAS_VOO] Erro inesperado: " + e.getMessage());
+            e.printStackTrace();
+            try {
+                message.setOrigin("REALIZAR_RESERVAS_VOO");
+                String jsonError = objectMapper.writeValueAsString(message);
+                rabbitTemplate.convertAndSend("voo.saga.exchange", "voo.realizacao.reservas.falhou", jsonError);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    // LISTENER PARA COMPENSAÇÃO (REVERTER REALIZAÇÃO DAS RESERVAS)
+    @RabbitListener(queues = "voo.reservas.realizacao.compensar")
+    public void onCompensateRealizeFlightReservations(@Payload String json) {
+        try {
+            SagaMessage<FlightDTO> message = objectMapper.readValue(
+                json, new TypeReference<SagaMessage<FlightDTO>>() {}
+            );
+            
+            FlightDTO dto = message.getPayload();
+            String correlationId = message.getCorrelationId();
+
+            System.out.println("[BOOKING] Executando compensação de realização de reservas para SAGA " + correlationId);
+            System.out.println("[BOOKING] Voltando reservas do voo " + dto.getCodigo_voo() + " para o status anterior");
+
+            // Reverte a realização das reservas
+            bookingCommandService.revertFlightReservationsRealization(dto.getCodigo_voo());
+            
+            System.out.println("[BOOKING] Compensação de realização de reservas concluída para voo " + dto.getCodigo_voo());
+            
+        } catch (Exception e) {
+            System.err.println("[BOOKING] Erro na compensação de realização de reservas: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

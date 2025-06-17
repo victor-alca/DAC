@@ -82,4 +82,68 @@ public class FlightSagaListener {
             e.printStackTrace();
         }
     }
+
+    @RabbitListener(queues = "voo.realizacao.sucesso")
+    public void onFlightRealizationSuccess(@Payload String json) {
+        try {
+            SagaMessage<FlightDTO> message = objectMapper.readValue(
+                json, new TypeReference<SagaMessage<FlightDTO>>() {}
+            );
+            String correlationId = message.getCorrelationId();
+            FlightDTO payload = message.getPayload();
+            
+            System.out.println("[ORCHESTRATOR] Voo realizado com sucesso. correlationId: " + correlationId);
+            sagaFlightService.onFlightRealizationSuccess(correlationId, payload);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RabbitListener(queues = "voo.realizacao.reservas.sucesso")
+    public void onFlightReservationsRealizationSuccess(@Payload String json) {
+        try {
+            SagaMessage<FlightDTO> message = objectMapper.readValue(
+                json, new TypeReference<SagaMessage<FlightDTO>>() {}
+            );
+            String correlationId = message.getCorrelationId();
+            FlightDTO payload = message.getPayload();
+            
+            System.out.println("[ORCHESTRATOR] Reservas do voo realizadas com sucesso. correlationId: " + correlationId);
+            sagaFlightService.onFlightReservationsRealizationSuccess(correlationId, payload);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RabbitListener(queues = "voo.realizacao.falhou")
+    public void onFlightRealizationFailure(@Payload String json) {
+        try {
+            SagaMessage<FlightDTO> message = objectMapper.readValue(
+                json, new TypeReference<SagaMessage<FlightDTO>>() {}
+            );
+            String correlationId = message.getCorrelationId();
+            FlightDTO payload = message.getPayload();
+            
+            System.out.println("[ORCHESTRATOR] Falha na realização do voo. correlationId: " + correlationId);
+            sagaFlightService.onSagaFailure(correlationId, payload);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RabbitListener(queues = "voo.realizacao.reservas.falhou")
+    public void onFlightReservationsRealizationFailure(@Payload String json) {
+        try {
+            SagaMessage<FlightDTO> message = objectMapper.readValue(
+                json, new TypeReference<SagaMessage<FlightDTO>>() {}
+            );
+            String correlationId = message.getCorrelationId();
+            FlightDTO payload = message.getPayload();
+            
+            System.out.println("[ORCHESTRATOR] Falha na realização das reservas do voo. correlationId: " + correlationId);
+            sagaFlightService.onSagaFailure(correlationId, payload);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

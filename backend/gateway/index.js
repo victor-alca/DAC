@@ -800,107 +800,106 @@ app.patch('/voos/:codigoVoo/estado', verifyJWT, authorizeRoles('FUNCIONARIO'), a
 
         console.log(`API Gateway: Recebido PATCH /voos/${codigoVoo}/estado com estado: ${estado}`);
 
-        // Se for CANCELADO, usa a saga
+        let endpoint;
         if (estado === 'CANCELADO') {
-            // Inicia a SAGA de cancelamento de voo
-            const sagaResponse = await axios.post(
-                `${BASE_URL_SAGA_ORCHESTRATOR}/saga/voos/${codigoVoo}/cancelar`,
-                { estado },
-                { 
-                    headers: {
-                        'Content-Type': 'application/json' 
-                    } 
-                }
-            );
-
-            const { correlationId } = sagaResponse.data;
-            if (!correlationId) {
-                return res.status(500).json({ message: 'Saga não retornou correlationId.' });
-            }
-
-            // Polling até finalizar a saga
-            const maxAttempts = 20;
-            const intervalMs = 1500;
-            let attempts = 0;
-
-            async function pollSagaStatus() {
-                try {
-                    const statusResponse = await axios.get(
-                        `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
-                        { headers: { 'Content-Type': 'application/json' } }
-                    );
-                    const { status } = statusResponse.data;
-
-                    if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
-                        if (status === 'COMPLETED_ERROR') {
-                            const errorResponse = {
-                                status: 'COMPLETED_ERROR',
-                                message: 'Falha ao cancelar o voo',
-                                failedServices: statusResponse.data.failedServices || [],
-                            };
-                            let errorInfo = statusResponse.data.errorInfo;
-                            if (errorInfo) {
-                                if (errorInfo.errorCode === 404) {
-                                    errorResponse.message = 'Voo não encontrado.';
-                                    return res.status(404).json(errorResponse);
-                                }
-                                errorResponse.message = errorInfo.errorMessage || 'Ocorreu um erro ao cancelar o voo';
-                                return res.status(errorInfo.errorCode || 400).json(errorResponse);
-                            }
-                            return res.status(400).json(errorResponse);
-                        }
-                        
-                        // SUCESSO - Busca o voo atualizado
-                        if (status === 'COMPLETED_SUCCESS') {
-                            try {
-                                // Aguarda alguns segundos para garantir que os dados foram atualizados
-                                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                                // Busca o voo atualizado
-                                const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${codigoVoo}`);
-                                const vooAtualizado = vooResponse.data;
-
-                                return res.status(200).json(vooAtualizado);
-                            } catch (vooError) {
-                                console.error('Erro ao buscar voo atualizado:', vooError.message);
-                                // Se não conseguir buscar o voo, retorna resposta básica
-                                return res.status(200).json({
-                                    message: 'Voo cancelado com sucesso',
-                                    codigo: codigoVoo,
-                                    estado: 'CANCELADO'
-                                });
-                            }
-                        }
-                        
-                        // Fallback
-                        return res.status(200).json(statusResponse.data);
-                    } else if (attempts < maxAttempts) {
-                        attempts++;
-                        setTimeout(pollSagaStatus, intervalMs);
-                    } else {
-                        return res.status(202).json({
-                            message: 'Cancelamento ainda em andamento.',
-                            status,
-                            correlationId
-                        });
-                    }
-                } catch (err) {
-                    return res.status(500).json({
-                        message: 'Erro ao consultar status da SAGA.',
-                        error: err.message
-                    });
-                }
-            }
-            pollSagaStatus();
-
+            endpoint = `${BASE_URL_SAGA_ORCHESTRATOR}/saga/voos/${codigoVoo}/cancelar`;
         } else if (estado === 'REALIZADO') {
+            endpoint = `${BASE_URL_SAGA_ORCHESTRATOR}/saga/voos/${codigoVoo}/realizar`;
         } else {
-            // Estado inválido
             return res.status(400).json({ message: `Estado inválido: ${estado}. Apenas CANCELADO ou REALIZADO são permitidos.` });
         }
 
+        // Chamada para o Serviço Saga
+        const sagaServiceResponse = await axios.post(endpoint, { estado }, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const { correlationId } = sagaServiceResponse.data;
+        if (!correlationId) {
+            return res.status(500).json({ message: 'Saga não retornou correlationId.' });
+        }
+
+        // Polling até finalizar
+        const maxAttempts = 30; // Increase attempts for flight operations
+        const intervalMs = 2000; // Increase interval
+        let attempts = 0;
+
+        async function pollSagaStatus() {
+            try {
+                const statusResponse = await axios.get(
+                    `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                const { status } = statusResponse.data;
+
+                console.log(`API Gateway: Tentativa ${attempts + 1} - Status da SAGA: ${status}`);
+
+                if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    if (status === 'COMPLETED_ERROR') {
+                        const errorResponse = {
+                            status: 'COMPLETED_ERROR',
+                            message: 'Falha ao alterar estado do voo',
+                            failedServices: statusResponse.data.failedServices || [],
+                        };
+                        let errorInfo = statusResponse.data.errorInfo;
+                        if (errorInfo) {
+                            if (errorInfo.errorCode === 404) {
+                                errorResponse.message = 'Voo não encontrado.';
+                                return res.status(404).json(errorResponse);
+                            }
+                            errorResponse.message = errorInfo.errorMessage || 'Ocorreu um erro ao alterar estado do voo';
+                            return res.status(errorInfo.errorCode || 400).json(errorResponse);
+                        }
+                        return res.status(400).json(errorResponse);
+                    }
+                    
+                    // SUCESSO - Busca o voo atualizado
+                    if (status === 'COMPLETED_SUCCESS') {
+                        try {
+                            // Aguarda alguns segundos para garantir que os dados foram atualizados
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
+                            // Busca o voo atualizado
+                            const vooResponse = await axios.get(`${BASE_URL_FLIGHTS}/voos/${codigoVoo}`);
+                            const vooAtualizado = vooResponse.data;
+
+                            return res.status(200).json(vooAtualizado);
+                        } catch (vooError) {
+                            console.error('Erro ao buscar voo atualizado:', vooError.message);
+                            // Se não conseguir buscar o voo, retorna resposta básica
+                            return res.status(200).json({
+                                message: `Voo ${estado.toLowerCase()} com sucesso`,
+                                codigo: codigoVoo,
+                                estado: estado
+                            });
+                        }
+                    }
+                    
+                    // Fallback
+                    return res.status(200).json(statusResponse.data);
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(pollSagaStatus, intervalMs);
+                } else {
+                    return res.status(202).json({
+                        message: 'Alteração de estado ainda em andamento.',
+                        status,
+                        correlationId
+                    });
+                }
+            } catch (err) {
+                console.error('Erro ao consultar status da SAGA:', err.message);
+                return res.status(500).json({
+                    message: 'Erro ao consultar status da SAGA.',
+                    error: err.message
+                });
+            }
+        }
+
+        pollSagaStatus();
+
     } catch (error) {
-        console.error(`API Gateway: Erro ao processar PATCH /voos/${req.params.codigoVoo}/estado:`, error.message);
+        console.error(`API Gateway: Erro ao processar PATCH /voos/${req.params.codigoVoo}/estado via Serviço Saga:`, error.message);
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
