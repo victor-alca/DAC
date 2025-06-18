@@ -29,17 +29,22 @@ public class User {
 	@Size(max = 120)
 	private String type;
 
+	@NotBlank
+	@Size(max = 120)
+	private String cpf;
+
 	public User() {
 		super();
 	}
 
-	public User(String id, String email, String password, String type, String salt) {
+	public User(String id, String email, String password, String type, String salt, String cpf) {
 		super();
 		this.id = id;
 		this.email = email;
 		this.password = password;
 		this.type = type;
 		this.salt = salt;
+		this.cpf = cpf;
 	}
 
 	public String getId() {
@@ -81,4 +86,12 @@ public class User {
 	public void setType(String type) {
 		this.type = type;
 	}
+
+    public String getCpf() {
+        return cpf;
+    }
+
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
+    }
 }

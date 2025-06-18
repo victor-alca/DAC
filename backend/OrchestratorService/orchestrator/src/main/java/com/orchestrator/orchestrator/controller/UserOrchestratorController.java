@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,6 +42,14 @@ public class UserOrchestratorController {
     String correlationId = sagaUserService.startUserDeletionSagaEmployee(employeeDTO);
     return ResponseEntity.accepted().body(Map.of(
         "message", "Remoção (inativação) de funcionário iniciada com sucesso",
+        "correlationId", correlationId));
+  }
+
+  @PutMapping("/funcionario")
+  public ResponseEntity<?> editarFuncionario(@RequestBody EmployeeDTO employeeDTO) {
+    String correlationId = sagaUserService.startUserUpdateSagaEmployee(employeeDTO);
+    return ResponseEntity.accepted().body(Map.of(
+        "message", "Edição de funcionário iniciada com sucesso",
         "correlationId", correlationId));
   }
 }

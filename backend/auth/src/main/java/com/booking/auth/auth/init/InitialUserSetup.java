@@ -23,6 +23,7 @@ public class InitialUserSetup {
                 employee.setEmail("func_pre@gmail.com");
                 employee.setPassword(hashedPassword);
                 employee.setSalt(salt);
+                employee.setCpf("90769281001");
 
                 userRepository.save(employee);
                 System.out.println("[INIT] Admin user created: admin@booking.com with password: " + rawPassword);

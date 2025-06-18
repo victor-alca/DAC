@@ -1,16 +1,17 @@
 package com.orchestrator.orchestrator.listener;
 
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.orchestrator.orchestrator.dto.ClientDTO;
 import com.orchestrator.orchestrator.dto.EmployeeDTO;
 import com.orchestrator.orchestrator.message.SagaMessage;
 import com.orchestrator.orchestrator.saga.SagaStateManager;
 import com.orchestrator.orchestrator.service.SagaUserService;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.stereotype.Component;
 
 @Component
 public class UserSagaListener {
@@ -23,7 +24,7 @@ public class UserSagaListener {
     private final SagaUserService sagaUserService;
 
     public UserSagaListener(RabbitTemplate rabbitTemplate, SagaStateManager sagaStateManager,
-                             SagaUserService sagaUserService) {
+            SagaUserService sagaUserService) {
         this.rabbitTemplate = rabbitTemplate;
         this.sagaStateManager = sagaStateManager;
         this.sagaUserService = sagaUserService;
@@ -37,16 +38,19 @@ public class UserSagaListener {
             String correlationId = message.getCorrelationId();
             String origin = message.getOrigin();
 
-            System.out.println("[ORQUESTRADOR] Serviço " + origin + " confirmou sucesso (correlationId: " + correlationId + ")");
+            System.out.println(
+                    "[ORQUESTRADOR] Serviço " + origin + " confirmou sucesso (correlationId: " + correlationId + ")");
 
             sagaStateManager.markSuccess(correlationId, origin);
 
             if (sagaStateManager.isComplete(correlationId)) {
                 if (sagaStateManager.get(correlationId).hasFailure()) {
-                    System.out.println("[ORQUESTRADOR] SAGA CLIENTE CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
+                    System.out.println(
+                            "[ORQUESTRADOR] SAGA CLIENTE CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
                     sagaUserService.compensateSuccessfulServicesClient(correlationId, message.getPayload());
                 } else {
-                    System.out.println("[ORQUESTRADOR] SAGA CLIENTE CONCLUÍDA COM SUCESSO (correlationId: " + correlationId + ")");
+                    System.out.println(
+                            "[ORQUESTRADOR] SAGA CLIENTE CONCLUÍDA COM SUCESSO (correlationId: " + correlationId + ")");
                 }
             }
         } catch (Exception e) {
@@ -69,7 +73,8 @@ public class UserSagaListener {
             }
 
             if (sagaStateManager.isComplete(correlationId)) {
-                System.out.println("[ORQUESTRADOR] SAGA CLIENTE CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
+                System.out.println(
+                        "[ORQUESTRADOR] SAGA CLIENTE CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
                 sagaUserService.compensateSuccessfulServicesClient(correlationId, message.getPayload());
             }
         } catch (Exception e) {
@@ -85,16 +90,19 @@ public class UserSagaListener {
             String correlationId = message.getCorrelationId();
             String origin = message.getOrigin();
 
-            System.out.println("[ORQUESTRADOR] Serviço " + origin + " confirmou sucesso (correlationId: " + correlationId + ")");
+            System.out.println(
+                    "[ORQUESTRADOR] Serviço " + origin + " confirmou sucesso (correlationId: " + correlationId + ")");
 
             sagaStateManager.markSuccess(correlationId, origin);
 
             if (sagaStateManager.isComplete(correlationId)) {
                 if (sagaStateManager.get(correlationId).hasFailure()) {
-                    System.out.println("[ORQUESTRADOR] SAGA FUNCIONÁRIO CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
+                    System.out.println("[ORQUESTRADOR] SAGA FUNCIONÁRIO CONCLUÍDA COM ERRO (correlationId: "
+                            + correlationId + ")");
                     sagaUserService.compensateSuccessfulServicesEmployee(correlationId, message.getPayload());
                 } else {
-                    System.out.println("[ORQUESTRADOR] SAGA FUNCIONÁRIO CONCLUÍDA COM SUCESSO (correlationId: " + correlationId + ")");
+                    System.out.println("[ORQUESTRADOR] SAGA FUNCIONÁRIO CONCLUÍDA COM SUCESSO (correlationId: "
+                            + correlationId + ")");
                 }
             }
         } catch (Exception e) {
@@ -117,7 +125,8 @@ public class UserSagaListener {
             }
 
             if (sagaStateManager.isComplete(correlationId)) {
-                System.out.println("[ORQUESTRADOR] SAGA FUNCIONÁRIO CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
+                System.out.println(
+                        "[ORQUESTRADOR] SAGA FUNCIONÁRIO CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
                 sagaUserService.compensateSuccessfulServicesEmployee(correlationId, message.getPayload());
             }
         } catch (Exception e) {
@@ -131,17 +140,75 @@ public class UserSagaListener {
             String correlationId = message.getCorrelationId();
             String origin = message.getOrigin();
 
-            System.out.println("[ORQUESTRADOR] Serviço " + origin + " confirmou exclusão com sucesso (correlationId: " + correlationId + ")");
+            System.out.println("[ORQUESTRADOR] Serviço " + origin + " confirmou exclusão com sucesso (correlationId: "
+                    + correlationId + ")");
 
             sagaStateManager.markSuccess(correlationId, origin);
 
             if (sagaStateManager.isComplete(correlationId)) {
                 if (sagaStateManager.get(correlationId).hasFailure()) {
-                    System.out.println("[ORQUESTRADOR] SAGA DE EXCLUSÃO FUNCIONÁRIO CONCLUÍDA COM ERRO (correlationId: " + correlationId + ")");
+                    System.out.println("[ORQUESTRADOR] SAGA DE EXCLUSÃO FUNCIONÁRIO CONCLUÍDA COM ERRO (correlationId: "
+                            + correlationId + ")");
                     sagaUserService.compensateSuccessfulServicesEmployee(correlationId, message.getPayload());
                 } else {
-                    System.out.println("[ORQUESTRADOR] SAGA DE EXCLUSÃO FUNCIONÁRIO CONCLUÍDA COM SUCESSO (correlationId: " + correlationId + ")");
+                    System.out.println(
+                            "[ORQUESTRADOR] SAGA DE EXCLUSÃO FUNCIONÁRIO CONCLUÍDA COM SUCESSO (correlationId: "
+                                    + correlationId + ")");
                 }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RabbitListener(queues = "funcionario.editar.sucesso")
+    public void onFuncionarioEdicaoSucesso(@Payload SagaMessage<EmployeeDTO> message) {
+        try {
+            String correlationId = message.getCorrelationId();
+            String origin = message.getOrigin();
+
+            System.out.println("[ORQUESTRADOR] Serviço " + origin + " confirmou edição com sucesso (correlationId: "
+                    + correlationId + ")");
+
+            sagaStateManager.markSuccess(correlationId, origin);
+
+            if (sagaStateManager.isComplete(correlationId)) {
+                if (sagaStateManager.get(correlationId).hasFailure()) {
+                    System.out.println("[ORQUESTRADOR] SAGA DE EDIÇÃO FUNCIONÁRIO CONCLUÍDA COM ERRO (correlationId: "
+                            + correlationId + ")");
+                    // sagaUserService.compensateSuccessfulServicesEmployee(correlationId,
+                    // message.getPayload());
+                } else {
+                    System.out
+                            .println("[ORQUESTRADOR] SAGA DE EDIÇÃO FUNCIONÁRIO CONCLUÍDA COM SUCESSO (correlationId: "
+                                    + correlationId + ")");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RabbitListener(queues = "funcionario.editar.falhou")
+    public void onFuncionarioEdicaoFalhou(@Payload SagaMessage<EmployeeDTO> message) {
+        try {
+            String correlationId = message.getCorrelationId();
+            String origin = message.getOrigin();
+
+            System.out.println(
+                    "[ORQUESTRADOR] Serviço " + origin + " FALHOU na edição (correlationId: " + correlationId + ")");
+
+            sagaStateManager.get(correlationId).markFailure(origin);
+
+            if (message.getErrorInfo() != null) {
+                sagaStateManager.setErrorInfo(correlationId, message.getErrorInfo());
+            }
+
+            if (sagaStateManager.isComplete(correlationId)) {
+                System.out.println("[ORQUESTRADOR] SAGA DE EDIÇÃO FUNCIONÁRIO CONCLUÍDA COM ERRO (correlationId: "
+                        + correlationId + ")");
+                // sagaUserService.compensateSuccessfulServicesEmployee(correlationId,
+                // message.getPayload());
             }
         } catch (Exception e) {
             e.printStackTrace();
