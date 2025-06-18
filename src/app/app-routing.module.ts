@@ -8,7 +8,7 @@ const routes: Routes = [
   { path: 'login', component: pages.LoginComponent },
   { path: 'sign', component: pages.SignComponent },
   { path: 'employee-dashboard', component: pages.EmployeeDashboardComponent, canActivate: [authGuard], data: { userType: 'FUNCIONARIO' } },
-  { path: 'boarding-confirmation', component: pages.BoardingConfirmationComponent, canActivate: [authGuard], data: { userType: 'CLIENTE' } },
+  { path: 'boarding-confirmation', component: pages.BoardingConfirmationComponent, canActivate: [authGuard], data: { userType: 'FUNCIONARIO' } },
   { path: 'customer-home', component: pages.CustomerHomeComponent, canActivate: [authGuard], data: { userType: 'CLIENTE' } },
   { path: 'view-booking/:id', component: pages.ViewBookingComponent, canActivate: [authGuard], data: { userType: 'CLIENTE' } },
   { path: 'booking', component: pages.BookingComponent, canActivate: [authGuard], data: { userType: 'CLIENTE' } },
