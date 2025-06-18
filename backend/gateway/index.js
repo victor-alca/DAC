@@ -899,6 +899,10 @@ app.get('/funcionarios', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, ne
     employeesServiceProxy(req, res, next);
 });
 
+app.get('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
+    employeesServiceProxy(req, res, next);
+});
+
 // POST /funcionarios - via SAGA
 app.post('/funcionarios', verifyJWT, authorizeRoles('FUNCIONARIO'), async (req, res) => {
     try {
@@ -1106,8 +1110,101 @@ app.delete('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIO
     }
 });
 
-app.put('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIONARIO'), (req, res, next) => {
-    employeesServiceProxy(req, res, next);
+// PUT /funcionarios/:codigoFuncionario - via SAGA
+app.put('/funcionarios/:codigoFuncionario', verifyJWT, authorizeRoles('FUNCIONARIO'), async (req, res) => {
+    try {
+        const codigoFuncionario = req.params.codigoFuncionario;
+        console.log(`API Gateway: Recebido PUT /funcionarios/${codigoFuncionario}`);
+        console.log(req.body);
+
+        // 1. Inicia a SAGA de edição de funcionário com os dados recebidos
+        const sagaResponse = await axios.put(
+            `${BASE_URL_SAGA_ORCHESTRATOR}/saga/usuarios/funcionario`,
+            req.body,
+            { 
+                headers: {
+                    'Content-Type': 'application/json' 
+                } 
+            }
+        );
+
+        const { correlationId } = sagaResponse.data;
+        if (!correlationId) {
+            return res.status(500).json({ message: 'Saga não retornou correlationId.' });
+        }
+
+        // 2. Polling até finalizar a saga
+        const maxAttempts = 20;
+        const intervalMs = 1500;
+        let attempts = 0;
+
+        async function pollSagaStatus() {
+            try {
+                const statusResponse = await axios.get(
+                    `${BASE_URL_SAGA_ORCHESTRATOR}/saga/${correlationId}`,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                const { status, errorInfo } = statusResponse.data;
+
+                if (status === 'COMPLETED_SUCCESS' || status === 'COMPLETED_ERROR') {
+                    if (status === 'COMPLETED_ERROR') {
+                        console.error('SAGA de edição falhou:', errorInfo);
+                        const errorResponse = {
+                            message: 'Falha na edição do funcionário.',
+                            details: errorInfo?.errorMessage || 'Erro desconhecido'
+                        };
+                        if (errorInfo) {
+                            return res.status(errorInfo.errorCode || 400).json(errorResponse);
+                        }
+                        return res.status(400).json(errorResponse);
+                    }
+                    
+                    // SUCESSO - Busca o funcionário atualizado pelo código
+                    if (status === 'COMPLETED_SUCCESS') {
+                        try {
+                            // Aguarda um momento para garantir que os dados foram persistidos
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
+                            // Busca o funcionário atualizado pelo código
+                            const funcionarioAtualizadoResponse = await axios.get(`${BASE_URL_EMPLOYEES}/funcionarios/${codigoFuncionario}`);
+                            const funcionarioAtualizado = funcionarioAtualizadoResponse.data;
+
+                            return res.status(200).json(funcionarioAtualizado);
+                        } catch (funcionarioError) {
+                            console.error('Erro ao buscar funcionário atualizado:', funcionarioError.message);
+                            // Se não conseguir buscar o funcionário, retorna resposta básica da saga
+                            return res.status(200).json({
+                                message: 'Funcionário editado com sucesso, mas não foi possível buscar os dados atualizados.',
+                                correlationId
+                            });
+                        }
+                    }
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(pollSagaStatus, intervalMs);
+                } else {
+                    return res.status(202).json({
+                        message: 'Edição ainda em andamento.',
+                        status,
+                        correlationId
+                    });
+                }
+            } catch (err) {
+                return res.status(500).json({
+                    message: 'Erro ao consultar status da SAGA.',
+                    error: err.message
+                });
+            }
+        }
+        pollSagaStatus();
+    } catch (error) {
+        console.error(`Erro ao processar PUT /funcionarios/${req.params.codigoFuncionario}:`, error.message);
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ message: 'Erro interno ao processar a requisição.' });
+        }
+    }
 });
 
 // Logout

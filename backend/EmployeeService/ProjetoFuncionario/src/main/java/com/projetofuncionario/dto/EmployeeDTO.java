@@ -5,6 +5,6 @@ public class EmployeeDTO {
   public String active;
   public int id;
   public String email;
-  public String phone;
-  public String name;
+  public String telefone;
+  public String nome;
 }

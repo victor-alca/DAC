@@ -34,10 +34,22 @@ public class ConsumerUpdateEmployee {
 
             if (funcionario.isPresent()) {
                 Employee e = funcionario.get();
-                e.setEmail(employeeDTO.email);
-                e.setPhone(employeeDTO.phone);
-                e.setName(employeeDTO.name);
-                e.setActive(false);
+                                
+                // Email - sempre atualiza se vier
+                if (employeeDTO.email != null && !employeeDTO.email.trim().isEmpty()) {
+                    e.setEmail(employeeDTO.email);
+                }
+                
+                String novoNome = employeeDTO.nome;
+                if (novoNome != null && !novoNome.trim().isEmpty()) {
+                    e.setName(novoNome);
+                }
+                
+                String novoTelefone = employeeDTO.telefone;
+                if (novoTelefone != null && !novoTelefone.trim().isEmpty()) {
+                    e.setPhone(novoTelefone);
+                }
+
                 employeeService.save(e);
                 System.out.println("[FUNCIONARIO] Funcionário editado com sucesso: " + employeeDTO.cpf);
             } else {

@@ -44,7 +44,7 @@ public class EmployeeController {
 
     @GetMapping
     public ResponseEntity<List<EmployeeResponseDTO>> findAll() {
-        List<EmployeeResponseDTO> list = employeeService.findAll().stream()
+        List<EmployeeResponseDTO> list = employeeService.findByActive(true).stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
         if (list.isEmpty()) {
@@ -66,6 +66,11 @@ public class EmployeeController {
     public ResponseEntity<EmployeeResponseDTO> findById(@PathVariable Long id) {
         Employee employee = employeeService.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Funcionário não encontrado"));
+        
+        if (!employee.isActive()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Funcionário não encontrado");
+        }
+        
         return ResponseEntity.ok(toResponseDTO(employee));
     }
 
