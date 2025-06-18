@@ -89,4 +89,16 @@ public class SagaUserService {
 
     return correlationId;
   }
+
+  public String startUserUpdateSagaEmployee(EmployeeDTO employeeDTO) {
+    SagaMessage<EmployeeDTO> sagaMessage = new SagaMessage<>(employeeDTO);
+    String correlationId = sagaMessage.getCorrelationId();
+
+    sagaStateManager.createSaga(correlationId, Set.of("EMPLOYEE", "AUTH"));
+    rabbitTemplate.convertAndSend("saga.exchange", "funcionario.editar.iniciado", sagaMessage);
+
+    System.out.println("[SAGA] Iniciando edição de funcionário com correlationId: " + correlationId);
+
+    return correlationId;
+  }
 }

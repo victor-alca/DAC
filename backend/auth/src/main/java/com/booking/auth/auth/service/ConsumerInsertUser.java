@@ -1,6 +1,5 @@
 package com.booking.auth.auth.service;
 
-import java.util.Map;
 import java.util.Random;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -58,6 +57,7 @@ public class ConsumerInsertUser {
       user.setEmail(client.email);
       user.setPassword(hashedPassword);
       user.setSalt(salt);
+      user.setCpf(client.cpf);
 
       if (userRepository.findByEmail(user.getEmail()) != null) {
         throw new ResponseStatusException(HttpStatus.CONFLICT, "O Cliente já existe!");
@@ -122,6 +122,7 @@ public class ConsumerInsertUser {
       user.setEmail(email);
       user.setPassword(hashedPassword);
       user.setSalt(salt);
+      user.setCpf(employeeDTO.cpf);
 
       if (userRepository.findByEmail(user.getEmail()) != null) {
         throw new ResponseStatusException(HttpStatus.CONFLICT, "O Funcionario já existe!");
