@@ -9,49 +9,90 @@
           [(ngModel)]="bookingId"
           name="bookingId"
           required
+          [disabled]="loading"
         />
-        <button class="btn btn-primary" type="submit">Buscar</button>
+        <button class="btn btn-primary" type="submit" [disabled]="loading">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          {{ loading ? 'Buscando...' : 'Buscar' }}
+        </button>
       </div>
     </form>
   </div>
 </div>
 
 <div class="flex-column container d-flex justify-content-center align-items-center mt-4 pb-5" *ngIf="reserva">
-  <div class="card shadow p-4 w-50 pb-4">
+  <div class="card shadow p-4 w-75 pb-4">
     <h2 class="text-center mb-4">Detalhes da Reserva</h2>
     <table class="table table-bordered">
       <tbody>
         <tr>
-          <th scope="row">ID</th>
-          <td>{{ reserva.ID }}</td>
+          <th scope="row" class="w-25">Código da Reserva</th>
+          <td>{{ reserva.codigo }}</td>
         </tr>
         <tr>
-          <th scope="row">Data/Hora</th>
-          <td>{{ reserva.date | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <th scope="row">Data/Hora da Reserva</th>
+          <td>{{ reserva.data | date: 'dd/MM/yyyy HH:mm' }}</td>
         </tr>
         <tr>
           <th scope="row">Origem</th>
-          <td>{{ reserva.flight.aeroporto_origem }}</td>
+          <td>{{ reserva.voo.aeroporto_origem.nome }} ({{ reserva.voo.aeroporto_origem.codigo }}) - {{ reserva.voo.aeroporto_origem.cidade }}/{{ reserva.voo.aeroporto_origem.uf }}</td>
         </tr>
         <tr>
           <th scope="row">Destino</th>
-          <td>{{ reserva.flight.aeroporto_destino }}</td>
+          <td>{{ reserva.voo.aeroporto_destino.nome }} ({{ reserva.voo.aeroporto_destino.codigo }}) - {{ reserva.voo.aeroporto_destino.cidade }}/{{ reserva.voo.aeroporto_destino.uf }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Data/Hora do Voo</th>
+          <td>{{ reserva.voo.data | date: 'dd/MM/yyyy HH:mm' }}</td>
         </tr>
         <tr>
           <th scope="row">Valor Gasto</th>
-          <td>R$ {{ reserva.moneySpent }}</td>
+          <td>{{ reserva.valor | currency: 'BRL' }}</td>
         </tr>
         <tr>
           <th scope="row">Milhas Gastas</th>
-          <td>{{ reserva.milesSpent }}</td>
+          <td>{{ reserva.milhas_utilizadas | number:'1.0-0' }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Quantidade de Poltronas</th>
+          <td>{{ reserva.quantidade_poltronas }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Código do Voo</th>
+          <td>{{ reserva.voo.codigo }}</td>
         </tr>
         <tr>
           <th scope="row">Status do Voo</th>
-          <td>{{ getFlightStatusText(reserva.flight.estado) }}</td>
+          <td>
+            <span 
+              class="badge fs-6 py-2 px-3"
+              [ngClass]="{
+                'bg-success': reserva.voo.estado === 'CONFIRMADO',
+                'bg-danger': reserva.voo.estado === 'CANCELADO',
+                'bg-secondary': reserva.voo.estado === 'REALIZADO'
+              }"
+            >
+              {{ getFlightStatusText(reserva.voo.estado) }}
+            </span>
+          </td>
         </tr>
         <tr>
           <th scope="row">Status da Reserva</th>
-          <td>{{ getBookingStatusText(reserva.status) }}</td>
+          <td>
+            <span 
+              class="badge fs-6 py-2 px-3"
+              [ngClass]="{
+                'bg-primary': reserva.estado === 'CRIADA',
+                'bg-info': reserva.estado === 'CHECK-IN',
+                'bg-danger': reserva.estado === 'CANCELADA',
+                'bg-success': reserva.estado === 'EMBARCADA',
+                'bg-warning text-dark': reserva.estado === 'REALIZADA',
+                'bg-dark': reserva.estado === 'NÃO REALIZADA'
+              }"
+            >
+              {{ getBookingStatusText(reserva.estado) }}
+            </span>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -61,16 +102,31 @@
         class="btn btn-success me-2"
         *ngIf="canCheckIn()"
         (click)="onCheckIn()"
+        [disabled]="processingAction"
       >
-        Fazer Check-In
+        <span *ngIf="processingAction" class="spinner-border spinner-border-sm me-2" role="status"></span>
+        {{ processingAction ? 'Processando...' : 'Fazer Check-In' }}
       </button>
-      <button class="btn btn-danger" (click)="onCancel()">Cancelar Reserva</button>
+      <button 
+        class="btn btn-danger" 
+        (click)="onCancel()"
+        *ngIf="reserva.estado === 'CRIADA' || reserva.estado === 'CHECK-IN'"
+        [disabled]="processingAction"
+      >
+        <span *ngIf="processingAction" class="spinner-border spinner-border-sm me-2" role="status"></span>
+        {{ processingAction ? 'Processando...' : 'Cancelar Reserva' }}
+      </button>
     </div>
   </div>
 </div>
 
 <div class="flex-column container d-flex justify-content-center align-items-center mt-4" *ngIf="errorMessage">
   <div class="d-flex flex-column p-3 pb-4">
-    <p class="text-danger">{{ errorMessage }}</p>
+    <div class="alert alert-danger" role="alert">
+      {{ errorMessage }}
+      <button class="btn btn-outline-danger btn-sm ms-2" (click)="errorMessage = null">
+        Fechar
+      </button>
+    </div>
   </div>
 </div>

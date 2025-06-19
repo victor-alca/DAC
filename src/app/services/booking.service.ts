@@ -98,6 +98,23 @@ export class BookingService {
       );
   }
 
+  updateBookingStatus(codigo: string, estado: string): Observable<any> {
+    return this.http.patch<any>(
+      `${BASE_URL}/${codigo}/estado`,
+      { estado },
+      this.getHttpOptions()
+    ).pipe(
+      map((resp: HttpResponse<any>) => {
+        if (resp.status === 200 && resp.body) {
+          return resp.body;
+        } else {
+          return null;
+        }
+      }),
+      catchError((err) => throwError(() => err))
+    );
+  }
+
   get ActiveBookings(): Booking[] {
     return this.getAll().filter(booking => booking.status === 1);
   }

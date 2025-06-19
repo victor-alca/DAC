@@ -1,39 +1,121 @@
 <div class="container mt-4">
   <h1 class="mb-3 fs-heading1 text-dark-blue">Check-In</h1>
+  <p class="text-muted mb-4">Realize o check-in para voos que acontecem nas próximas 48 horas</p>
   <hr class="separador" />
   
-  <table class="table table-striped" *ngIf="flights.length > 0; else noFlights">
-    <thead>
-      <tr>
-        <th class="bg-gray">Data/Hora</th>
-        <th class="bg-gray">Aeroporto de Origem</th>
-        <th class="bg-gray">Aeroporto de Destino</th>
-        <th class="bg-gray">Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let flight of flights">
-        <td>{{ flight.data | date : "dd/MM/yyyy HH:mm" }}</td>
-        <td>{{ flight.aeroporto_origem }}</td>
-        <td>{{ flight.aeroporto_destino }}</td>
-        <td>
-          <button
-            class="btn btn-primary btn-sm mx-1"
-            (click)="checkIn(flight)"
-          >
-            Check-In
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+    <p class="mt-2">Carregando suas reservas...</p>
+  </div>
 
-  <ng-template #noFlights>
-    <p class="text-paragraph">Nenhum voo nas próximas 48h.</p>
-  </ng-template>
+  <!-- Error -->
+  <div *ngIf="error" class="alert alert-danger" role="alert">
+    {{ error }}
+    <button class="btn btn-outline-danger btn-sm ms-2" (click)="loadUserBookings()">
+      Tentar novamente
+    </button>
+  </div>
 
-  <!-- Mensagem de sucesso -->
-  <div *ngIf="successMessage" class="alert alert-success mt-3">
-    {{ successMessage }}
+  <!-- Tabela de Reservas Elegíveis para Check-In -->
+  <div *ngIf="!loading && !error">
+    <table class="table table-striped" *ngIf="reservasCheckIn.length > 0; else noFlights">
+      <thead>
+        <tr>
+          <th class="bg-gray">Código da Reserva</th>
+          <th class="bg-gray">Data/Hora do Voo</th>
+          <th class="bg-gray">Origem</th>
+          <th class="bg-gray">Destino</th>
+          <th class="bg-gray">Tempo Restante</th>
+          <th class="bg-gray">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let reserva of reservasCheckIn">
+          <td>
+            <strong>{{ reserva.codigo }}</strong>
+            <br>
+            <small class="text-muted">{{ reserva.voo.codigo }}</small>
+          </td>
+          <td>{{ reserva.voo.data | date : "dd/MM/yyyy HH:mm" }}</td>
+          <td>
+            <strong>{{ reserva.voo.aeroporto_origem.cidade }}</strong>
+            <br>
+            <small class="text-muted">{{ reserva.voo.aeroporto_origem.nome }} ({{ reserva.voo.aeroporto_origem.codigo }})</small>
+          </td>
+          <td>
+            <strong>{{ reserva.voo.aeroporto_destino.cidade }}</strong>
+            <br>
+            <small class="text-muted">{{ reserva.voo.aeroporto_destino.nome }} ({{ reserva.voo.aeroporto_destino.codigo }})</small>
+          </td>
+          <td>
+            <span 
+              class="badge"
+              [ngClass]="{
+                'bg-success': getTimeUntilFlight(reserva.voo.data).includes('d'),
+                'bg-warning text-dark': getTimeUntilFlight(reserva.voo.data).includes('h') && !getTimeUntilFlight(reserva.voo.data).includes('d'),
+                'bg-danger': getTimeUntilFlight(reserva.voo.data) === 'Voo já aconteceu'
+              }"
+            >
+              {{ getTimeUntilFlight(reserva.voo.data) }}
+            </span>
+          </td>
+          <td>
+            <button
+              class="btn btn-primary btn-sm"
+              (click)="checkIn(reserva)"
+              [disabled]="processingReserva === reserva.codigo || !canCheckIn(reserva)"
+            >
+              <span 
+                *ngIf="processingReserva === reserva.codigo" 
+                class="spinner-border spinner-border-sm me-2" 
+                role="status"
+              ></span>
+              {{ processingReserva === reserva.codigo ? 'Processando...' : 'Fazer Check-In' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #noFlights>
+      <div class="text-center py-5">
+        <div class="mb-3">
+          <i class="bi bi-airplane" style="font-size: 3rem; color: #6c757d;"></i>
+        </div>
+        <h4 class="text-muted">Nenhum voo disponível para check-in</h4>
+        <p class="text-muted">
+          Você não possui voos nas próximas 48 horas que estejam elegíveis para check-in.
+        </p>
+        <div class="mt-4">
+          <p class="small text-muted">
+            <strong>Para fazer check-in, sua reserva deve:</strong><br>
+            • Estar no estado "Criada"<br>
+            • O voo deve estar confirmado<br>
+            • O voo deve acontecer nas próximas 48 horas
+          </p>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Informações Adicionais -->
+    <div class="mt-4" *ngIf="reservasCheckIn.length > 0">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-title">
+            <i class="bi bi-info-circle me-2"></i>
+            Informações sobre Check-In
+          </h6>
+          <p class="card-text small text-muted mb-1">
+            • O check-in confirma sua intenção de voar e ciência da data/hora do voo
+          </p>
+          <p class="card-text small text-muted mb-0">
+            • O check-in só está disponível para voos nas próximas 48 horas
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
