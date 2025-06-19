@@ -67,14 +67,14 @@ export class BookingModalComponent {
   }
 
   validateSeats() {
-  const max = this.booking.flight.quantidade_poltronas_total - this.booking.flight.quantidade_poltronas_ocupadas;
-  if (this.selectedSeats > max) {
-    this.selectedSeats = max;
+    const max = this.booking.flight.quantidade_poltronas_total - this.booking.flight.quantidade_poltronas_ocupadas;
+    if (this.selectedSeats > max) {
+      this.selectedSeats = max;
+    }
+    if (this.selectedSeats < 1) {
+      this.selectedSeats = 1;
+    }
   }
-  if (this.selectedSeats < 1) {
-    this.selectedSeats = 1;
-  }
-}
 
   finish(){
     this.activeModal.close();

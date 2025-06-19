@@ -59,8 +59,17 @@ export class BookingService {
         }))
     };
 
-  getById(id: number): Booking | undefined {
-    return this.getAll().find((booking) => booking.ID === id);
+  getById(codigo: string): Observable<CreateBookingResponseDTO | null> {
+    return this.http.get<CreateBookingResponseDTO>(`${BASE_URL}/${codigo}`, this.getHttpOptions()).pipe(
+      map((resp: HttpResponse<CreateBookingResponseDTO>) => {
+        if (resp.status === 200 && resp.body) {
+          return resp.body;
+        } else {
+          return null;
+        }
+      }),
+      catchError((err) => throwError(() => err))
+    );
   }
 
   update(booking: Booking): void {
@@ -75,11 +84,18 @@ export class BookingService {
     localStorage[LS_KEY] = JSON.stringify(bookings);
   }
 
-  delete(id: number): void {
-    let bookings = this.getAll();
-
-    bookings = bookings.filter((booking) => booking.ID !== id);
-    localStorage[LS_KEY] = JSON.stringify(bookings);
+  delete(codigo: string): Observable<CreateBookingResponseDTO | null> {
+    return this.http.delete<CreateBookingResponseDTO>(`${BASE_URL}/${codigo}`, this.getHttpOptions()).pipe(
+        map((resp: HttpResponse<CreateBookingResponseDTO>) => {
+          if (resp.body) {
+            console.log(resp.body)
+            return resp.body;
+          } else {
+            return null;
+          }
+        }),
+        catchError((err) => throwError(() => err))
+      );
   }
 
   get ActiveBookings(): Booking[] {

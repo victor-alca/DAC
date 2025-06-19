@@ -25,23 +25,23 @@ export class BoardingConfirmationComponent {
     }
 
     const bookingId = parseInt(this.reservationCode, 10);
-    const booking = this.bookingService.getById(bookingId);
+    //const booking = this.bookingService.getById(bookingId);
 
-    if (!booking) {
-      this.errorMessage = 'Código de reserva inválido ou não encontrado.';
-      return;
-    }
+    // if (!booking) {
+    //   this.errorMessage = 'Código de reserva inválido ou não encontrado.';
+    //   return;
+    // }
 
-    if (booking.status !== BookingStatus.CHECK_IN) {
-      this.errorMessage = 'A reserva não está no estado CHECK-IN.';
-      return;
-    }
+    // if (booking.status !== BookingStatus.CHECK_IN) {
+    //   this.errorMessage = 'A reserva não está no estado CHECK-IN.';
+    //   return;
+    // }
 
-    if (confirm(`Tem certeza que deseja confirmar o embarque da reserva ${this.reservationCode}?`)) {
-      booking.status = BookingStatus.SHIPPED; // Estado EMBARCADO
-      this.bookingService.update(booking);
-      this.successMessage = `Reserva ${this.reservationCode} confirmada com sucesso!`;
-      this.reservationCode = ''; // Limpa o campo após sucesso
-    }
+    // if (confirm(`Tem certeza que deseja confirmar o embarque da reserva ${this.reservationCode}?`)) {
+    //   booking.status = BookingStatus.SHIPPED; // Estado EMBARCADO
+    //   this.bookingService.update(booking);
+    //   this.successMessage = `Reserva ${this.reservationCode} confirmada com sucesso!`;
+    //   this.reservationCode = ''; // Limpa o campo após sucesso
+    // }
   }
 }

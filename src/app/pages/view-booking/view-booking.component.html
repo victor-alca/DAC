@@ -8,7 +8,7 @@
         <input
           id="code"
           class="form-control p-25 border-dark"
-          [value]="reserva.ID"
+          [value]="reserva.codigo"
           disabled
         />
       </div>
@@ -17,7 +17,7 @@
         <input
           id="status"
           class="form-control p-25 border-dark"
-          [value]="statusText"
+          [value]="reserva.estado"
           disabled
         />
       </div>
@@ -27,7 +27,7 @@
           <input
             id="from"
             class="form-control p-25 border-dark"
-            [value]="reserva.flight.aeroporto_origem"
+            [value]="reserva.voo.aeroporto_origem.nome"
             disabled
           />
         </div>
@@ -36,7 +36,7 @@
           <input
             id="to"
             class="form-control p-25 border-dark"
-            [value]="reserva.flight.aeroporto_destino"
+            [value]="reserva.voo.aeroporto_destino.nome"
             disabled
           />
         </div>
@@ -46,7 +46,7 @@
         <input
           id="date"
           class="form-control p-25 border-dark"
-          [value]="reserva.flight.data | date:'dd/MM/yyyy HH:mm'"
+          [value]="reserva.voo.data | date:'dd/MM/yyyy HH:mm'"
           disabled
         />
       </div>
@@ -55,7 +55,7 @@
         <input
           id="price"
             class="form-control p-25 border-dark"
-            [value]="(reserva.moneySpent | number:'1.2-2')?.replace('.', ',')"
+            [value]="(reserva.valor| number:'1.2-2')?.replace('.', ',')"
           disabled
         />
       </div>
@@ -64,7 +64,7 @@
         <input
           id="miles"
           class="form-control p-25 border-dark"
-          [value]="reserva.milesSpent"
+          [value]="reserva.milhas_utilizadas"
           disabled
         />
       </div>
