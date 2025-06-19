@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ClientService } from '../../services/client/client.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { ClientDTO } from '../../shared/dtos/clientDto';
+import { ExtractResponseDTO } from '../../shared/dtos/transacaoDTO';
 
 interface Transacao {
   data: Date;
@@ -10,20 +11,6 @@ interface Transacao {
   milhas: number;
   descricao: string;
   tipo: 'ENTRADA' | 'SAIDA';
-}
-
-interface ExtractResponse {
-  codigo: number;
-  saldo_milhas: number;
-  transacoes: {
-    data: string;
-    valor_reais: number;
-    quantidade_milhas: number;
-    descricao: string;
-    codigo_reserva: string;
-    tipo: 'ENTRADA' | 'SAIDA';
-    quantidadeMilhas: number;
-  }[];
 }
 
 @Component({
@@ -56,7 +43,7 @@ export class ExtractComponent implements OnInit {
     }
 
     this.clientService.getMilesTransactions({ code: user.codigo } as any).subscribe({
-      next: (response: ExtractResponse) => {
+      next: (response: ExtractResponseDTO) => {
         if (response && response.transacoes) {
           this.saldoMilhas = response.saldo_milhas;
           this.transacoes = response.transacoes.map(transacao => ({
