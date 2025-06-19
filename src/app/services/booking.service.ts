@@ -2,16 +2,33 @@ import { Injectable } from '@angular/core';
 import { Booking } from '../shared/models/booking/booking.model';
 import { BookingStatus } from '../shared/models/booking/booking-status.enum';
 import { Flight } from '../shared/models/flight/flight.model';
-import { FlightStatus } from '../shared/models/flight/flight-status.enum';
+import { catchError, map, Observable, throwError } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { AuthService } from './auth/auth.service';
+import { CreateBookingDTO } from '../shared/dtos/createBookingDTO';
+import { CreateBookingResponseDTO } from '../shared/dtos/createBookingResponseDTO';
 
 // const para o local storage
 const LS_KEY = 'bookings';
+
+const BASE_URL = 'http://localhost:3000/reservas'
 
 @Injectable({
   providedIn: 'root',
 })
 export class BookingService {
-  constructor() { }
+  constructor(private http: HttpClient, private authService: AuthService) { }
+
+  getHttpOptions() {
+      const token = this.authService.getAccessToken();
+      return {
+        observe: "response" as const,
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        })
+      };
+    }
 
   getAll(): Booking[] {
     const bookings = localStorage[LS_KEY];
@@ -25,17 +42,34 @@ export class BookingService {
     })) : [];
   }
 
-  create(booking: Booking): void {
-    const bookings = this.getAll();
+  create(booking: CreateBookingDTO): Observable<CreateBookingResponseDTO | null>{
+      return this.http.post<CreateBookingResponseDTO>(BASE_URL,
+        booking,
+        this.getHttpOptions()).pipe(
+          map((resp: HttpResponse<CreateBookingResponseDTO> ) => {
+          if (resp != null){
+            console.log(resp.body)
+            return resp.body;
+          }else{
+            return null;
+          }
+        }),
+        catchError((err) => {
+          return throwError(() => err);
+        }))
+    };
 
-    booking.ID = new Date().getTime();
-    bookings.push(booking);
-
-    localStorage[LS_KEY] = JSON.stringify(bookings);
-  }
-
-  getById(id: number): Booking | undefined {
-    return this.getAll().find((booking) => booking.ID === id);
+  getById(codigo: string): Observable<CreateBookingResponseDTO | null> {
+    return this.http.get<CreateBookingResponseDTO>(`${BASE_URL}/${codigo}`, this.getHttpOptions()).pipe(
+      map((resp: HttpResponse<CreateBookingResponseDTO>) => {
+        if (resp.status === 200 && resp.body) {
+          return resp.body;
+        } else {
+          return null;
+        }
+      }),
+      catchError((err) => throwError(() => err))
+    );
   }
 
   update(booking: Booking): void {
@@ -50,11 +84,18 @@ export class BookingService {
     localStorage[LS_KEY] = JSON.stringify(bookings);
   }
 
-  delete(id: number): void {
-    let bookings = this.getAll();
-
-    bookings = bookings.filter((booking) => booking.ID !== id);
-    localStorage[LS_KEY] = JSON.stringify(bookings);
+  delete(codigo: string): Observable<CreateBookingResponseDTO | null> {
+    return this.http.delete<CreateBookingResponseDTO>(`${BASE_URL}/${codigo}`, this.getHttpOptions()).pipe(
+        map((resp: HttpResponse<CreateBookingResponseDTO>) => {
+          if (resp.body) {
+            console.log(resp.body)
+            return resp.body;
+          } else {
+            return null;
+          }
+        }),
+        catchError((err) => throwError(() => err))
+      );
   }
 
   get ActiveBookings(): Booking[] {

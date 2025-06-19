@@ -8,6 +8,9 @@ import { Router } from '@angular/router';
 import { ClientService } from '../../services/client/client.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { ClientDTO } from '../../shared/dtos/clientDto';
+import { CreateBookingResponseDTO } from '../../shared/dtos/createBookingResponseDTO';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ConfimationModalComponent } from '../confimation-modal/confimation-modal.component';
 
 @Component({
   selector: 'app-customer-home',
@@ -15,32 +18,48 @@ import { ClientDTO } from '../../shared/dtos/clientDto';
   styleUrls: ['./customer-home.component.css']
 })
 export class CustomerHomeComponent implements OnInit {
-  reservas: Booking[] = [];
-  reservasReservadas: Booking[] = [];
-  reservasFeitas: Booking[] = [];
-  reservasCanceladas: Booking[] = [];
-  milhas: Number = 0
-
-  constructor(private bookingService: BookingService, private authService: AuthService, private clientService: ClientService, private router: Router) {}
+  reservas: CreateBookingResponseDTO[] = [];
+  reservasReservadas: CreateBookingResponseDTO[] = [];
+  reservasFeitas: CreateBookingResponseDTO[] = [];
+  reservasCanceladas: CreateBookingResponseDTO[] = [];
+  milhas: number = 0
+  clientCode: number | null = null
+  
+  constructor(private modalService: NgbModal, private bookingService: BookingService, private authService: AuthService, private clientService: ClientService, private router: Router) {}
 
   ngOnInit(): void {
-    this.reservas = this.bookingService.getAll();
-    this.filterReservas();
     let currentClient = this.authService.getCurrentUserData() as ClientDTO
+    this.clientCode = currentClient.codigo
+    this.getBookings()
     this.clientService.getById(currentClient.codigo).subscribe((resp) => {
       console.log(resp!.saldo_milhas)
       this.milhas = resp!.saldo_milhas
     })
   }
-  filterReservas(): void {
+
+  getBookings(){
+    this.clientService.getClientBookings(this.clientCode!).subscribe({
+      next: (resp) => {
+        this.reservas = resp!
+        if(this.reservas){
+          this.filterBookings();
+        }        
+      },
+      error: (e) => {
+        console.log(e)
+      }
+    });
+  }
+
+  filterBookings(): void {
     this.reservasReservadas = this.reservas.filter(
-      (reserva) => reserva.status === BookingStatus.CREATED
+      (reserva) => reserva.estado == "CRIADA"
     );
     this.reservasFeitas = this.reservas.filter(
-      (reserva) => reserva.status === BookingStatus.REALIZED
+      (reserva) => reserva.estado == "REALIZADA"
     );
     this.reservasCanceladas = this.reservas.filter(
-      (reserva) => reserva.status === BookingStatus.CANCELED
+      (reserva) => reserva.estado == "CANCELADA"
     );
   }
 
@@ -48,17 +67,31 @@ export class CustomerHomeComponent implements OnInit {
     return this.bookingService.getBookingStatusText(status);
   }
 
-  cancelBooking(bookingId: number): void {
-    const confirmCancel = confirm("Tem certeza que deseja cancelar esta reserva?");
-    if (!confirmCancel) return;
-  
-    const booking = this.reservas.find((reserva) => reserva.ID === bookingId);
-    if (booking) {
-      booking.status = BookingStatus.CANCELED;
-      this.bookingService.update(booking);
-      this.reservas = this.bookingService.getAll();
-      this.filterReservas();
-    }
+  cancelBooking(codigo: string): void {
+    const modal = this.openModal("Cancelar reserva.", "Tem certeza que deseja cancelar a reserva?");
+    modal.result.then(
+      (confirm) => {
+        this.bookingService.delete(codigo).subscribe({
+          next: (resp) => {
+            alert("Reserva cancelada com sucesso!")
+            this.getBookings()
+          },
+          error: (er) => {
+            console.log(er);
+          }
+        });
+      },
+      (dismiss) => {
+        return;
+      }
+    );
+  }
+
+  openModal(text: string, extraText: string) {
+    const modalRef = this.modalService.open(ConfimationModalComponent);
+    modalRef.componentInstance.text = text;
+    modalRef.componentInstance.extraText = extraText;
+    return modalRef;
   }
   
 }

@@ -23,13 +23,13 @@
     </thead>
     <tbody>
       <tr *ngFor="let reserva of reservasReservadas">
-        <td>{{ reserva.flight.aeroporto_origem }}</td>
-        <td>{{ reserva.flight.aeroporto_destino }}</td>
-        <td>{{ reserva.flight.data | date : "dd/MM/yyyy HH:mm" }}</td>
-        <td>{{ getBookingStatusText(reserva.status) }}</td>
+        <td>{{ reserva.voo.aeroporto_origem.nome }}</td>
+        <td>{{ reserva.voo.aeroporto_destino.nome }}</td>
+        <td>{{ reserva.voo.data | date : "dd/MM/yyyy HH:mm" }}</td>
+        <td>{{ reserva.estado }}</td>
         <td>
-          <button class="btn btn-sm btn-info me-2" [routerLink]="['/view-booking', reserva.ID]">Ver</button>
-          <button class="btn btn-sm btn-danger" (click)="cancelBooking(reserva.ID)">Cancelar</button>
+          <button class="btn btn-sm btn-info me-2" [routerLink]="['/view-booking', reserva.codigo]">Ver</button>
+          <button class="btn btn-sm btn-danger" (click)="cancelBooking(reserva.codigo)">Cancelar</button>
         </td>
       </tr>
     </tbody>
@@ -54,10 +54,10 @@
     </thead>
     <tbody>
       <tr *ngFor="let reserva of reservasFeitas">
-        <td>{{ reserva.flight.aeroporto_origem }}</td>
-        <td>{{ reserva.flight.aeroporto_destino }}</td>
-        <td>{{ reserva.flight.data | date : "dd/MM/yyyy HH:mm" }}</td>
-        <td>{{ getBookingStatusText(reserva.status) }}</td>
+        <td>{{ reserva.voo.aeroporto_origem }}</td>
+        <td>{{ reserva.voo.aeroporto_destino }}</td>
+        <td>{{ reserva.voo.data | date : "dd/MM/yyyy HH:mm" }}</td>
+        <td>{{ reserva.estado }}</td>
       </tr>
     </tbody>
   </table>
@@ -81,10 +81,10 @@
     </thead>
     <tbody>
       <tr *ngFor="let reserva of reservasCanceladas">
-        <td>{{ reserva.flight.aeroporto_origem }}</td>
-        <td>{{ reserva.flight.aeroporto_destino }}</td>
-        <td>{{ reserva.flight.data | date : "dd/MM/yyyy HH:mm" }}</td>
-        <td>{{ getBookingStatusText(reserva.status) }}</td>
+        <td>{{ reserva.voo.aeroporto_origem.nome }}</td>
+        <td>{{ reserva.voo.aeroporto_destino.nome }}</td>
+        <td>{{ reserva.voo.data | date : "dd/MM/yyyy HH:mm" }}</td>
+        <td>{{ reserva.estado }}</td>
       </tr>
     </tbody>
   </table>

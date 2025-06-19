@@ -1,6 +1,6 @@
 import { Flight } from "../models/flight/flight.model";
 
-export class VoosDTO {
+export class FlightsDTO {
     constructor(
         public fim: string,
         public inicio: string,

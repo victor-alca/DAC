@@ -27,14 +27,14 @@ export class BookingLookupComponent {
     }
 
     const id = parseInt(this.bookingId, 10);
-    const booking = this.bookingService.getById(id);
+    //const booking = this.bookingService.getById(id);
 
-    if (!booking) {
-      this.errorMessage = 'Reserva não encontrada.';
-      return;
-    }
+    // if (!booking) {
+    //   this.errorMessage = 'Reserva não encontrada.';
+    //   return;
+    // }
 
-    this.reserva = booking;
+    //this.reserva = booking;
   }
 
   canCheckIn(): boolean {
@@ -57,7 +57,7 @@ export class BookingLookupComponent {
     if (this.reserva) {
       const confirmCancel = confirm('Tem certeza de que deseja cancelar esta reserva?');
       if (confirmCancel) {
-        this.bookingService.delete(this.reserva.ID);
+        //this.bookingService.delete(this.reserva.codigo);
         this.reserva = null;
         alert('Reserva cancelada com sucesso!');
       }

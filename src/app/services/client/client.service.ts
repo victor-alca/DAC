@@ -4,6 +4,7 @@ import { Client} from '../../shared/models/client/client'
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
+import { CreateBookingResponseDTO } from '../../shared/dtos/createBookingResponseDTO';
 
 const BASE_URL = "http://localhost:3000/clientes"
 
@@ -100,7 +101,22 @@ export class ClientService {
     );
   }
 
-  getClientBookings(client: Client){ //Confirmar implementação
+  getClientBookings(code: number) : Observable<CreateBookingResponseDTO[] | null>{
+    return this.http.get<CreateBookingResponseDTO[]>(
+      `${BASE_URL}/${code}/reservas`,
+      this.getHttpOptions()).pipe(
+        map((resp: HttpResponse<CreateBookingResponseDTO[]>) => {
+          if(resp.status==200){
+            console.log(resp.body)
+            return resp.body
+          }else{
+            return null
+          }
+        }),
+        catchError((err) => {
+          return throwError(() => err)
+        })
+      )
   }
 }
 

@@ -74,5 +74,12 @@ export class BookingComponent {
       0,
       0
     );
+
+    modalRef.result.then(
+      (result) => {
+        this.loadFlights();
+      }
+    )
   }
+  
 }

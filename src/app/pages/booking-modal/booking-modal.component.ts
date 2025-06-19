@@ -3,6 +3,10 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Booking } from '../../shared/models/booking/booking.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { BookingService } from '../../services/booking.service';
+import { CreateBookingDTO } from '../../shared/dtos/createBookingDTO';
+import { AuthService } from '../../services/auth/auth.service';
+import { ClientDTO } from '../../shared/dtos/clientDto';
 
 @Component({
   selector: 'app-booking-modal',
@@ -13,7 +17,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class BookingModalComponent {
   @Input() booking!: Booking
-  constructor(public activeModal: NgbActiveModal) {}
+  constructor(public activeModal: NgbActiveModal, private bookingService: BookingService, private authService: AuthService) {}
 
   selectedSeats: number = 0;
   confirmingPayment = false;
@@ -22,9 +26,11 @@ export class BookingModalComponent {
 
   paymentCode = "";
 
+  hasPaymentError = false;
+  paymentErrorMessage = "";
+
   confirmPayment(){
     this.confirmingPayment = true;
-    this.paymentCode = this.generateCode();
   }
 
   goBack(){
@@ -32,30 +38,45 @@ export class BookingModalComponent {
   }
 
   endPayment(){
+    const bookingDTO = new CreateBookingDTO(
+      (
+        this.authService.getCurrentUserData() as ClientDTO).codigo,
+        this.selectedSeats * this.booking.flight.valor_passagem,
+        this.selectedMilles,
+        this.selectedSeats,
+        this.booking.flight.codigo,
+        this.booking.flight.aeroporto_origem.codigo,
+        this.booking.flight.aeroporto_destino.codigo
+    )
     if (window.confirm('Você tem certeza que deseja finalizar a compra?')) {
-      this.confirmingPayment = false;
-      this.endingPayment = true;
+      this.bookingService.create(bookingDTO).subscribe({
+        next: (resp) => {
+          console.log(resp)
+          this.confirmingPayment = false;
+          this.paymentCode = resp!.codigo
+          this.endingPayment = true;
+        },
+        error: (er) => {
+          console.log(er)
+          this.hasPaymentError = true;
+          this.paymentErrorMessage = er.error.message;
+        }
+      })
+      
+    }
+  }
+
+  validateSeats() {
+    const max = this.booking.flight.quantidade_poltronas_total - this.booking.flight.quantidade_poltronas_ocupadas;
+    if (this.selectedSeats > max) {
+      this.selectedSeats = max;
+    }
+    if (this.selectedSeats < 1) {
+      this.selectedSeats = 1;
     }
   }
 
   finish(){
     this.activeModal.close();
-  }
-
-  generateCode(): string{
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const numbers = "1234567890";
-
-    let code = "";
-
-    for(let i=0; i<3; i++){
-      code += letters[Math.floor(Math.random() * letters.length)]
-    }
-
-    for(let i=0; i<3; i++){
-      code += numbers[Math.floor(Math.random() * numbers.length)]
-    }
-
-    return code; 
   }
 }
