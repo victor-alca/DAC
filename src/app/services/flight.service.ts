@@ -3,7 +3,7 @@ import { Flight } from '../shared/models/flight/flight.model';
 import { FlightStatus } from '../shared/models/flight/flight-status.enum';
 import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { catchError, map, Observable, pipe, throwError } from 'rxjs';
-import { VoosDTO } from '../shared/dtos/vooDto';
+import { FlightsDTO } from '../shared/dtos/flightDto';
 
 // const para o local storage
 const LS_KEY = 'flights';
@@ -22,11 +22,11 @@ export class FlightService {
         }),
     }
 
-  getAllByPeriod(inicio: Date, fim: Date) : Observable<VoosDTO | null>{
-      return this.http.get<VoosDTO>(
+  getAllByPeriod(inicio: Date, fim: Date) : Observable<FlightsDTO | null>{
+      return this.http.get<FlightsDTO>(
         `${BASE_URL}?inicio=${inicio.toISOString().slice(0, 10)}&fim=${fim.toISOString().slice(0, 10)}`,
         this.httpOptions).pipe(
-          map((resp: HttpResponse<VoosDTO>) => {
+          map((resp: HttpResponse<FlightsDTO>) => {
             if(resp.status==200){
               console.log(resp.body)
               return resp.body
@@ -40,11 +40,11 @@ export class FlightService {
         )
   }
 
-  getAllByOriginAndDestiny(data: Date, origem: String, destino: String): Observable<VoosDTO | null>{
-    return this.http.get<VoosDTO>(
+  getAllByOriginAndDestiny(data: Date, origem: String, destino: String): Observable<FlightsDTO | null>{
+    return this.http.get<FlightsDTO>(
         `${BASE_URL}?data=${data.toISOString().slice(0, 10)}&origem=${origem}&destino=${destino}`,
         this.httpOptions).pipe(
-          map((resp: HttpResponse<VoosDTO>) => {
+          map((resp: HttpResponse<FlightsDTO>) => {
             if(resp.status==200){
               console.log(resp.body)
               return resp.body

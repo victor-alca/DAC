@@ -2,16 +2,33 @@ import { Injectable } from '@angular/core';
 import { Booking } from '../shared/models/booking/booking.model';
 import { BookingStatus } from '../shared/models/booking/booking-status.enum';
 import { Flight } from '../shared/models/flight/flight.model';
-import { FlightStatus } from '../shared/models/flight/flight-status.enum';
+import { catchError, map, Observable, throwError } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { AuthService } from './auth/auth.service';
+import { CreateBookingDTO } from '../shared/dtos/createBookingDTO';
+import { CreateBookingResponseDTO } from '../shared/dtos/createBookingResponseDTO';
 
 // const para o local storage
 const LS_KEY = 'bookings';
+
+const BASE_URL = 'http://localhost:3000/reservas'
 
 @Injectable({
   providedIn: 'root',
 })
 export class BookingService {
-  constructor() { }
+  constructor(private http: HttpClient, private authService: AuthService) { }
+
+  getHttpOptions() {
+      const token = this.authService.getAccessToken();
+      return {
+        observe: "response" as const,
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        })
+      };
+    }
 
   getAll(): Booking[] {
     const bookings = localStorage[LS_KEY];
@@ -25,14 +42,22 @@ export class BookingService {
     })) : [];
   }
 
-  create(booking: Booking): void {
-    const bookings = this.getAll();
-
-    booking.ID = new Date().getTime();
-    bookings.push(booking);
-
-    localStorage[LS_KEY] = JSON.stringify(bookings);
-  }
+  create(booking: CreateBookingDTO): Observable<CreateBookingResponseDTO | null>{
+      return this.http.post<CreateBookingResponseDTO>(BASE_URL,
+        booking,
+        this.getHttpOptions()).pipe(
+          map((resp: HttpResponse<CreateBookingResponseDTO> ) => {
+          if (resp != null){
+            console.log(resp.body)
+            return resp.body;
+          }else{
+            return null;
+          }
+        }),
+        catchError((err) => {
+          return throwError(() => err);
+        }))
+    };
 
   getById(id: number): Booking | undefined {
     return this.getAll().find((booking) => booking.ID === id);

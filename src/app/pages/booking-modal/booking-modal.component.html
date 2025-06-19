@@ -34,6 +34,7 @@
         id="seatSelection"
         class="form-control w-25"
         [(ngModel)]="selectedSeats"
+        (ngModelChange)="validateSeats()"
         [min]="1"
         [max]="booking.flight.quantidade_poltronas_total - booking.flight.quantidade_poltronas_ocupadas"
         placeholder="Escolha a quantidade"
@@ -75,6 +76,10 @@
       <p class="fw-bold card-title">Valor a pagar em reais</p>
       <p>R$ {{ selectedSeats * booking.flight.valor_passagem - selectedMilles }}</p>
     </div>
+  </div> 
+
+  <div *ngIf="hasPaymentError" class="alert alert-danger mt-2" role="alert">
+    {{paymentErrorMessage}}
   </div>
 
   <div class="row mt-3">
