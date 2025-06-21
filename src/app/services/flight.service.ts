@@ -92,12 +92,22 @@ export class FlightService {
         )
   }
 
-  getAll(): Flight[] {
-    const flights = localStorage[LS_KEY];
-    return flights ? JSON.parse(flights).map((flight: any) => ({
-      ...flight,
-      date: new Date(flight.date) // Converte strings de data para objetos Date
-    })) : [];
+  getAll(): Observable<FlightsDTO | null> {
+    return this.http.get<FlightsDTO>(
+        `${BASE_URL}`,
+        this.httpOptions).pipe(
+          map((resp: HttpResponse<FlightsDTO>) => {
+            if(resp.status==200){
+              console.log(resp.body)
+              return resp.body
+            }else{
+              return null
+            }
+          }),
+          catchError((err) => {
+            return throwError(() => err)
+          })
+        )
   }
 
   create(flight: CreateFlightDTO): Observable<CreateFlightResponseDTO | null>{
@@ -118,30 +128,42 @@ export class FlightService {
       };
 
 
-  getById(code: string): Flight | undefined {
-    const flights = this.getAll();
-    return flights.find((flight) => flight.codigo === code);
+  getById(code: string): Observable<FlightsDTO | null> {
+    return this.http.get<FlightsDTO>(
+        `${BASE_URL}?codigo=${code}`,
+        this.getHttpOptions()).pipe(
+          map((resp: HttpResponse<FlightsDTO>) => {
+            if(resp.status==200){
+              console.log(resp.body)
+              return resp.body
+            }else{
+              return null
+            }
+          }),
+          catchError((err) => {
+            return throwError(() => err)
+          })
+        )
   }
 
-  update(flight: Flight): void {
-    const flights = this.getAll();
-
-    flights.forEach((obj, index, objs) => {
-      if (flight.codigo === obj.codigo) {
-        objs[index] = flight;
-      }
-    });
-
-    localStorage[LS_KEY] = JSON.stringify(flights);
+  update(flight: CreateFlightDTO): Observable<CreateFlightResponseDTO | null> {
+  return this.http.put<CreateFlightResponseDTO>(`${BASE_URL}`,
+        this.getHttpOptions())
   }
 
-  delete(code: string): void {
-    let flights = this.getAll();
-
-    flights = flights.filter((flight) => flight.codigo !== code);
-    localStorage[LS_KEY] = JSON.stringify(flights);
+  delete(code: string): Observable<CreateFlightResponseDTO | null> {
+    return this.http.delete<CreateFlightResponseDTO>(`${BASE_URL}/${code}`,
+        this.getHttpOptions()).pipe(map((resp: HttpResponse<CreateFlightResponseDTO>) => {
+            if (resp.body) {
+              console.log(resp.body)
+              return resp.body;
+            } else {
+              return null;
+            }
+          }),
+          catchError((err) => throwError(() => err))
+        );
   }
-
   // Método temporário para inserir voos manualmente
   // seedFlights(): void {
   //   const now = new Date();
