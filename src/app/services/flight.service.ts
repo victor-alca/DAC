@@ -4,22 +4,38 @@ import { FlightStatus } from '../shared/models/flight/flight-status.enum';
 import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { catchError, map, Observable, pipe, throwError } from 'rxjs';
 import { FlightsDTO } from '../shared/dtos/flightDto';
+import { Airport } from '../shared/models/airport/airport.model';
+import { AuthService } from './auth/auth.service';
+import { CreateFlightResponseDTO } from '../shared/dtos/createFlightResponseDTO';
+import { CreateFlightDTO } from '../shared/dtos/createFlightDTO';
 
 // const para o local storage
 const LS_KEY = 'flights';
 const BASE_URL = 'http://localhost:3000/voos'
+const AIRPOT_URL = 'http://localhost:3000/aeroportos'
 
 @Injectable({
   providedIn: 'root',
 })
 export class FlightService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   httpOptions = {
         observe: "response" as "response",
         headers: new HttpHeaders({
           'Content-Type': 'application/json'
         }),
+    }
+
+    getHttpOptions() {
+      const token = this.authService.getAccessToken();
+      return {
+        observe: "response" as const,
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        })
+      };
     }
 
   getAllByPeriod(inicio: Date, fim: Date) : Observable<FlightsDTO | null>{
@@ -58,6 +74,23 @@ export class FlightService {
         )
   }
 
+  getAirports(): Observable<Airport[] | null> {
+    return this.http.get<Airport[]>(
+        `${AIRPOT_URL}`,
+        this.getHttpOptions()).pipe(
+          map((resp: HttpResponse<Airport[]>) => {
+            if(resp.status==200){
+              console.log(resp.body)
+              return resp.body
+            }else{
+              return null
+            }
+          }),
+          catchError((err) => {
+            return throwError(() => err)
+          })
+        )
+  }
 
   getAll(): Flight[] {
     const flights = localStorage[LS_KEY];
@@ -67,17 +100,23 @@ export class FlightService {
     })) : [];
   }
 
-  create(flight: Flight): string {
-    const flights = this.getAll();
+  create(flight: CreateFlightDTO): Observable<CreateFlightResponseDTO | null>{
+        return this.http.post<CreateFlightResponseDTO>(BASE_URL,
+          flight,
+          this.getHttpOptions()).pipe(
+            map((resp: HttpResponse<CreateFlightResponseDTO> ) => {
+            if (resp != null){
+              console.log(resp.body)
+              return resp.body;
+            }else{
+              return null;
+            }
+          }),
+          catchError((err) => {
+            return throwError(() => err);
+          }))
+      };
 
-    const flightsCount = flights.length + 1;
-    flight.codigo = `TADS${flightsCount.toString().padStart(4, '0')}`;
-    flights.push(flight);
-
-    localStorage[LS_KEY] = JSON.stringify(flights);
-
-    return flight.codigo; // Retorna o code gerado automaticamente
-  }
 
   getById(code: string): Flight | undefined {
     const flights = this.getAll();

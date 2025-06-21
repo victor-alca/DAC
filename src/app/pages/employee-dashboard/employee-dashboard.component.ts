@@ -19,12 +19,6 @@ export class EmployeeDashboardComponent implements OnInit {
   constructor(private flightService: FlightService, private bookingService: BookingService) {}
 
   ngOnInit() {
-    // Limpa o localStorage (remover em produção)
-    // localStorage.removeItem('flights');
-    // localStorage.removeItem('bookings');
-    // Seed de dados temporários para testes (remover em produção)
-    // this.flightService.seedFlights();
-    // this.bookingService.seedBookings();
 
     // Garante que os dados do localStorage sejam carregados corretamente
     this.flights = this.flightService.getAll()
