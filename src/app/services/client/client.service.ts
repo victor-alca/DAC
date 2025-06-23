@@ -11,6 +11,7 @@ const BASE_URL = "http://localhost:3000/clientes"
   providedIn: 'root'
 })
 
+
 export class ClientService {
 
   constructor(private http: HttpClient, private authService: AuthService) { }

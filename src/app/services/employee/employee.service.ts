@@ -6,6 +6,8 @@ import { Employee } from '../../shared/models/employee/employee';
 @Injectable({
   providedIn: 'root'
 })
+
+
 export class EmployeeService {
 
   private apiUrl = 'http://localhost:3000/funcionarios';
