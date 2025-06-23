@@ -1,40 +1,119 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { Employee } from '../../shared/models/employee/employee';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { catchError, map, Observable, throwError } from 'rxjs';
+
+import { AuthService } from '../auth/auth.service';
+import { EmployeeDTO } from '../../shared/dtos/employeeDTO';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EmployeeService {
+  private apiUrl = 'http://localhost:3000/funcionarios';
 
-  private apiUrl = 'http://localhost:5000/funcionarios';
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
-  constructor(private http: HttpClient) {}
-
-  private getAuthHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Authorization': 'Bearer ' + localStorage.getItem('access_token') 
-    });
+  getHttpOptions() {
+    const token = this.authService.getAccessToken();
+    return {
+      observe: 'response' as const,
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      }),
+    };
   }
 
-  getAll(): Observable<Employee[]> {
-    return this.http.get<Employee[]>(this.apiUrl, { headers: this.getAuthHeaders() });
+  getAll(): Observable<EmployeeDTO[] | null> {
+    return this.http.get<EmployeeDTO[]>(this.apiUrl, this.getHttpOptions()).pipe(
+      map((resp: HttpResponse<EmployeeDTO[]>) => {
+        if (resp.status == 200) {
+          console.log(resp.body);
+          return resp.body;
+        } else {
+          return null;
+        }
+      }),
+      catchError((err) => {
+        return throwError(() => err);
+      })
+    );
   }
 
-  getById(codigo: number): Observable<Employee> {
-    return this.http.get<Employee>(`${this.apiUrl}/${codigo}`, { headers: this.getAuthHeaders() });
+  getById(codigo: number): Observable<EmployeeDTO | null> {
+    return this.http
+      .get<EmployeeDTO>(`${this.apiUrl}/${codigo}`, this.getHttpOptions())
+      .pipe(
+        map((resp: HttpResponse<EmployeeDTO>) => {
+          if (resp.status == 200) {
+            console.log(resp.body);
+            return resp.body;
+          } else {
+            return null;
+          }
+        }),
+        catchError((err) => {
+          return throwError(() => err);
+        })
+      );
   }
 
-  create(employee: Employee): Observable<Employee> {
-    return this.http.post<Employee>(this.apiUrl, employee, { headers: this.getAuthHeaders() });
+  create(employee: EmployeeDTO): Observable<EmployeeDTO | null> {
+    return this.http
+      .post<EmployeeDTO>(this.apiUrl, employee, this.getHttpOptions())
+      .pipe(
+        map((resp: HttpResponse<EmployeeDTO>) => {
+          if (resp.status == 200) {
+            console.log(resp.body);
+            return resp.body;
+          } else {
+            return null;
+          }
+        }),
+        catchError((err) => {
+          return throwError(() => err);
+        })
+      );
   }
 
-  update(employee: Employee): Observable<Employee> {
-    return this.http.put<Employee>(`${this.apiUrl}/${employee.ID}`, employee, { headers: this.getAuthHeaders() });
+  update(employee: EmployeeDTO): Observable<EmployeeDTO | null> {
+    return this.http
+      .put<EmployeeDTO>(
+        `${this.apiUrl}/${employee.codigo}`,
+        employee,
+        this.getHttpOptions()
+      )
+      .pipe(
+        map((resp: HttpResponse<EmployeeDTO>) => {
+          if (resp.status == 200) {
+            console.log(resp.body);
+            return resp.body;
+          } else {
+            return null;
+          }
+        }),
+        catchError((err) => {
+          return throwError(() => err);
+        })
+      );
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
+  delete(id: number): Observable<EmployeeDTO | null> {
+    return this.http
+      .delete<EmployeeDTO>(`${this.apiUrl}/${id}`, {
+        ...this.getHttpOptions(),
+        observe: 'response',
+      })
+      .pipe(
+        map((resp: HttpResponse<EmployeeDTO>) => {
+          if (resp.status === 200) {
+            console.log(resp.body);
+            return resp.body;
+          } else {
+            return null;
+          }
+        }),
+        catchError((err) => throwError(() => err))
+      );
   }
 }

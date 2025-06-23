@@ -11,7 +11,7 @@
         name="name"
         #name="ngModel"
         placeholder="Digite o nome"
-        ngModel="{{ employee.name }}"
+        ngModel="{{ employee.nome }}"
         required
       />
       <div *ngIf="name.errors && (name.dirty || name.touched)" class="mt-1">
@@ -73,7 +73,7 @@
         name="phone"
         placeholder="Digite o telefone"
         mask="(00) 0000-0000 || (00) 0 0000-0000"
-        ngModel="{{ employee.phone }}"
+        ngModel="{{ employee.telefone }}"
         #phone="ngModel"
         phone
         required
