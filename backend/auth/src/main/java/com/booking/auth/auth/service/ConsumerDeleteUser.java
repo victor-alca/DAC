@@ -51,7 +51,7 @@ public class ConsumerDeleteUser {
       }
 
       message.setOrigin("AUTH");
-      rabbitTemplate.convertAndSend("saga.exchange", "funcionario.excluido.sucesso", message);
+      rabbitTemplate.convertAndSend("saga.exchange", "funcionario.excluir.sucesso", message);
     } catch (Exception e) {
       System.err.println("[AUTH] Erro ao processar exclusão: " + e.getMessage());
       e.printStackTrace();

@@ -40,6 +40,6 @@ public class ConsumerDeleteEmployee {
     }
 
     message.setOrigin("EMPLOYEE");
-    rabbitTemplate.convertAndSend("saga.exchange", "funcionario.excluido.sucesso", message);
+    rabbitTemplate.convertAndSend("saga.exchange", "funcionario.excluir.sucesso", message);
   }
 }

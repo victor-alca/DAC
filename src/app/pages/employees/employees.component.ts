@@ -1,58 +1,66 @@
 import { Component } from '@angular/core';
-import { Employee } from '../../shared/models/employee/employee';
+
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EmployeesModalComponent } from '../employees-modal/employees-modal.component';
 import { EmployeeService } from '../../services/employee/employee.service';
 import { from } from 'rxjs';
 import { ConfimationModalComponent } from '../confimation-modal/confimation-modal.component';
+import { EmployeeDTO } from '../../shared/dtos/employeeDTO';
 
 @Component({
   selector: 'app-employees',
   templateUrl: './employees.component.html',
-  styleUrl: './employees.component.css'
+  styleUrl: './employees.component.css',
 })
 export class EmployeesComponent {
+  constructor(
+    private modalService: NgbModal,
+    public employeeService: EmployeeService
+  ) {}
 
-  constructor(private modalService: NgbModal, public employeeService: EmployeeService) {}
+  employeeList: EmployeeDTO[] = [];
 
-  employeeList: Employee[] = []
-
-  ngOnInit(){
-        this.employeeService.getAll().subscribe({
-      next: data => this.employeeList = data,
-      error: err => console.error('Erro ao buscar funcionários:', err)
+  ngOnInit() {
+    this.employeeService.getAll().subscribe({
+      next: (data) => (this.employeeList = data || []),
+      error: (err) => console.error('Erro ao buscar funcionários:', err),
     });
   }
 
-  openEmployeesModal(employeeToEdit: Employee | null){
+  openEmployeesModal(employeeToEdit: EmployeeDTO | null) {
     const modalRef = this.modalService.open(EmployeesModalComponent);
-    if(employeeToEdit){
+    if (employeeToEdit) {
       modalRef.componentInstance.employee = employeeToEdit;
     }
-    modalRef.result.then(() => {
-    }).catch(() => {});
+    modalRef.result.then(() => {}).catch(() => {});
   }
 
-  remove(employee: Employee){
+  remove(employee: EmployeeDTO) {
     const modalRef = this.modalService.open(ConfimationModalComponent);
-    modalRef.componentInstance.text = "Tem certeza que deseja remover o funcionário?"
-    modalRef.componentInstance.extraText = "A ação vai inativa-lo."
-    modalRef.result.then((result) => {
-      if(result){
-        employee.active = false;
-        this.employeeService.update(employee)
-      }
-    }).catch(() => {});
+    modalRef.componentInstance.text =
+      'Tem certeza que deseja remover o funcionário?';
+    modalRef.componentInstance.extraText = 'A ação vai inativa-lo.';
+    modalRef.result
+      .then((result) => {
+        if (result) {
+          this.employeeService.delete(employee.codigo).subscribe({
+            next: (response) => {
+              // employee.active = false
+            },
+            error: (err) => {
+              console.log(err);
+            },
+          });
+        }
+      })
+      .catch(() => {});
   }
 
   filterEmployees() {
     const filteredEmployees = this.employeeList
-        .filter(b => 
-            b.active === true
-        )
-        .sort((a, b) => a.name.length - b.name.length);
+      // .filter((b) => b.active === true)
+      // .sort((a, b) => a.name.length - b.name.length);
 
     this.employeeList = filteredEmployees;
   }
-  
 }

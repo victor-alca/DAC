@@ -284,7 +284,7 @@
       "source": "saga.exchange",
       "destination": "funcionario.excluir.sucesso",
       "destination_type": "queue",
-      "routing_key": "funcionario.excluido.sucesso",
+      "routing_key": "funcionario.excluir.sucesso",
       "vhost": "/"
     },
     {
