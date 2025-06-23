@@ -44,21 +44,20 @@ export class EmployeesModalComponent {
     // EmployeeDTO.active = this.employee.active;
     this.employeeService.update(EmployeeDTO).subscribe({
       next: (response) => {
-        this.activeModal.close();
+        this.activeModal.close('updated');
         alert('Funcionário atualizado com sucesso!');
       },
       error: (err) => {
         console.log(err);
       },
-    });;
-    this.activeModal.close();
+    });
   }
 
   createEmployee(EmployeeDTO: EmployeeDTO) {
     // EmployeeDTO.active = true;
     this.employeeService.create(EmployeeDTO).subscribe({
       next: (response) => {
-        this.activeModal.close();
+        this.activeModal.close('created');
         alert('Senha enviada para o email do novo funcionário');
       },
       error: (err) => {

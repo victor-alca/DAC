@@ -8,14 +8,14 @@
         type="text"
         class="form-control p-25 border-dark"
         id="name"
-        name="name"
-        #name="ngModel"
+        name="nome"
+        #nome="ngModel"
         placeholder="Digite o nome"
         ngModel="{{ employee.nome }}"
         required
       />
-      <div *ngIf="name.errors && (name.dirty || name.touched)" class="mt-1">
-        <p class="text-danger" [hidden]="!name.errors['required']">
+      <div *ngIf="nome.errors && (nome.dirty || nome.touched)" class="mt-1">
+        <p class="text-danger" [hidden]="!nome.errors['required']">
           Digite o nome.
         </p>
       </div>
@@ -70,19 +70,19 @@
         type="text"
         class="form-control p-25 border-dark"
         id="phone"
-        name="phone"
+        name="telefone"
         placeholder="Digite o telefone"
         mask="(00) 0000-0000 || (00) 0 0000-0000"
         ngModel="{{ employee.telefone }}"
-        #phone="ngModel"
+        #telefone="ngModel"
         phone
         required
       />
-      <div *ngIf="phone.errors && (phone.dirty || phone.touched)" class="mt-1">
-        <p class="text-danger" [hidden]="!phone.errors['required']">
+      <div *ngIf="telefone.errors && (telefone.dirty || telefone.touched)" class="mt-1">
+        <p class="text-danger" [hidden]="!telefone.errors['required']">
           Digite seu telefone.
         </p>
-        <p class="text-danger" [hidden]="!phone.errors['phone']">
+        <p class="text-danger" [hidden]="!telefone.errors['phone']">
           Telefone inválido.
         </p>
       </div>

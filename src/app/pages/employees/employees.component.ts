@@ -32,7 +32,18 @@ export class EmployeesComponent {
     if (employeeToEdit) {
       modalRef.componentInstance.employee = employeeToEdit;
     }
-    modalRef.result.then(() => {}).catch(() => {});
+    
+    modalRef.result.then((result) => {
+        this.loadEmployees(); 
+    }).catch(() => {
+    });
+  }
+
+  loadEmployees() {
+    this.employeeService.getAll().subscribe({
+      next: (data) => (this.employeeList = data || []),
+      error: (err) => console.error('Erro ao buscar funcionários:', err),
+    });
   }
 
   remove(employee: EmployeeDTO) {
@@ -45,7 +56,7 @@ export class EmployeesComponent {
         if (result) {
           this.employeeService.delete(employee.codigo).subscribe({
             next: (response) => {
-              // employee.active = false
+              this.loadEmployees();
             },
             error: (err) => {
               console.log(err);
