@@ -5,7 +5,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { BookingModalComponent } from '../booking-modal/booking-modal.component';
 import { Booking } from '../../shared/models/booking/booking.model';
 import { BookingStatus } from '../../shared/models/booking/booking-status.enum';
-import { FlightService } from '../../services/flight.service';
+import { FlightService } from '../../services/flight/flight.service';
 import { Flight } from '../../shared/models/flight/flight.model';
 
 @Component({

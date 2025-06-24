@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FlightService } from '../../services/flight.service';
-import { BookingService } from '../../services/booking.service';
+import { FlightService } from '../../services/flight/flight.service';
+import { BookingService } from '../../services/booking/booking.service';
 import { Flight } from '../../shared/models/flight/flight.model';
 import { FlightStatus } from '../../shared/models/flight/flight-status.enum';
 import { BookingStatus } from '../../shared/models/booking/booking-status.enum';

@@ -3,7 +3,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Booking } from '../../shared/models/booking/booking.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BookingService } from '../../services/booking.service';
+import { BookingService } from '../../services/booking/booking.service';
 import { CreateBookingDTO } from '../../shared/dtos/createBookingDTO';
 import { AuthService } from '../../services/auth/auth.service';
 import { ClientDTO } from '../../shared/dtos/clientDto';

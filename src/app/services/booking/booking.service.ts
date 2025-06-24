@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Booking } from '../shared/models/booking/booking.model';
-import { BookingStatus } from '../shared/models/booking/booking-status.enum';
-import { Flight } from '../shared/models/flight/flight.model';
+import { Booking } from '../../shared/models/booking/booking.model';
+import { BookingStatus } from '../../shared/models/booking/booking-status.enum';
+import { Flight } from '../../shared/models/flight/flight.model';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
-import { AuthService } from './auth/auth.service';
-import { CreateBookingDTO } from '../shared/dtos/createBookingDTO';
-import { CreateBookingResponseDTO } from '../shared/dtos/createBookingResponseDTO';
+import { AuthService } from '../auth/auth.service';
+import { CreateBookingDTO } from '../../shared/dtos/createBookingDTO';
+import { CreateBookingResponseDTO } from '../../shared/dtos/createBookingResponseDTO';
 
 // const para o local storage
 const LS_KEY = 'bookings';

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { BookingService } from '../../services/booking.service';
+import { BookingService } from '../../services/booking/booking.service';
 import { Booking } from '../../shared/models/booking/booking.model';
 import { BookingStatus } from '../../shared/models/booking/booking-status.enum';
 

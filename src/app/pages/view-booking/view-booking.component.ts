@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Booking } from '../../shared/models/booking/booking.model';
-import { BookingService } from '../../services/booking.service';
+import { BookingService } from '../../services/booking/booking.service';
 import { CreateBookingResponseDTO } from '../../shared/dtos/createBookingResponseDTO';
 
 @Component({

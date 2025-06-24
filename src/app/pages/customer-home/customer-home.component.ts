@@ -3,7 +3,7 @@ import { Booking } from '../../shared/models/booking/booking.model';
 import { BookingStatus } from '../../shared/models/booking/booking-status.enum';
 import { Flight } from '../../shared/models/flight/flight.model';
 import { FlightStatus } from '../../shared/models/flight/flight-status.enum';
-import { BookingService } from '../../services/booking.service';
+import { BookingService } from '../../services/booking/booking.service';
 import { Router } from '@angular/router';
 import { ClientService } from '../../services/client/client.service';
 import { AuthService } from '../../services/auth/auth.service';

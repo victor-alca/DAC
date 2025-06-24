@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ClientService } from '../../services/client/client.service';
-import { BookingService } from '../../services/booking.service';
+import { BookingService } from '../../services/booking/booking.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { ClientDTO } from '../../shared/dtos/clientDto';
 

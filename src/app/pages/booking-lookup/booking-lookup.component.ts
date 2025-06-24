@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { BookingService } from '../../services/booking.service';
+import { BookingService } from '../../services/booking/booking.service';
 
 interface BookingResponse {
   codigo: string;
