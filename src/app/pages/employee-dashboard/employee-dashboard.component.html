@@ -23,8 +23,8 @@
         <tbody>
             <tr *ngFor="let flight of flights">
                 <td>{{ flight.data | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>{{ flight.aeroporto_origem }}</td>
-                <td>{{ flight.aeroporto_destino }}</td>
+                <td>{{ flight.aeroporto_origem.codigo }}</td>
+                <td>{{ flight.aeroporto_destino.codigo }}</td>
                 <td>
                     <a 
                         [routerLink]="['/boarding-confirmation']" 
@@ -33,13 +33,13 @@
                     </a>
                     <button 
                         class="btn btn-warning btn-sm mx-1" 
-                        [disabled]="flight.estado !== 1" 
+                        [disabled]="this.getFlightStatusNumber(flight.estado) !== 1" 
                         (click)="cancelFlight(flight)">
                         Cancelar Voo
                     </button>
                     <button 
                         class="btn btn-success btn-sm" 
-                        [disabled]="flight.estado !== 1" 
+                        [disabled]="this.getFlightStatusNumber(flight.estado) !== 1" 
                         (click)="markAsCompleted(flight)">
                         Completar Voo
                     </button>

@@ -1,11 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FlightService } from '../../services/flight.service';
-import { Flight } from '../../shared/models/flight/flight.model';
-import { FlightStatus } from '../../shared/models/flight/flight-status.enum';
 import { Airport } from '../../shared/models/airport/airport.model';
 import { CreateFlightDTO } from '../../shared/dtos/createFlightDTO';
-import { firstValueFrom } from 'rxjs';
-import { AirportDTO } from '../../shared/dtos/airportDTO';
 
 @Component({
   selector: 'app-flight-registration',
@@ -93,29 +89,15 @@ export class FlightRegistrationComponent implements OnInit {
     // Garantir que ticketCost é uma string antes de usar replace
     const numericTicketCost = parseFloat(String(this.ticketCost).replace(/[^\d.-]/g, '')); // Remove máscara e converte para número
   
-    const originAirportDTO = new AirportDTO(
-      this.originAirport.codigo,
-      this.originAirport.nome,
-      this.originAirport.cidade,
-      this.originAirport.uf
-    )
-
-    const destinationAirportDTO = new AirportDTO(
-      this.destinationAirport.codigo,
-      this.destinationAirport.nome,
-      this.destinationAirport.cidade,
-      this.destinationAirport.uf
-    )
+    console.log(flightDate.toISOString())
 
     const flightDTO = new CreateFlightDTO(
-      "",
-      this.date.toString(),
+      flightDate.toISOString(),
       numericTicketCost,
       this.totalSeats,
       0, // Assentos ocupados inicialmente
-      "",
-      originAirportDTO,
-      destinationAirportDTO,
+      this.originAirport.codigo,
+      this.destinationAirport.codigo,
     );
 
     console.log(flightDTO)
@@ -124,7 +106,7 @@ export class FlightRegistrationComponent implements OnInit {
     this.flightService.create(flightDTO).subscribe({
       next: (resp) => {
           console.log(resp)
-          this.successMessage = `Voo ${1} cadastrado com sucesso!`; // Exibe o ID na mensagem
+          this.successMessage = `Voo ${resp?.codigo} cadastrado com sucesso!`; // Exibe o ID na mensagem
 
         },
         error: (er) => {
@@ -156,6 +138,12 @@ export class FlightRegistrationComponent implements OnInit {
   
     // Impedir que o número comece com '0'
     if (inputElement.value.length === 0 && charCode === 48) {
+      event.preventDefault();
+    }
+
+    console.log(inputElement.value.length)
+    if (inputElement.value.length >= 3) {
+      alert('A quantidade de poltronas não deve exceder 999');
       event.preventDefault();
     }
   }

@@ -42,6 +42,7 @@ export class BookingService {
     })) : [];
   }
 
+
   create(booking: CreateBookingDTO): Observable<CreateBookingResponseDTO | null>{
       return this.http.post<CreateBookingResponseDTO>(BASE_URL,
         booking,

@@ -146,10 +146,22 @@ export class FlightService {
         )
   }
 
-  update(flight: CreateFlightDTO): Observable<CreateFlightResponseDTO | null> {
-  return this.http.put<CreateFlightResponseDTO>(`${BASE_URL}`,
-        this.getHttpOptions())
-  }
+    updateFlightStatus(codigo: string, estado: string): Observable<any> {
+      return this.http.patch<any>(
+        `${BASE_URL}/${codigo}/estado`,
+        { estado },
+        this.getHttpOptions()
+      ).pipe(
+        map((resp: HttpResponse<any>) => {
+          if (resp.status === 200 && resp.body) {
+            return resp.body;
+          } else {
+            return null;
+          }
+        }),
+        catchError((err) => throwError(() => err))
+      );
+    }
 
   delete(code: string): Observable<CreateFlightResponseDTO | null> {
     return this.http.delete<CreateFlightResponseDTO>(`${BASE_URL}/${code}`,
@@ -219,6 +231,19 @@ export class FlightService {
         return 'Realizado';
       default:
         return 'Desconhecido';
+    }
+  }
+
+  getFlightStatusNumber(status: string|FlightStatus): FlightStatus {
+    switch (status) {
+      case 'CONFIRMADO':
+        return FlightStatus.CONFIRMED;
+      case 'REALIZADO':
+        return FlightStatus.REALIZED;
+      case 'CANCELADO':
+        return FlightStatus.CANCELED;
+      default:
+        return 1;
     }
   }
 }

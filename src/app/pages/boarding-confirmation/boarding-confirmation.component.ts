@@ -34,14 +34,15 @@ export class BoardingConfirmationComponent {
           next: (resp) => {
       if (resp != null) {
         booking = resp
+        
 
-      if (booking.estado !== this.bookingService.getBookingStatusText(BookingStatus.CHECK_IN)) {
+      if (booking.estado !== "CHECK-IN") {
         this.errorMessage = 'A reserva não está no estado CHECK-IN.';
         return;
       }
 
       if (confirm(`Tem certeza que deseja confirmar o embarque da reserva ${this.reservationCode}?`)) {
-        this.bookingService.updateBookingStatus(booking.codigo, "EMBARCADO")// Estado EMBARCADO
+        this.bookingService.updateBookingStatus(booking.codigo, "EMBARCADA")// Estado EMBARCADO
         .subscribe({
       next: (response: any) => {
         if (response) {
@@ -55,8 +56,6 @@ export class BoardingConfirmationComponent {
           this.errorMessage = 'Você não tem permissão para fazer o embarque desta reserva.';
         } else if (error.status === 400) {
           this.errorMessage = 'Não é possível fazer o embarque desta reserva no momento.';
-        } else {
-          this.errorMessage = 'Erro ao fazer o embarque. Tente novamente.';
         }
       }
     });
@@ -75,10 +74,6 @@ export class BoardingConfirmationComponent {
         });
 
 
-    if (!booking) {
-      this.errorMessage = 'Código de reserva inválido ou não encontrado.';
-      return;
-    }
 
     
   }
