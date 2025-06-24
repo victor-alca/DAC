@@ -5,6 +5,7 @@ import { FlightStatus } from '../../shared/models/flight/flight-status.enum';
 import { Airport } from '../../shared/models/airport/airport.model';
 import { CreateFlightDTO } from '../../shared/dtos/createFlightDTO';
 import { firstValueFrom } from 'rxjs';
+import { AirportDTO } from '../../shared/dtos/airportDTO';
 
 @Component({
   selector: 'app-flight-registration',
@@ -14,8 +15,8 @@ import { firstValueFrom } from 'rxjs';
 export class FlightRegistrationComponent implements OnInit {
   flightCode: string = '';
   date: Date | null = null;
-  originAirport: Airport = new Airport("", "", "", "");
-  destinationAirport: Airport = new Airport("", "", "", "");
+  originAirport: Airport | null = null;
+  destinationAirport: Airport | null = null;
   ticketCost: string = ''; // Usar string para aplicar a máscara
   totalSeats: number | null = null;
   successMessage: string | null = null;
@@ -24,29 +25,30 @@ export class FlightRegistrationComponent implements OnInit {
 
   constructor(private flightService: FlightService) {}
 
-  async ngOnInit(): Promise<void> {
-    await this.loadAirports();
+  ngOnInit(): void {
+    this.loadAirports();
     console.log(this.airports)
   }
 
-  async loadAirports(): Promise<void> {
-     try {
-    const resp = await firstValueFrom(this.flightService.getAirports());
-
-    if (resp != null) {
-      this.airports = resp;
-      this.originAirport = this.airports[0]
-      this.destinationAirport = this.airports[1]
-      console.log("Dados recebidos:", this.airports);
-    } else {
-      console.log("Nenhum aeroporto cadastrado");
-      this.airports = [];
-    }
-
-  } catch (e) {
-    console.log("Erro ao buscar aeroportos:", e);
-    this.airports = [];
+  loadAirports(): void {
+    this.flightService.getAirports().subscribe({
+       next: (resp) => {
+        if (resp != null) {
+          this.airports = resp;
+        } else {
+          console.log("nenhum aeroporto cadastrado")
+          this.airports = []; 
+        }
+      },
+      error: (e) => {
+        console.log(e)
+        this.airports = [];
+      }
+    })
   }
+
+  compareAirports(a1: Airport, a2: Airport): boolean {
+  return a1 && a2 ? a1.codigo === a2.codigo : a1 === a2;
   }
 
   updateMilesEquivalent(): void {
@@ -91,13 +93,29 @@ export class FlightRegistrationComponent implements OnInit {
     // Garantir que ticketCost é uma string antes de usar replace
     const numericTicketCost = parseFloat(String(this.ticketCost).replace(/[^\d.-]/g, '')); // Remove máscara e converte para número
   
+    const originAirportDTO = new AirportDTO(
+      this.originAirport.codigo,
+      this.originAirport.nome,
+      this.originAirport.cidade,
+      this.originAirport.uf
+    )
+
+    const destinationAirportDTO = new AirportDTO(
+      this.destinationAirport.codigo,
+      this.destinationAirport.nome,
+      this.destinationAirport.cidade,
+      this.destinationAirport.uf
+    )
+
     const flightDTO = new CreateFlightDTO(
+      "",
       this.date.toString(),
       numericTicketCost,
       this.totalSeats,
       0, // Assentos ocupados inicialmente
-      this.originAirport.codigo,
-      this.destinationAirport.codigo,
+      "",
+      originAirportDTO,
+      destinationAirportDTO,
     );
 
     console.log(flightDTO)

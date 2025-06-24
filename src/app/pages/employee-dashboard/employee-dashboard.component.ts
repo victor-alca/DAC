@@ -53,13 +53,13 @@ export class EmployeeDashboardComponent implements OnInit {
       }
 
       flight.estado = FlightStatus.CANCELED;
-      this.flightService.update(flight);
+      // this.flightService.update(flight);
 
       // Cancela todas as reservas associadas ao voo
       const bookings = this.bookingService.getAll().filter(booking => booking.flight.codigo === flight.codigo);
       bookings.forEach(booking => {
         booking.status = BookingStatus.FLIGHT_CANCELED;
-        this.bookingService.update(booking);
+        // this.bookingService.update(booking);
       });
 
       this.buscarVoos()
@@ -76,7 +76,7 @@ export class EmployeeDashboardComponent implements OnInit {
       }
 
       flight.estado = FlightStatus.REALIZED;
-      this.flightService.update(flight);
+      // this.flightService.update(flight);
 
       // Atualiza todas as reservas associadas ao voo
       const bookings = this.bookingService.getAll().filter(booking => booking.flight.codigo === flight.codigo);
@@ -86,7 +86,7 @@ export class EmployeeDashboardComponent implements OnInit {
         } else {
           booking.status = BookingStatus.NOT_REALIZED; // Reserva não realizada
         }
-        this.bookingService.update(booking);
+        // this.bookingService.update(booking);
       });
 
       this.buscarVoos()

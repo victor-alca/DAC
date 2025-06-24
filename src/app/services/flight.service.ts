@@ -112,7 +112,7 @@ export class FlightService {
 
   create(flight: CreateFlightDTO): Observable<CreateFlightResponseDTO | null>{
         return this.http.post<CreateFlightResponseDTO>(BASE_URL,
-          flight,
+          JSON.stringify(flight),
           this.getHttpOptions()).pipe(
             map((resp: HttpResponse<CreateFlightResponseDTO> ) => {
             if (resp != null){

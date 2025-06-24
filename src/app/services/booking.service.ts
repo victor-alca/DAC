@@ -72,16 +72,21 @@ export class BookingService {
     );
   }
 
-  update(booking: Booking): void {
-    const bookings = this.getAll();
-
-    bookings.forEach((obj, index, objs) => {
-      if (booking.ID === obj.ID) {
-        objs[index] = booking;
-      }
-    });
-
-    localStorage[LS_KEY] = JSON.stringify(bookings);
+  update(booking: CreateBookingResponseDTO): Observable<CreateBookingResponseDTO | null> {
+    return this.http.put<CreateBookingResponseDTO>(BASE_URL,
+        booking,
+        this.getHttpOptions()).pipe(
+          map((resp: HttpResponse<CreateBookingResponseDTO> ) => {
+          if (resp != null){
+            console.log(resp.body)
+            return resp.body;
+          }else{
+            return null;
+          }
+        }),
+        catchError((err) => {
+          return throwError(() => err);
+        }))
   }
 
   delete(codigo: string): Observable<CreateBookingResponseDTO | null> {

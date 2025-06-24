@@ -18,7 +18,7 @@ export class BoardingConfirmationComponent {
 
   constructor(private bookingService: BookingService) {}
 
-  async confirmBoarding(): Promise<void> {
+  confirmBoarding(): void {
     this.errorMessage = null;
     this.successMessage = null;
 
@@ -27,7 +27,52 @@ export class BoardingConfirmationComponent {
       return;
     }
 
-    const booking : CreateBookingResponseDTO = await this.loadBooking()
+    let booking : CreateBookingResponseDTO|null = null
+
+    this.bookingService.getById(this.reservationCode).subscribe(
+        {
+          next: (resp) => {
+      if (resp != null) {
+        booking = resp
+
+      if (booking.estado !== this.bookingService.getBookingStatusText(BookingStatus.CHECK_IN)) {
+        this.errorMessage = 'A reserva não está no estado CHECK-IN.';
+        return;
+      }
+
+      if (confirm(`Tem certeza que deseja confirmar o embarque da reserva ${this.reservationCode}?`)) {
+        this.bookingService.updateBookingStatus(booking.codigo, "EMBARCADO")// Estado EMBARCADO
+        .subscribe({
+      next: (response: any) => {
+        if (response) {
+          // Atualiza os dados da reserva com a resposta
+          alert('Embarque realizado com sucesso!');
+        }
+      },
+      error: (error) => {
+        console.error('Erro ao fazer embarque:', error);
+        if (error.status === 403) {
+          this.errorMessage = 'Você não tem permissão para fazer o embarque desta reserva.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Não é possível fazer o embarque desta reserva no momento.';
+        } else {
+          this.errorMessage = 'Erro ao fazer o embarque. Tente novamente.';
+        }
+      }
+    });
+        this.reservationCode = ''; // Limpa o campo após sucesso
+      }
+
+
+      } else {
+        console.log("Nenhuma reserva encontrada");
+        throw new Error("Nenhuma reserva encontrada")
+      }
+        },
+        error: (er) => {
+          console.log(er)
+        }
+        });
 
 
     if (!booking) {
@@ -35,33 +80,7 @@ export class BoardingConfirmationComponent {
       return;
     }
 
-    if (booking.estado !== this.bookingService.getBookingStatusText(BookingStatus.CHECK_IN)) {
-      this.errorMessage = 'A reserva não está no estado CHECK-IN.';
-      return;
-    }
-
-    if (confirm(`Tem certeza que deseja confirmar o embarque da reserva ${this.reservationCode}?`)) {
-      booking.estado = this.bookingService.getBookingStatusText(BookingStatus.SHIPPED); // Estado EMBARCADO
-      this.bookingService.update(booking);
-      this.successMessage = `Reserva ${this.reservationCode} confirmada com sucesso!`;
-      this.reservationCode = ''; // Limpa o campo após sucesso
-    }
+    
   }
 
-    async loadBooking(): Promise<CreateBookingResponseDTO> {
-       try {
-      const resp = await firstValueFrom(this.bookingService.getById(this.reservationCode));
-  
-      if (resp != null) {
-        return resp
-      } else {
-        console.log("Nenhuma reserva encontrada");
-        throw new Error("Nenhuma reserva encontrada")
-      }
-  
-    } catch (e) {
-      console.log("Erro ao buscar reservas:", e);
-      throw (e)
-    }
-    }
 }
