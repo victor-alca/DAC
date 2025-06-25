@@ -111,6 +111,27 @@ export class FlightService {
       );
   }
 
+  getFlightsByParams(params: any): Observable<any> {
+    const cleanParams: any = {};
+    
+    if (params.data) {
+      cleanParams.data = params.data;
+    }
+    
+    if (params.origem && params.origem.trim()) {
+      cleanParams.origem = params.origem.trim().toUpperCase();
+    }
+    
+    if (params.destino && params.destino.trim()) {
+      cleanParams.destino = params.destino.trim().toUpperCase();
+    }
+
+    return this.http.get<any>(`${BASE_URL}`, { 
+      params: cleanParams,
+      ...this.httpOptions 
+    });
+  }
+
   getFlightStatusText(status: FlightStatus): string {
     switch (status) {
       case FlightStatus.CONFIRMED:

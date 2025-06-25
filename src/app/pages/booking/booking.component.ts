@@ -47,20 +47,87 @@ export class BookingComponent {
   }
 
   loadFlightsWithFilter(){
-    this.flightService.getAllByOriginAndDestiny(new Date(), this.searchOrigin, this.searchDestination).subscribe({
+    if (!this.searchOrigin && !this.searchDestination) {
+      console.log("Nenhum filtro fornecido, carregando todos os voos");
+      this.loadFlights();
+      return;
+    }
+
+    if (!this.searchOrigin || !this.searchDestination) {
+      console.log("Apenas um campo preenchido, usando busca por período");
+      const inicio = new Date();
+      const fim = new Date();
+      fim.setFullYear(fim.getFullYear() + 2);
+      
+      this.flightService.getAllByPeriod(inicio, fim).subscribe({
+        next: (resp) => {
+          console.log("Resposta da API período:", resp);
+          if (resp && resp.voos && resp.voos.length > 0) {
+            let voosFiltrados = resp.voos;
+            
+            if (this.searchOrigin) {
+              const origemUpper = this.searchOrigin.toUpperCase();
+              voosFiltrados = voosFiltrados.filter(v => 
+                v.aeroporto_origem.codigo.includes(origemUpper) || 
+                v.aeroporto_origem.nome.toUpperCase().includes(origemUpper)
+              );
+            }
+            
+            if (this.searchDestination) {
+              const destinoUpper = this.searchDestination.toUpperCase();
+              voosFiltrados = voosFiltrados.filter(v => 
+                v.aeroporto_destino.codigo.includes(destinoUpper) || 
+                v.aeroporto_destino.nome.toUpperCase().includes(destinoUpper)
+              );
+            }
+            
+            this.flights = voosFiltrados;
+            console.log("Voos filtrados:", this.flights.length);
+          } else {
+            this.flights = [];
+          }
+        },
+        error: (e) => {
+          console.error("Erro na pesquisa por período:", e);
+          this.flights = [];
+        }
+      });
+      return;
+    }
+
+    const agora = new Date();
+    const dataVooStr = agora.toISOString();
+    
+    const params = {
+      data: dataVooStr,
+      origem: this.searchOrigin.toUpperCase(),
+      destino: this.searchDestination.toUpperCase()
+    };
+
+    console.log("Buscando com ambos os parâmetros:", params);
+
+    this.flightService.getFlightsByParams(params).subscribe({
       next: (resp) => {
-        if (resp != null) {
+        console.log("Resposta da API específica:", resp);
+        if (resp && resp.voos && resp.voos.length > 0) {
           this.flights = resp.voos; 
+          console.log("Voos encontrados:", this.flights.length);
         } else {
-          console.log("Nenhum voo cadastrado")
+          console.log("Nenhum voo encontrado para os critérios específicos");
           this.flights = []; 
         }
       },
       error: (e) => {
-        console.log(e)
+        console.error("Erro na pesquisa específica:", e);
         this.flights = [];
       }
     });
+  }
+
+  clearFilters() {
+    this.searchOrigin = '';
+    this.searchDestination = '';
+    this.loadFlights();
   }
 
   openBookingModal(flightCode: string) {

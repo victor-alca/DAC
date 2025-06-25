@@ -20,20 +20,40 @@
     </button>
   </div>
   <hr class="separador" />
-  <table class="table table-striped mt-3">
+  
+  <!-- Mensagem quando não há voos -->
+  <div *ngIf="flights.length === 0" class="alert alert-info">
+    <p class="mb-0">
+      <i class="fas fa-info-circle me-2"></i>
+      Nenhum voo encontrado para os critérios de pesquisa.
+    </p>
+  </div>
+  
+  <!-- Tabela de voos -->
+  <table class="table table-striped mt-3" *ngIf="flights.length > 0">
     <thead>
       <tr>
         <th class="bg-gray">Data</th>
         <th class="bg-gray">Origem</th>
         <th class="bg-gray">Destino</th>
+        <th class="bg-gray">Preço</th>
+        <th class="bg-gray">Vagas</th>
         <th class="bg-gray">Ação</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let flight of flights">
         <td>{{ flight.data | date:'dd/MM/yyyy HH:mm'}}</td>
-        <td>{{ flight.aeroporto_origem.nome }}</td>
-        <td>{{ flight.aeroporto_destino.nome }}</td>
+        <td>
+          <strong>{{ flight.aeroporto_origem.codigo }}</strong><br>
+          <small>{{ flight.aeroporto_origem.nome }}</small>
+        </td>
+        <td>
+          <strong>{{ flight.aeroporto_destino.codigo }}</strong><br>
+          <small>{{ flight.aeroporto_destino.nome }}</small>
+        </td>
+        <td>{{ flight.valor_passagem | currency:'BRL':'symbol':'1.2-2' }}</td>
+        <td>{{ flight.quantidade_poltronas_total - flight.quantidade_poltronas_ocupadas }}</td>
         <td>
           <button class="btn btn-primary" (click)="openBookingModal(flight.codigo)">
             Selecionar

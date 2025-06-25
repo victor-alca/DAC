@@ -54,15 +54,20 @@
     </thead>
     <tbody>
       <tr *ngFor="let reserva of reservasFeitas">
-        <td>{{ reserva.voo.aeroporto_origem }}</td>
-        <td>{{ reserva.voo.aeroporto_destino }}</td>
+        <td>{{ reserva.voo.aeroporto_origem.nome }}</td>
+        <td>{{ reserva.voo.aeroporto_destino.nome }}</td>
         <td>{{ reserva.voo.data | date : "dd/MM/yyyy HH:mm" }}</td>
-        <td>{{ reserva.estado }}</td>
+        <td>
+          <span class="badge bg-success">{{ reserva.estado }}</span>
+        </td>
       </tr>
     </tbody>
   </table>
   <ng-template #noCompletedFlights>
-    <p class="text-muted">Nenhum voo realizado encontrado.</p>
+    <div class="alert alert-info">
+      <i class="fas fa-info-circle me-2"></i>
+      Nenhum voo realizado encontrado.
+    </div>
   </ng-template>
 
   <!-- Reservas Canceladas -->

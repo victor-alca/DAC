@@ -53,13 +53,13 @@ export class CustomerHomeComponent implements OnInit {
 
   filterBookings(): void {
     this.reservasReservadas = this.reservas.filter(
-      (reserva) => reserva.estado == "CRIADA"
+      (reserva) => reserva.estado == "CRIADA" || reserva.estado == "CHECK-IN" || reserva.estado == "EMBARCADA"
     );
     this.reservasFeitas = this.reservas.filter(
       (reserva) => reserva.estado == "REALIZADA"
     );
     this.reservasCanceladas = this.reservas.filter(
-      (reserva) => reserva.estado == "CANCELADA"
+      (reserva) => reserva.estado == "CANCELADA" || reserva.estado == "CANCELADA VOO" || reserva.estado == "NÃO REALIZADA"
     );
   }
 

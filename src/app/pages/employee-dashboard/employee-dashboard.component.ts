@@ -29,23 +29,26 @@ return this.flightService.getFlightStatusNumber(status)
   }
 
   buscarVoos() {
-        const now = new Date();
-        const next48Hours = new Date();
-        next48Hours.setHours(now.getHours() + 48);
+    const now = new Date();
+    const next48Hours = new Date();
+    next48Hours.setHours(now.getHours() + 48);
 
-     this.flightService.getAllByPeriod(now, next48Hours).subscribe({
+    this.flightService.getAllByPeriod(now, next48Hours).subscribe({
       next: (resp) => {
-          console.log(resp)
-          if (resp != null) {
-          this.flights = resp.voos;
+        console.log(resp)
+        if (resp != null) {
+          // Filtra apenas voos confirmados (não cancelados nem realizados)
+          this.flights = resp.voos.filter(flight => 
+            this.flightService.getFlightStatusNumber(flight.estado) === FlightStatus.CONFIRMED
+          );
         } else {
           console.log("nenhum voo cadastrado")
           this.flights = []; 
         }
-        },
-        error: (er) => {
-          console.log(er)
-        }
+      },
+      error: (er) => {
+        console.log(er)
+      }
     })
   }
 
