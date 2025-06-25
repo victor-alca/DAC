@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 import { BookingService } from '../../services/booking/booking.service';
 import { Booking } from '../../shared/models/booking/booking.model';
 import { BookingStatus } from '../../shared/models/booking/booking-status.enum';
+import { CreateBookingDTO } from '../../shared/dtos/createBookingDTO';
+import { firstValueFrom } from 'rxjs';
+import { CreateBookingResponseDTO } from '../../shared/dtos/createBookingResponseDTO';
 
 @Component({
   selector: 'app-boarding-confirmation',
@@ -24,24 +27,55 @@ export class BoardingConfirmationComponent {
       return;
     }
 
-    const bookingId = parseInt(this.reservationCode, 10);
-    //const booking = this.bookingService.getById(bookingId);
+    let booking : CreateBookingResponseDTO|null = null
 
-    // if (!booking) {
-    //   this.errorMessage = 'Código de reserva inválido ou não encontrado.';
-    //   return;
-    // }
+    this.bookingService.getById(this.reservationCode).subscribe(
+        {
+          next: (resp) => {
+      if (resp != null) {
+        booking = resp
+        
 
-    // if (booking.status !== BookingStatus.CHECK_IN) {
-    //   this.errorMessage = 'A reserva não está no estado CHECK-IN.';
-    //   return;
-    // }
+      if (booking.estado !== "CHECK-IN") {
+        this.errorMessage = 'A reserva não está no estado CHECK-IN.';
+        return;
+      }
 
-    // if (confirm(`Tem certeza que deseja confirmar o embarque da reserva ${this.reservationCode}?`)) {
-    //   booking.status = BookingStatus.SHIPPED; // Estado EMBARCADO
-    //   this.bookingService.update(booking);
-    //   this.successMessage = `Reserva ${this.reservationCode} confirmada com sucesso!`;
-    //   this.reservationCode = ''; // Limpa o campo após sucesso
-    // }
+      if (confirm(`Tem certeza que deseja confirmar o embarque da reserva ${this.reservationCode}?`)) {
+        this.bookingService.updateBookingStatus(booking.codigo, "EMBARCADA")// Estado EMBARCADO
+        .subscribe({
+      next: (response: any) => {
+        if (response) {
+          // Atualiza os dados da reserva com a resposta
+          alert('Embarque realizado com sucesso!');
+        }
+      },
+      error: (error) => {
+        console.error('Erro ao fazer embarque:', error);
+        if (error.status === 403) {
+          this.errorMessage = 'Você não tem permissão para fazer o embarque desta reserva.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Não é possível fazer o embarque desta reserva no momento.';
+        }
+      }
+    });
+        this.reservationCode = ''; // Limpa o campo após sucesso
+      }
+
+
+      } else {
+        console.log("Nenhuma reserva encontrada");
+        throw new Error("Nenhuma reserva encontrada")
+      }
+        },
+        error: (er) => {
+          console.log(er)
+        }
+        });
+
+
+
+    
   }
+
 }
