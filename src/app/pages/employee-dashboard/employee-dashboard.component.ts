@@ -6,6 +6,7 @@ import { FlightStatus } from '../../shared/models/flight/flight-status.enum';
 import { BookingStatus } from '../../shared/models/booking/booking-status.enum';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FlightsDTO } from '../../shared/dtos/flightDto';
 
 @Component({
   selector: 'app-employee-dashboard',
@@ -13,81 +14,96 @@ import { RouterModule } from '@angular/router';
   styleUrls: ['./employee-dashboard.component.css']
 })
 export class EmployeeDashboardComponent implements OnInit {
-  flights: Flight[] = [];
+getFlightStatusNumber(status: FlightStatus) {
+return this.flightService.getFlightStatusNumber(status)
+}
+  flights: Flight[]  = [];
+  errorMessage: string | null = null;
   successMessage: string | null = null;
 
   constructor(private flightService: FlightService, private bookingService: BookingService) {}
 
   ngOnInit() {
-    // Limpa o localStorage (remover em produção)
-    // localStorage.removeItem('flights');
-    // localStorage.removeItem('bookings');
-    // Seed de dados temporários para testes (remover em produção)
-    // this.flightService.seedFlights();
-    // this.bookingService.seedBookings();
+    this.buscarVoos()
 
-    // Garante que os dados do localStorage sejam carregados corretamente
-    this.flights = this.flightService.getAll()
-      .map(flight => ({
-        ...flight,
-        date: new Date(flight.data) // Converte strings de data para objetos Date
-      }))
-      .filter(flight => {
+  }
+
+  buscarVoos() {
         const now = new Date();
         const next48Hours = new Date();
         next48Hours.setHours(now.getHours() + 48);
-        return flight.estado === FlightStatus.CONFIRMED && flight.date >= now && flight.date <= next48Hours;
-      })
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+     this.flightService.getAllByPeriod(now, next48Hours).subscribe({
+      next: (resp) => {
+          console.log(resp)
+          if (resp != null) {
+          this.flights = resp.voos;
+        } else {
+          console.log("nenhum voo cadastrado")
+          this.flights = []; 
+        }
+        },
+        error: (er) => {
+          console.log(er)
+        }
+    })
   }
 
   cancelFlight(flight: Flight) {
-    if (flight.estado === FlightStatus.CONFIRMED) {
-      const confirmation = confirm(`Tem certeza que deseja cancelar o voo ${flight.aeroporto_origem} -> ${flight.aeroporto_destino}?`);
+    if (this.flightService.getFlightStatusNumber(flight.estado) === FlightStatus.CONFIRMED) {
+      const confirmation = confirm(`Tem certeza que deseja cancelar o voo ${flight.aeroporto_origem.codigo} -> ${flight.aeroporto_destino.codigo}?`);
       if (!confirmation) {
         return;
       }
+      this.flightService.updateFlightStatus(flight.codigo, "CANCELADO").subscribe({
+      next: (response: any) => {
+        if (response) {
+          // Atualiza os dados da reserva com a resposta
+      console.log(`Voo cancelado: ${flight.aeroporto_origem.codigo} -> ${flight.aeroporto_destino.codigo}`);
+          alert(`Voo ${flight.aeroporto_origem.codigo} -> ${flight.aeroporto_destino.codigo} cancelado com sucesso!`);
+        }
+      },
+      error: (error) => {
+        console.error('Erro ao cancelar voo:', error);
+        if (error.status === 403) {
+          this.errorMessage = 'Você não tem permissão para este voo.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Não é possível cancelar este voo no momento.';
+        }
+      }
+    });
 
-      flight.estado = FlightStatus.CANCELED;
-      this.flightService.update(flight);
-
-      // Cancela todas as reservas associadas ao voo
-      const bookings = this.bookingService.getAll().filter(booking => booking.flight.codigo === flight.codigo);
-      bookings.forEach(booking => {
-        booking.status = BookingStatus.FLIGHT_CANCELED;
-        this.bookingService.update(booking);
-      });
-
-      this.flights = this.flights.filter(f => f.codigo !== flight.codigo);
-      this.successMessage = `Voo ${flight.aeroporto_origem} -> ${flight.aeroporto_destino} cancelado com sucesso!`;
-      console.log(`Voo cancelado: ${flight.aeroporto_origem} -> ${flight.aeroporto_destino}`);
+      this.buscarVoos()
     }
   }
 
   markAsCompleted(flight: Flight) {
-    if (flight.estado === FlightStatus.CONFIRMED) {
-      const confirmation = confirm(`Tem certeza que deseja marcar o voo ${flight.aeroporto_origem} -> ${flight.aeroporto_destino} como realizado?`);
+    if (this.flightService.getFlightStatusNumber(flight.estado) === FlightStatus.CONFIRMED) {
+      const confirmation = confirm(`Tem certeza que deseja marcar o voo ${flight.aeroporto_origem.codigo} -> ${flight.aeroporto_destino.codigo} como realizado?`);
       if (!confirmation) {
         return;
       }
 
-      flight.estado = FlightStatus.REALIZED;
-      this.flightService.update(flight);
-
-      // Atualiza todas as reservas associadas ao voo
-      const bookings = this.bookingService.getAll().filter(booking => booking.flight.codigo === flight.codigo);
-      bookings.forEach(booking => {
-        if (booking.status === BookingStatus.SHIPPED) {
-          booking.status = BookingStatus.REALIZED; // Reserva realizada
-        } else {
-          booking.status = BookingStatus.NOT_REALIZED; // Reserva não realizada
+      this.flightService.updateFlightStatus(flight.codigo, "REALIZADO").subscribe({
+      next: (response: any) => {
+        if (response) {
+          // Atualiza os dados da reserva com a resposta
+      console.log(`Voo realizado: ${flight.aeroporto_origem.codigo} -> ${flight.aeroporto_destino.codigo}`);
+          alert(`Voo ${flight.aeroporto_origem.codigo} -> ${flight.aeroporto_destino.codigo} marcado como realizado com sucesso!`);
         }
-        this.bookingService.update(booking);
-      });
+      },
+      error: (error) => {
+        console.error('Erro ao marcar voo como realizado:', error);
+        if (error.status === 403) {
+          this.errorMessage = 'Você não tem permissão marcar este voo como realizado.';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Não é possível marcar este voo como realizado no momento.';
+        }
+      }
+    });
 
-      this.flights = this.flights.filter(f => f.codigo !== flight.codigo); // Remove da lista exibcodea
-      this.successMessage = `Voo ${flight.aeroporto_origem} -> ${flight.aeroporto_destino} marcado como realizado com sucesso!`;
-      console.log(`Voo realizado: ${flight.aeroporto_origem} -> ${flight.aeroporto_destino}`);
+
+      this.buscarVoos()
     }
   }
 }

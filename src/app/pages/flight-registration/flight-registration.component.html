@@ -22,11 +22,12 @@
           id="originAirport"
           class="form-control p-25 min-w-750px border-dark"
           [(ngModel)]="originAirport"
+          [compareWith]="compareAirports"
           name="originAirport"
           required
         >
-          <option *ngFor="let airport of airports" [value]="airport">
-            {{ airport }}
+          <option *ngFor="let airport of airports" [ngValue]="airport">
+            {{ airport.codigo }}
           </option>
         </select>
       </div>
@@ -38,11 +39,12 @@
           id="destinationAirport"
           class="form-control p-25 min-w-750px border-dark"
           [(ngModel)]="destinationAirport"
+          [compareWith]="compareAirports"
           name="destinationAirport"
           required
         >
-          <option *ngFor="let airport of airports" [value]="airport">
-            {{ airport }}
+          <option *ngFor="let airport of airports" [ngValue]="airport">
+            {{ airport.codigo }}
           </option>
         </select>
       </div>
