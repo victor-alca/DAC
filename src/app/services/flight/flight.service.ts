@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { Flight } from '../shared/models/flight/flight.model';
-import { FlightStatus } from '../shared/models/flight/flight-status.enum';
+import { Flight } from '../../shared/models/flight/flight.model';
+import { FlightStatus } from '../../shared/models/flight/flight-status.enum';
 import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
-import { FlightsDTO } from '../shared/dtos/flightDto';
-import { Airport } from '../shared/models/airport/airport.model';
-import { AuthService } from './auth/auth.service';
-import { CreateFlightResponseDTO } from '../shared/dtos/createFlightResponseDTO';
-import { CreateFlightDTO } from '../shared/dtos/createFlightDTO';
+import { FlightsDTO } from '../../shared/dtos/flightDto';
+import { Airport } from '../../shared/models/airport/airport.model';
+import { AuthService } from '../auth/auth.service';
+import { CreateFlightResponseDTO } from '../../shared/dtos/createFlightResponseDTO';
+import { CreateFlightDTO } from '../../shared/dtos/createFlightDTO';
 
 const LS_KEY = 'flights';
 const BASE_URL = 'http://localhost:3000/voos';
